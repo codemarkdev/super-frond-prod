@@ -110,7 +110,7 @@
     </section>
 </template>
 <script>
-    import HttpService from '../Servicios/HttpService'
+    import HttpService from '@/Servicios/HttpService'
     import Utiles from '../Servicios/Utiles'
     import CartasTotales from './Extras/CartasTotales'
     import SelectAnio from './Extras/SelectAnio'
