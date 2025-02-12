@@ -1,10 +1,10 @@
 const AyudanteSesion = {
   verificarSesion() {
-    return !!localStorage.getItem('datosUsuario')
+    return !!localStorage.getItem('userData')
   },
 
   obtenerDatosSesion() {
-    const datosUsuario = JSON.parse(localStorage.getItem('datosUsuario') || '{}')
+    const datosUsuario = JSON.parse(localStorage.getItem('userData') || '{}')
     return {
       id: datosUsuario.id,
       usuario: datosUsuario.usuario,
@@ -13,7 +13,7 @@ const AyudanteSesion = {
   },
 
   establecerSesion(usuario) {
-    localStorage.setItem('datosUsuario', JSON.stringify(usuario))
+    localStorage.setItem('userData', JSON.stringify(usuario))
   },
 
   establecerDatosNegocio(datos) {
