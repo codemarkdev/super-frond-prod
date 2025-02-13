@@ -1,27 +1,23 @@
-const RUTA_GLOBAL = "http://localhost:3000/";
+import axios from "axios";
 
-const HttpService = {
-  async login(datos) {
-    try {
-      const respuesta = await fetch(RUTA_GLOBAL + "users/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(datos),
-      });
-      
-      const resultado = await respuesta.json();
-      
-      return {
-        statusCode: respuesta.status,
-        data: resultado
-      };
-    } catch (error) {
-      console.error("Error en login:", error);
-      throw error;
-    }
-  },
+const apiRequest = async ({ method, path, data = {} }) => {
+  try {
+    const headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    const response = await axios({
+      method,
+      url: `${process.env.VUE_APP_API_URL}${path}`,
+      data,
+      headers,
+    });
+
+    return response;
+  } catch (error) {
+    return error; 
+  }
 };
 
-export default HttpService;
+export default apiRequest;

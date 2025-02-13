@@ -55,8 +55,9 @@
 </template>
 
 <script>
-import HttpService from '@/Servicios/HttpService'
+// import HttpService from '@/Servicios/HttpService'
 import AyudanteSesion from '@/Servicios/AyudanteSesion'
+import apiRequest from '@/Servicios/HttpService';
 
 export default {
   name: "InicioSesion",
@@ -85,10 +86,16 @@ export default {
       this.loading = true;
     
       try {
-        const response = await HttpService.login(this.usuario);
-        console.log('Respuesta completa:', response);
+        // const response = await HttpService.login(this.usuario);
+        // console.log('Respuesta completa:', response);
+       const response = await apiRequest({
+          method: 'POST', 
+          path: "users/login",
+          data: this.usuario, 
+        })
 
-        if (response.statusCode === 201) {
+
+        if (response.status === 201) {
           AyudanteSesion.establecerSesion(response.data);
           
           this.animateLogin = 'animate__animated animate__fadeOut';
@@ -97,7 +104,6 @@ export default {
             message: 'Inicio de sesión exitoso.'
           });
 
-          // Redirigir al usuario después de un breve retraso
           setTimeout(() => {
             this.$router.push({ name: 'InicioComponent' })
               .catch(err => {
@@ -133,9 +139,7 @@ export default {
   }
 }
 
-const API = import.meta.VUE_APP_API
 
-console.log("API",API )
 </script>
 
 <style scoped>

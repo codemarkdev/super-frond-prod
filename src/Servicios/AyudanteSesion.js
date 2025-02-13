@@ -13,6 +13,7 @@ const AyudanteSesion = {
   },
 
   establecerSesion(usuario) {
+    location.reload()
     localStorage.setItem('userData', JSON.stringify(usuario))
   },
 
