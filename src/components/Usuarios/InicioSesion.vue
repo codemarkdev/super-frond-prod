@@ -132,6 +132,10 @@ export default {
     }
   }
 }
+
+const API = import.meta.VUE_APP_API
+
+console.log("API",API )
 </script>
 
 <style scoped>

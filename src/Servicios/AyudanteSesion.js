@@ -25,7 +25,7 @@ const AyudanteSesion = {
   },
 
   cerrarSesion() {
-    localStorage.removeItem('datosUsuario')
+    localStorage.removeItem('userData')
     localStorage.removeItem('datosNegocio')
     location.reload()
   }
