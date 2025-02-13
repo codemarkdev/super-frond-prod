@@ -126,6 +126,12 @@ const routes = [
     meta: { requiresAuth: true }
   },  
   {
+    path: '/cambiar-password/:id',
+    name: 'CambiarPassword',
+    component: CambiarPassword,
+    meta: { requiresAuth: true }
+  },  
+  {
     path: '/configurar',
     name: 'ConfiguracionComponent',
     component: ConfiguracionComponent,

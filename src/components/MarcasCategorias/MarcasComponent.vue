@@ -6,7 +6,7 @@
 
         <b-table
         :data="marcas">
-          <b-table-column field="nombreMarca" label="Marca" sortable searchable v-slot="props">
+          <b-table-column field="nombreMarca" label="Marca" sortable v-slot="props">
                 {{ props.row.nombreMarca }}
             </b-table-column>
 
@@ -37,6 +37,7 @@
 <script>
     import DialogoMarcas from './DialogoMarcas'
     import HttpService from '../../Servicios/HttpService'
+import apiRequest from '../../Servicios/HttpService';
 
     export default{
         name: "MarcasComponent",
@@ -106,9 +107,13 @@
 
                 let accionARealizar = (this.tituloModal === 'Agregar') ? 'registrar' : (this.tituloModal === 'Editar') ? 'editar' : false
 
-                HttpService.registrar('marcas.php', {
-                    accion: accionARealizar,
-                    marca: {nombreMarca:nombre, id: this.idMarca }
+                // HttpService.registrar('marcas.php', {
+                //     accion: accionARealizar,
+                //     marca: {nombreMarca:nombre, id: this.idMarca }
+                // })
+                apiRequest({
+                    method: `${this.tituloModal === 'Agregar' ? 'POST': this.tituloModal === 'Editar' ? 'PATCH' : false}`, 
+                    path: `${this.tituloModal === 'Agregar' ? 'brands': this.tituloModal === 'Editar' ? 'brands/' : false}`
                 })
                 .then(registrado => {
                     if(registrado === 'existe'){
@@ -140,12 +145,16 @@
 
             obtenerMarcas(){
                 this.cargando = true
-                let payload = {
-                  accion: 'obtener'
-                }
-                HttpService.obtenerConConsultas('marcas.php', payload)
+                // let payload = {
+                //   accion: 'obtener'
+                // }
+                // HttpService.obtenerConConsultas('marcas.php', payload)
+                apiRequest({
+                    method: 'GET', 
+                    path: 'brands'
+                })
                 .then(marcas => {
-                  this.marcas = marcas
+                  this.marcas = marcas.data
                   this.cargando = false
                 })
             },

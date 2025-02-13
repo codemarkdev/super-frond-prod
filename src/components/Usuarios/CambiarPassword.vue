@@ -1,5 +1,13 @@
 <template>
     <section>
+        <h1 class="title is-1">Cambiar contraseña</h1>
+        <b-breadcrumb
+            align="is-left"
+        >
+            <b-breadcrumb-item tag='router-link' to="/">Inicio</b-breadcrumb-item>
+            <b-breadcrumb-item tag='router-link' to="/usuarios">Usuarios</b-breadcrumb-item>
+            <b-breadcrumb-item active>Cambiar contraseña</b-breadcrumb-item>
+        </b-breadcrumb>
         <b-field label="Escribe la contraseña actual">
             <b-input type="password"
             placeholder="Contraseña actual"
@@ -34,6 +42,7 @@
     import AyudanteSesion from '../../Servicios/AyudanteSesion'
     import HttpService from '../../Servicios/HttpService'
     import ErroresComponent from '../Extras/ErroresComponent'
+import apiRequest from '../../Servicios/HttpService';
 
     export default {
         name: "CambiarPassword",
@@ -84,13 +93,23 @@
                     },
 
                     async verificarPasswordActual(){
-                        let paylaod = {
-                            accion: "verificar_password",
-                            idUsuario: AyudanteSesion.obtenerDatosSesion().id,
-                            password: this.password.passwordActual
-                        }
+                        // let paylaod = {
+                        //     accion: "verificar_password",
+                        //     idUsuario: AyudanteSesion.obtenerDatosSesion().id,
+                        //     password: this.password.passwordActual
+                        // }
 
-                        return await HttpService.obtenerConConsultas('usuarios.php', paylaod)
+                        // return await HttpService.obtenerConConsultas('usuarios.php', paylaod)
+
+                        apiRequest({
+                            method: 'POST', 
+                            path: 'users/verify-password',
+                            data: {
+                               password: this.password.passwordActual,
+                               userId: this.$route.params.id
+                            }
+                        }
+                        )
                     },
 
                     validarPassword (password) {

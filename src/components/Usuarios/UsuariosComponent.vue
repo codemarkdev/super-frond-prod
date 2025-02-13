@@ -4,16 +4,16 @@
         <mensaje-inicial :titulo="'No se han registrado usuarios'" :subtitulo="'Agrega algunos usuarios'" v-if="usuarios.length < 1" />
         <b-table
         :data="usuarios">
-            <b-table-column field="usuario" label="Nombre de usuario" sortable searchable v-slot="props">
-                {{ props.row.usuario }}
+            <b-table-column field="usuario" label="Nombre de usuario" sortable v-slot="props">
+                {{ props.row.username }}
             </b-table-column>
 
-            <b-table-column field="nombre" label="Nombre completo" sortable searchable v-slot="props">
-                {{ props.row.nombre }}
+            <b-table-column field="nombre" label="Nombre completo" sortable  v-slot="props">
+                {{ props.row.name }}
             </b-table-column>
 
-            <b-table-column field="telefono" label="Teléfono" sortable searchable v-slot="props">
-                {{ props.row.telefono }}
+            <b-table-column field="telefono" label="Teléfono" sortable v-slot="props">
+                {{ props.row.phone }}
             </b-table-column>
 
             <b-table-column field="eliminar" label="Eliminar" v-slot="props">
@@ -23,6 +23,10 @@
             <b-table-column field="editar" label="Editar" v-slot="props">
                 <b-button type="is-info" icon-left="pen" @click="editar(props.row.id)">Editar</b-button>
             </b-table-column>
+
+            <b-table-column field="editar" label="Cambiar contraseña" v-slot="props">
+                <b-button type="is-info" icon-left="shield" @click="changePass(props.row.id)">Cambiar contraseña</b-button>
+            </b-table-column>
         </b-table>
         <b-loading :is-full-page="true" v-model="cargando" :can-cancel="false"></b-loading>
     </section>
@@ -30,7 +34,8 @@
 <script>
     import MensajeInicial from '../Extras/MensajeInicial'
     import NavComponent from '../Extras/NavComponent'
-    import HttpService from '../../Servicios/HttpService'
+ 
+    import apiRequest from '../../Servicios/HttpService';
 
     export default {
         name: "UsuariosComponent",
@@ -56,18 +61,23 @@
                     hasIcon: true,
                     onConfirm: () => {
                         this.cargando = true
-                        HttpService.eliminar('usuarios.php',{
-                            accion: 'eliminar',
-                            id: idUsuario
+                        // HttpService.eliminar('usuarios.php',{
+                        //     accion: 'eliminar',
+                        //     id: idUsuario
+                        // })
+
+                        apiRequest({
+                            method: 'DELETE', 
+                            path: `users/${idUsuario}`
                         })
                         .then(resultado => {
-                            if(!resultado) {
+                            if(!resultado.data) {
                                 this.$buefy.toast.open('Error al eliminar')
                                 this.cargando = false
                                 return
                             }
 
-                            if(resultado){
+                            if(resultado.data){
                                 this.cargando = false
                                 this.$buefy.toast.open({
                                     type: 'is-info',
@@ -86,15 +96,26 @@
                     params: { id: idUsuario}
                 })
             },
+            changePass(idUsuario){
+                this.$router.push({
+                    name: "CambiarPassword",
+                    params: { id: idUsuario}
+                })
+            },
 
-            obtenerUsuarios(){
+
+            obtenerUsuarios (){
                 this.cargando = true
-                let payload = {
-                    accion: 'obtener'
-                }
-                HttpService.obtenerConConsultas('usuarios.php', payload)
-                .then(usuarios => {
-                    this.usuarios = usuarios
+                apiRequest({
+                    method: 'GET', 
+                    path: 'users'
+                })
+                .then(response => {
+                    this.usuarios = response.data
+                    this.cargando = false
+                })
+                .catch(error => {
+                    console.error('Error fetching users:', error)
                     this.cargando = false
                 })
             }
