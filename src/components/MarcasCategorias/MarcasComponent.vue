@@ -105,8 +105,7 @@ import apiRequest from '../../Servicios/HttpService';
             onRegistrar(nombre) {
                 this.cargando = true
 
-                let accionARealizar = (this.tituloModal === 'Agregar') ? 'registrar' : (this.tituloModal === 'Editar') ? 'editar' : false
-
+             
                 // HttpService.registrar('marcas.php', {
                 //     accion: accionARealizar,
                 //     marca: {nombreMarca:nombre, id: this.idMarca }

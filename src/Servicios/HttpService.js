@@ -7,16 +7,25 @@ const apiRequest = async ({ method, path, data = {} }) => {
       'Accept': 'application/json',
     };
 
+    // Usar la variable de entorno VUE_APP_API
     const response = await axios({
       method,
-      url: `${process.env.VUE_APP_API_URL}${path}`,
+      url: `${process.env.VUE_APP_API}${path}`,
       data,
       headers,
     });
 
     return response;
   } catch (error) {
-    return error; 
+    console.error("Error en la petición API:", {
+      mensaje: error.message,
+      url: `${process.env.VUE_APP_API}${path}`,
+      data: error.response?.data,
+      status: error.response?.status
+    });
+    
+    // Retornar el error para manejarlo en el componente
+    return error.response || error;
   }
 };
 
