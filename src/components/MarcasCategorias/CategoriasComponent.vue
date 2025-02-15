@@ -191,6 +191,7 @@
         this.mostrarDialogoCategorias = false
         this.nombreCategoria = ""
         this.idCategoria = ""
+
       },
   
       async onRegistrar(nombre) {
@@ -245,7 +246,6 @@
           this.cargando = false
         }
       },
-  
       agregarCategoria() {
         this.tituloModal = "Agregar"
         this.mostrarDialogoCategorias = true
