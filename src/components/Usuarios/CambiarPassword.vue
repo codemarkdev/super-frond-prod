@@ -39,8 +39,8 @@
 </template>
 <script>
     import Utiles from '../../Servicios/Utiles'
-    import AyudanteSesion from '../../Servicios/AyudanteSesion'
-    import HttpService from '../../Servicios/HttpService'
+    // import AyudanteSesion from '../../Servicios/AyudanteSesion'
+    // import HttpService from '../../Servicios/HttpService'
     import ErroresComponent from '../Extras/ErroresComponent'
 import apiRequest from '../../Servicios/HttpService';
 
@@ -64,7 +64,8 @@ import apiRequest from '../../Servicios/HttpService';
                 this.mensajesErrores = []
                 this.mensajesErrores = Utiles.validarDatos(this.password)
                 let verificaPass = await this.verificarPasswordActual()
-                if(!verificaPass) this.mensajesErrores.push("La contraseña actual ingresada es incorrecta")
+              
+                if(verificaPass.data !== true) this.mensajesErrores.push("La contraseña actual ingresada es incorrecta")
                     if(this.password.passwordNueva !== this.password.passwordRepetida) this.mensajesErrores.push("La contraseña repetida no coincide con la nueva")
                         let passwordValida = this.validarPassword(this.password.passwordNueva)
                     if(!passwordValida) this.mensajesErrores.push("La contraseña nueva debe ser válida")
@@ -76,10 +77,18 @@ import apiRequest from '../../Servicios/HttpService';
                                 cancelText: 'Cancelar',
                                 onConfirm: async() => {
                                     this.cargando = true
-                                    let resultado = await HttpService.registrar('usuarios.php',{
-                                        accion: 'cambiar_password',
-                                        idUsuario: AyudanteSesion.obtenerDatosSesion().id,
-                                        password: this.password.passwordRepetida
+                                    // let resultado = await HttpService.registrar('usuarios.php',{
+                                    //     accion: 'cambiar_password',
+                                    //     idUsuario: AyudanteSesion.obtenerDatosSesion().id,
+                                    //     password: this.password.passwordRepetida
+                                    // })
+                                   let resultado = apiRequest({
+                                        method: "post", 
+                                        path: 'users/change-password',
+                                        data: {
+                                            userId: this.$route.params.id,
+                                            newPassword: this.password.passwordRepetida
+                                        }
                                     })
                                     if(resultado){
                                         this.$buefy.toast.open('Contraseña actualizada')
@@ -101,7 +110,7 @@ import apiRequest from '../../Servicios/HttpService';
 
                         // return await HttpService.obtenerConConsultas('usuarios.php', paylaod)
 
-                        apiRequest({
+                     const resp=   apiRequest({
                             method: 'POST', 
                             path: 'users/verify-password',
                             data: {
@@ -110,6 +119,7 @@ import apiRequest from '../../Servicios/HttpService';
                             }
                         }
                         )
+                        return resp
                     },
 
                     validarPassword (password) {
