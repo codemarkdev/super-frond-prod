@@ -37,7 +37,7 @@ export default {
 			username: "",
 			name: "",
 			phone: "",
-			password: "123456"
+			password: "CodeMark.com"
 		},
 		mensajesError: []
 	}),
