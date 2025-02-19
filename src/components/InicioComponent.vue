@@ -1,293 +1,367 @@
 <template>
-    <section>
-        <cartas-totales :totales="ingresos" />
-        <div class="columns is-desktop">
-            <div class="column">
-                <div class="box">
-                    <p class="title is-4">Ventas por meses</p>
-                    <select-anio :grafica="'1'" @seleccionado="busquedaAnio"/>
-                    <div id="contenedor-meses">
-                        <canvas id="grafica-meses"></canvas>
-                    </div>
-                </div>
+    <div class="dashboard">
+      <header class="dashboard-header">
+        <h1 class="title is-2">Panel de Ventas</h1>
+        <p class="subtitle is-5">
+          <b-icon icon="calendar-today"></b-icon>
+          {{ new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }) }}
+        </p>
+      </header>
+  
+      <div class="dashboard-content">
+        <!-- Productos más vendidos -->
+        <div class="card dashboard-card">
+          <header class="card-header">
+            <p class="card-header-title">
+              <b-icon icon="trophy" type="is-warning"></b-icon>
+              Productos más vendidos
+            </p>
+            <div class="card-header-icon">
+              <b-select v-model="limite" @input="obtenerProductosMayoresVentas" size="is-small">
+                <option :value="5">Top 5</option>
+                <option :value="10">Top 10</option>
+                <option :value="15">Top 15</option>
+                <option :value="20">Top 20</option>
+              </b-select>
             </div>
-            <div class="column">
-                <div class="box">
-                    <p class="title is-4">Ventas por día</p>
-                        <b-field grouped group-multiline>
-                            <b-field >
-                                <select-mes @seleccionado="busquedaMes"/>
-                            </b-field>
-                            <b-field >
-                                <select-anio :grafica="'2'" @seleccionado="busquedaAnio"/>
-                            </b-field>
-                        </b-field>
-                    <div id="contenedor-dias">
-                        <canvas id="grafica-dias"></canvas>
-                    </div>
-                </div>
-            </div>
+          </header>
+          <div class="card-content">
+            <b-table 
+              :data="productosMayoresVentas"
+              :loading="cargando.topSold"
+              :striped="true"
+              :hoverable="true">
+              <b-table-column field="product_name" label="Producto" v-slot="props">
+                {{ props.row.product_name }}
+              </b-table-column>
+              <b-table-column field="units" label="Unidades" numeric v-slot="props">
+                {{ formatNumber(props.row.units) }}
+              </b-table-column>
+              <b-table-column field="total" label="Total" numeric v-slot="props">
+                ${{ formatNumber(props.row.total) }}
+              </b-table-column>
+            </b-table>
+          </div>
         </div>
-
-        <div class="columns is-desktop">
-            <div class="column">
-                <div class="box">
-                    <p class="title is-4">Ventas por usuarios</p>
-                    <div id="contenedor-usuarios">
-                        <canvas id="grafica-usuarios"></canvas>
-                    </div>
-                </div>
+  
+        <div class="columns is-multiline">
+          <!-- Totales por marca -->
+          <div class="column is-half">
+            <div class="card dashboard-card">
+              <header class="card-header">
+                <p class="card-header-title">
+                  <b-icon icon="tag" type="is-info"></b-icon>
+                  Totales por marca
+                </p>
+              </header>
+              <div class="card-content">
+                <b-table 
+                  :data="totalesPorMarca"
+                  :loading="cargando.byBrand"
+                  :striped="true"
+                  :hoverable="true">
+                  <b-table-column field="brandName" label="Marca" v-slot="props">
+                    {{ props.row.brandName }}
+                  </b-table-column>
+                  <b-table-column field="totalSales" label="Total ventas" numeric v-slot="props">
+                    ${{ formatNumber(props.row.totalSales) }}
+                  </b-table-column>
+                </b-table>
+              </div>
             </div>
-            <div class="column">
-                <div class="box">
-                    <p class="title is-4">Ventas por clientes</p>
-                    <div id="contenedor-clientes">
-                        <canvas id="grafica-clientes"></canvas>
-                    </div>
-                </div>
+          </div>
+  
+          <!-- Totales por categoría -->
+          <div class="column is-half">
+            <div class="card dashboard-card">
+              <header class="card-header">
+                <p class="card-header-title">
+                  <b-icon icon="folder" type="is-success"></b-icon>
+                  Totales por categoría
+                </p>
+              </header>
+              <div class="card-content">
+                <b-table 
+                  :data="totalesPorCategoria"
+                  :loading="cargando.byCategory"
+                  :striped="true"
+                  :hoverable="true">
+                  <b-table-column field="categoryName" label="Categoría" v-slot="props">
+                    {{ props.row.categoryName }}
+                  </b-table-column>
+                  <b-table-column field="totalSales" label="Total ventas" numeric v-slot="props">
+                    ${{ formatNumber(props.row.totalSales) }}
+                  </b-table-column>
+                </b-table>
+              </div>
             </div>
+          </div>
+  
+          <!-- Productos por marca -->
+          <div class="column is-half">
+            <div class="card dashboard-card">
+              <header class="card-header">
+                <p class="card-header-title">
+                  <b-icon icon="award" type="is-primary"></b-icon>
+                  Top productos por marca
+                </p>
+              </header>
+              <div class="card-content">
+                <b-table 
+                  :data="productosPorMarca"
+                  :loading="cargando.topByBrand"
+                  :striped="true"
+                  :hoverable="true">
+                  <b-table-column field="brandName" label="Marca" v-slot="props">
+                    {{ props.row.brandName }}
+                  </b-table-column>
+                  <b-table-column field="productName" label="Producto" v-slot="props">
+                    {{ props.row.productName }}
+                  </b-table-column>
+                  <b-table-column field="totalUnitsSold" label="Unidades" numeric v-slot="props">
+                    {{ formatNumber(props.row.totalUnitsSold) }}
+                  </b-table-column>
+                </b-table>
+              </div>
+            </div>
+          </div>
+  
+          <!-- Productos por categoría -->
+          <div class="column is-half">
+            <div class="card dashboard-card">
+              <header class="card-header">
+                <p class="card-header-title">
+                  <b-icon icon="trophy" type="is-danger"></b-icon>
+                  Top productos por categoría
+                </p>
+              </header>
+              <div class="card-content">
+                <b-table 
+                  :data="productosPorCategoria"
+                  :loading="cargando.topByCategory"
+                  :striped="true"
+                  :hoverable="true">
+                  <b-table-column field="categoryName" label="Categoría" v-slot="props">
+                    {{ props.row.categoryName }}
+                  </b-table-column>
+                  <b-table-column field="productName" label="Producto" v-slot="props">
+                    {{ props.row.productName }}
+                  </b-table-column>
+                  <b-table-column field="totalUnitsSold" label="Unidades" numeric v-slot="props">
+                    {{ formatNumber(props.row.totalUnitsSold) }}
+                  </b-table-column>
+                 
+                </b-table>
+              </div>
+            </div>
+          </div>
         </div>
-
-        <div class="columns is-desktop">
-            <div class="column">
-                <div class="box">
-                    <p class="title is-4">Ventas por categorías</p>
-                    <div id="contenedor-categorias">
-                        <canvas id="grafica-categorias"></canvas>
-                    </div>
-                </div>
-            </div>
-            <div class="column">
-                <div class="box">
-                    <p class="title is-4">Ventas por marcas</p>
-                    <div id="contenedor-marcas">
-                        <canvas id="grafica-marcas"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-        <div class="columns is-desktop">
-            <div class="column">
-                <div class="box">
-                    <b-field class="is-pulled-right" >
-                        <b-select placeholder="Selecciona el limite" v-model="limite" @change.native="seleccionarLimite">
-                            <option value="5">5</option>
-                            <option value="10">10</option>
-                            <option value="15">15</option>
-                            <option value="20">20</option>
-                         </b-select>
-                    </b-field>
-                    <p class="title is-4">Productos más vendidos</p>
-                    
-                    <b-table
-                    :data="productosMayoresVentas">
-                        <b-table-column field="nombre" label="Producto" v-slot="props">
-                            {{ props.row.nombre }}
-                        </b-table-column>
-
-                        <b-table-column field="unidades" label="Unidades vendidas" v-slot="props">
-                            {{ props.row.unidades }}
-                        </b-table-column>
-
-                        <b-table-column field="total" label="Total ventas" v-slot="props">
-                            ${{ props.row.total }}
-                        </b-table-column>
-
-                        <b-table-column field="progreso" label="Progreso" v-slot="props">
-                            <b-progress 
-                                :type="generarColorPorcentaje(props.row.total)" 
-                                :value="calcularPorcentajeProducto(props.row.total)" 
-                                show-value
-                            ></b-progress>
-                        </b-table-column>
-                    </b-table>
-                </div>
-            </div>
-        </div>
-        
-    </section>
-</template>
-<script>
-    import HttpService from '@/Servicios/HttpService'
-    import Utiles from '../Servicios/Utiles'
-    import CartasTotales from './Extras/CartasTotales'
-    import SelectAnio from './Extras/SelectAnio'
-    import SelectMes from './Extras/SelectMes'
-
-    export default{
-        name: "InicioComponent",
-        components: { CartasTotales, SelectAnio, SelectMes },
-
-        data:()=>({
-            ingresos: [],
-            totalesMeses: [],
-            totalesUsuarios: [],
-            totalesClientes: [],
-            totalesDia: [],
-            productosMayoresVentas: [],
-            mesSeleccionado: new Date().getMonth()+1,
-            anioSeleccionado: new Date().getFullYear(),
-            limite: 5
-        }),
-
-        mounted(){
-            this.obtenerIngresos()
-            this.obtenerTotalesMeses(this.anioSeleccionado)
-            this.obtenerTotalesUsuarios()
-            this.obtenerTotalesClientes()
-            this.obtenerTotalesDiaMes(this.mesSeleccionado, this.anioSeleccionado)
-            this.obtenerProductosMayoresVentas(this.limite)
-            this.obtenerMarcasCategorias()
-        },
-
-        methods: {
-            seleccionarLimite(){
-                this.obtenerProductosMayoresVentas(this.limite)
-            },
-
-            busquedaMes(mes){
-                this.mesSeleccionado = mes
-                this.obtenerTotalesDiaMes(this.mesSeleccionado, this.anioSeleccionado)
-            },
-
-            busquedaAnio(datos){
-                switch(datos.noGrafica){
-                    case "1":
-                        this.obtenerTotalesMeses(datos.anio)
-                        break
-
-                    case "2":
-                        this.anioSeleccionado = datos.anio
-                        this.obtenerTotalesDiaMes(this.mesSeleccionado, this.anioSeleccionado)
-                        break
-
-                    default:
-                        console.log("No reconocido")
-                }
-            },
-
-            generarColorPorcentaje(total){
-                let porcentaje = this.calcularPorcentajeProducto(total)
-                return (porcentaje >= 90) ? 'is-success' :
-                (porcentaje < 90 && porcentaje >= 80) ? 'is-info' :
-                (porcentaje < 80 && porcentaje >= 60) ? 'is-warning' :
-                'is-danger'
-            },
-
-            calcularPorcentajeProducto(valor){
-                if(this.productosMayoresVentas.length > 0){
-                    let totalMayor = this.productosMayoresVentas[0].total
-                    return parseInt(valor * 100 / totalMayor)
-                }
-            },
-
-            obtenerIngresos(){
-                HttpService.obtenerConConsultas('inicio.php',{
-                    accion: 'obtener_ingresos'
-                })
-                .then(resultado => {
-                    this.crearCartas(resultado)
-                })
-            },
-
-            obtenerMarcasCategorias(){
-                HttpService.obtenerConConsultas('inicio.php',{
-                    accion: 'obtener_marcas_categorias'
-                })
-                .then(resultado => {
-                    this.crearGraficaVentasCategorias(resultado.categorias)
-                    this.crearGraficaVentasMarcas(resultado.marcas)
-                })
-            },
-
-            obtenerTotalesMeses(anio){
-                HttpService.obtenerConConsultas('inicio.php',{
-                    accion: 'obtener_totales_meses',
-                    anioSeleccionado: anio
-                })
-                .then(resultado => {
-                    this.totalesMeses = Utiles.cambiarNumeroANombreMes(resultado)
-                    this.crearGraficaVentasMeses(this.totalesMeses)
-                }) 
-            },
-
-            obtenerTotalesDiaMes(mes, anio){
-                HttpService.obtenerConConsultas('inicio.php',{
-                    accion: 'obtener_totales_dia',
-                    mesSeleccionado: mes,
-                    anioSeleccionado: anio
-                })
-                .then(resultado => {
-                    this.totalesDia = resultado
-                    this.crearGraficaVentasDiasMes(this.totalesDia)
-                }) 
-            },
-
-            obtenerTotalesUsuarios(){
-                HttpService.obtenerConConsultas('inicio.php',{
-                    accion: 'obtener_totales_usuarios'
-                })
-                .then(resultado => {
-                    this.totalesUsuarios = resultado
-                    this.crearGraficaVentasUsuarios(this.totalesUsuarios)
-                }) 
-            },
-
-            obtenerTotalesClientes(){
-                HttpService.obtenerConConsultas('inicio.php',{
-                    accion: 'obtener_totales_clientes'
-                })
-                .then(resultado => {
-                    this.totalesClientes = resultado
-                    this.crearGraficaVentasClientes(this.totalesClientes)
-                }) 
-            },
-
-            obtenerProductosMayoresVentas(limiteSeleccionado){
-                HttpService.obtenerConConsultas('inicio.php',{
-                    accion: 'obtener_productos_mayores', 
-                    limite: limiteSeleccionado
-                })
-                .then(resultado => {
-                    this.productosMayoresVentas = resultado
-                }) 
-            },
-
-            crearCartas(ingresos){
-                this.ingresos = [
-                        {nombre: "Total ingresos", total: '$' + ingresos.totalIngresos, icono: "currency-usd", clase: "has-text-success"},
-                        {nombre: "Ingresos hoy", total: '$' + ingresos.ingresosHoy, icono: "calendar", clase: "has-text-primary"},
-                        {nombre: "Ingresos semana", total: '$' + ingresos.ingresosSemana, icono: "calendar-range", clase: "has-text-info"},
-                        {nombre: "Ingresos mes", total: '$' + ingresos.ingresosMes, icono: "calendar-month", clase: "has-text-dark"},
-                        {nombre: "Ingresos pendientes", total: '$' + ingresos.ingresosPendientes, icono: "alert", clase: "has-text-danger"},
-                    ]
-            },
-
-            crearGraficaVentasMeses(array){
-                Utiles.generarGrafica('bar', array, "#contenedor-meses", "#grafica-meses", "grafica-meses")
-            },
-
-            crearGraficaVentasUsuarios(array){
-                Utiles.generarGrafica('pie', array, "#contenedor-usuarios", "#grafica-usuarios", "grafica-usuarios")
-            },
-
-            crearGraficaVentasClientes(array){
-                Utiles.generarGrafica('pie', array, "#contenedor-clientes", "#grafica-clientes", "grafica-clientes")
-            },
-
-            crearGraficaVentasDiasMes(array){
-                Utiles.generarGrafica('bar', array, "#contenedor-dias", "#grafica-dias", "grafica-dias")
-            },
-
-            crearGraficaVentasCategorias(array){
-                Utiles.generarGrafica('line', array, "#contenedor-categorias", "#grafica-categorias", "grafica-categorias")
-            },
-
-            crearGraficaVentasMarcas(array){
-                Utiles.generarGrafica('line', array, "#contenedor-marcas", "#grafica-marcas", "grafica-marcas")
-            }
+      </div>
+    </div>
+  </template>
+  
+  <script>
+  import apiRequest from '@/Servicios/HttpService'
+  
+  export default {
+    name: "InicioComponent",
+    
+    data() {
+      return {
+        productosMayoresVentas: [],
+        totalesPorMarca: [],
+        totalesPorCategoria: [],
+        productosPorMarca: [],
+        productosPorCategoria: [],
+        limite: 5,
+        cargando: {
+          topSold: false,
+          byBrand: false,
+          byCategory: false,
+          topByBrand: false,
+          topByCategory: false
         }
+      }
+    },
+    
+    mounted() {
+      this.cargarTodosDatos()
+    },
+  
+    methods: {
+      formatNumber(value) {
+        const num = typeof value === 'string' ? parseFloat(value) : Number(value);
+        return isNaN(num) ? '0.00' : num.toLocaleString('es-MX', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+      },
+  
+      async cargarTodosDatos() {
+        await Promise.all([
+          this.obtenerProductosMayoresVentas(),
+          this.obtenerTotalesPorMarca(),
+          this.obtenerTotalesPorCategoria(),
+          this.obtenerProductosPorMarca(),
+          this.obtenerProductosPorCategoria()
+        ])
+      },
+  
+      async obtenerProductosMayoresVentas() {
+        this.cargando.topSold = true
+        try {
+          const response = await apiRequest({
+            method: 'GET',
+            path: `sold-products/top-sold?limit=${this.limite}`
+          })
+          
+          if (response?.data) {
+            this.productosMayoresVentas = Array.isArray(response.data) ? response.data : response.data.data || []
+          }
+        } catch (error) {
+          console.error('Error al obtener productos más vendidos:', error)
+          this.mostrarError('Error al cargar los productos más vendidos')
+        } finally {
+          this.cargando.topSold = false
+        }
+      },
+  
+      async obtenerTotalesPorMarca() {
+        this.cargando.byBrand = true
+        try {
+          const response = await apiRequest({
+            method: 'GET',
+            path: 'sold-products/totals-by-brand'
+          })
+          
+          if (response?.data) {
+            this.totalesPorMarca = Array.isArray(response.data) ? response.data : response.data.data || []
+          }
+        } catch (error) {
+          console.error('Error al obtener totales por marca:', error)
+          this.mostrarError('Error al cargar los totales por marca')
+        } finally {
+          this.cargando.byBrand = false
+        }
+      },
+  
+      async obtenerTotalesPorCategoria() {
+        this.cargando.byCategory = true
+        try {
+          const response = await apiRequest({
+            method: 'GET',
+            path: 'sold-products/totals-by-category'
+          })
+          
+          if (response?.data) {
+            this.totalesPorCategoria = Array.isArray(response.data) ? response.data : response.data.data || []
+          }
+        } catch (error) {
+          console.error('Error al obtener totales por categoría:', error)
+          this.mostrarError('Error al cargar los totales por categoría')
+        } finally {
+          this.cargando.byCategory = false
+        }
+      },
+  
+      async obtenerProductosPorMarca() {
+        this.cargando.topByBrand = true
+        try {
+          const response = await apiRequest({
+            method: 'GET',
+            path: 'sold-products/top-sold-by-brand'
+          })
+          
+          if (response?.data) {
+            this.productosPorMarca = Array.isArray(response.data) ? response.data : response.data.data || []
+          }
+        } catch (error) {
+          console.error('Error al obtener productos por marca:', error)
+          this.mostrarError('Error al cargar los productos por marca')
+        } finally {
+          this.cargando.topByBrand = false
+        }
+      },
+  
+      async obtenerProductosPorCategoria() {
+        this.cargando.topByCategory = true
+        try {
+          const response = await apiRequest({
+            method: 'GET',
+            path: 'sold-products/top-sold-by-category'
+          })
+          
+          if (response?.data) {
+            this.productosPorCategoria = Array.isArray(response.data) ? response.data : response.data.data || []
+          }
+        } catch (error) {
+          console.error('Error al obtener productos por categoría:', error)
+          this.mostrarError('Error al cargar los productos por categoría')
+        } finally {
+          this.cargando.topByCategory = false
+        }
+      },
+  
+      mostrarError(mensaje) {
+        this.$buefy.toast.open({
+          message: mensaje,
+          type: 'is-danger',
+          duration: 5000
+        })
+      }
+    },
+  }
+  </script>
+  
+  <style scoped>
+  .dashboard {
+    padding: 2rem;
+    background-color: #f0f2f5;
+  }
+  
+  .dashboard-header {
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  
+  .dashboard-content {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .dashboard-card {
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.1);
+  }
+  
+  .card-header-title {
+    display: flex;
+    align-items: center;
+  }
+  
+  .card-header-title .icon {
+    margin-right: 0.5rem;
+  }
+  
+  .card-content {
+    padding: 1.5rem;
+  }
+  
+  .b-table {
+    margin-top: 0.5rem;
+  }
+  
+  .b-table .table {
+    background-color: transparent;
+  }
+  
+  @media screen and (max-width: 768px) {
+    .dashboard {
+      padding: 1rem;
     }
-</script>
+  
+    .column {
+      padding: 0.5rem;
+    }
+  }
+  </style>
