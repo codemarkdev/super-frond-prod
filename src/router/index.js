@@ -21,7 +21,7 @@ import PerfilComponent from '@/components/Usuarios/PerfilComponent'
 import CambiarPassword from '@/components/Usuarios/CambiarPassword'
 import InicioComponent from '@/components/InicioComponent'
 // Add this line to import the new component
-import HistorialVentas from '@/components/Ventas/HistorialVentas'
+
 
 Vue.use(VueRouter)
 
@@ -151,13 +151,7 @@ const routes = [
     component: CambiarPassword,
     meta: { requiresAuth: true }
   },
-  // Add this new route for HistorialVentas
-  {
-    path: '/HistorialVentas',
-    name: 'HistorialVentas',
-    component: HistorialVentas,
-    meta: { requiresAuth: true }
-  },
+
 ]
 
 const router = new VueRouter({
