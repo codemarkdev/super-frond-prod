@@ -7,7 +7,6 @@ const apiRequest = async ({ method, path, data = {} }) => {
       'Accept': 'application/json',
     };
 
-    // Usar la variable de entorno VUE_APP_API
     const response = await axios({
       method,
       url: `${process.env.VUE_APP_API}${path}`,
@@ -23,8 +22,7 @@ const apiRequest = async ({ method, path, data = {} }) => {
       data: error.response?.data,
       status: error.response?.status
     });
-    
-    // Retornar el error para manejarlo en el componente
+
     return error.response || error;
   }
 };
