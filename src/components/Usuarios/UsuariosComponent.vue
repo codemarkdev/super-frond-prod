@@ -16,16 +16,28 @@
                 {{ props.row.phone }}
             </b-table-column>
 
-            <b-table-column field="eliminar" label="Eliminar" v-slot="props">
-                <b-button type="is-danger" icon-left="delete" @click="eliminar(props.row.id)">Eliminar</b-button>
-            </b-table-column>
+            <b-table-column field="acciones" label="Acciones" centered v-slot="props">
+                <div class="buttons is-centered">
 
-            <b-table-column field="editar" label="Editar" v-slot="props">
-                <b-button type="is-info" icon-left="pen" @click="editar(props.row.id)">Editar</b-button>
-            </b-table-column>
+     
+                <b-button 
+                 type="is-danger" 
+                 icon-left="delete"
+                   size="is-small"
+                 @click="eliminar(props.row.id)">Eliminar</b-button>
+           
 
-            <b-table-column field="editar" label="Cambiar contraseña" v-slot="props">
-                <b-button type="is-info" icon-left="shield" @click="changePass(props.row.id)">Cambiar contraseña</b-button>
+   
+                <b-button 
+                type="is-info"
+                  size="is-small"
+                icon-left="pen" @click="editar(props.row.id)">Editar</b-button>
+    
+
+                <b-button 
+                  size="is-small"
+                type="is-info" icon-left="key" @click="changePass(props.row.id)"></b-button>
+                </div>
             </b-table-column>
         </b-table>
         <b-loading :is-full-page="true" v-model="cargando" :can-cancel="false"></b-loading>

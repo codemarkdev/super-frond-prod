@@ -5,17 +5,30 @@
         </b-button>
 
         <b-table
+        paginated
         :data="marcas">
-          <b-table-column field="nombreMarca" label="Marca" sortable v-slot="props">
-                {{ props.row.nombreMarca }}
+          <b-table-column field="brandName" label="Marca" sortable searchable v-slot="props">
+                {{ props.row.brandName }}
             </b-table-column>
-
-            <b-table-column field="eliminar" label="Eliminar" v-slot="props">
-                <b-button type="is-danger" icon-left="delete" @click="eliminar(props.row)">Eliminar</b-button>
+          <b-table-column field="nombreMarca" label="Productos" sortable v-slot="props">
+        <b-tag  type="is-info" size="is-medium">
+                {{ props.row.products.length }}
+            </b-tag>
             </b-table-column>
+            <b-table-column field="acciones" label="Acciones" centered v-slot="props">
+                <div class="buttons is-centered">
 
-            <b-table-column field="editar" label="Editar" v-slot="props">
-                <b-button type="is-info" icon-left="pen" @click="editar(props.row)">Editar</b-button>
+                    <b-button
+                    type="is-info"
+                    icon-left="pen"
+                     size="is-small"
+                    @click="editar(props.row)">Editar</b-button>
+                <b-button
+                type="is-danger"
+                icon-left="delete"
+                size="is-small"
+                @click="eliminar(props.row)">Eliminar</b-button>
+                </div>
             </b-table-column>
         </b-table>
 
@@ -36,7 +49,7 @@
 </template>
 <script>
     import DialogoMarcas from './DialogoMarcas'
-    import HttpService from '../../Servicios/HttpService'
+    // import HttpService from '../../Servicios/HttpService'
 import apiRequest from '../../Servicios/HttpService';
 
     export default{
@@ -67,9 +80,13 @@ import apiRequest from '../../Servicios/HttpService';
                     hasIcon: true,
                     onConfirm: () => {
                         this.cargando = true
-                        HttpService.eliminar('marcas.php',{
-                            accion: 'eliminar',
-                            id: marca.id
+                        // HttpService.eliminar('marcas.php',{
+                        //     accion: 'eliminar',
+                        //     id: marca.id
+                        // })
+                        apiRequest({
+                            method: 'DELETE',
+                            path: `brands/${marca.id}`
                         })
                         .then(resultado => {
                             if(!resultado) {
@@ -95,24 +112,29 @@ import apiRequest from '../../Servicios/HttpService';
                 this.mostrarDialogoMarcas = true,
                 this.idMarca = marca.id
                 this.nombreMarca = marca.nombreMarca
-            }, 
+            },
 
             onCerrarDialogo(){
                 this.mostrarDialogoMarcas = false
-                this.nombreMarca = "" 
+                this.nombreMarca = ""
             },
 
             onRegistrar(nombre) {
                 this.cargando = true
 
-             
+
                 // HttpService.registrar('marcas.php', {
                 //     accion: accionARealizar,
                 //     marca: {nombreMarca:nombre, id: this.idMarca }
                 // })
+          
+                console.log('')
                 apiRequest({
-                    method: `${this.tituloModal === 'Agregar' ? 'POST': this.tituloModal === 'Editar' ? 'PATCH' : false}`, 
-                    path: `${this.tituloModal === 'Agregar' ? 'brands': this.tituloModal === 'Editar' ? 'brands/' : false}`
+                    method: `${this.tituloModal == 'Agregar' ? 'POST': 'PATCH'}`,
+                    path:  `${this.tituloModal == 'Agregar' ? 'brands': `brands/${this.idMarca}`}`,
+                    data: {
+                        brandName: nombre
+                    }
                 })
                 .then(registrado => {
                     if(registrado === 'existe'){
@@ -121,7 +143,7 @@ import apiRequest from '../../Servicios/HttpService';
                           message: 'La marca' + nombre +' ya existe, selecciona otra.'
                         })
                         this.cargando = false
-                        return 
+                        return
                     }
 
                     if(registrado) {
@@ -149,7 +171,7 @@ import apiRequest from '../../Servicios/HttpService';
                 // }
                 // HttpService.obtenerConConsultas('marcas.php', payload)
                 apiRequest({
-                    method: 'GET', 
+                    method: 'GET',
                     path: 'brands'
                 })
                 .then(marcas => {
@@ -157,6 +179,6 @@ import apiRequest from '../../Servicios/HttpService';
                   this.cargando = false
                 })
             },
-        } 
+        }
     }
 </script>
