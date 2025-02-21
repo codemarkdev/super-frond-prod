@@ -99,7 +99,7 @@
           <div class="card dashboard-card">
             <header class="card-header">
               <p class="card-header-title">
-                <b-icon icon="award" type="is-primary"></b-icon>
+                <b-icon icon="trophy" type="is-danger"></b-icon>  
                 Top productos por marca
               </p>
             </header>

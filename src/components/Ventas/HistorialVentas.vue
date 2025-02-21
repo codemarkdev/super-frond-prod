@@ -1,7 +1,7 @@
 <template>
   <div class="historial-ventas">
     <header class="header">
-      <h1 class="title is-2">Historial de Ventas</h1>
+      <h1 class="title is-2">Historial General</h1>
       <p class="subtitle is-5">
         <b-icon icon="calendar-today"></b-icon>
         {{ new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }) }}
@@ -10,29 +10,6 @@
 
     <!-- Resumen de Ingresos -->
     <div class="columns is-multiline">
-      <!-- Ingreso Total -->
-      <div class="column is-3">
-        <div class="card">
-          <div class="card-content">
-            <div class="level is-mobile">
-              <div class="level-left">
-                <div class="level-item">
-                  <div>
-                    <p class="heading">INGRESO TOTAL</p>
-                    <p class="title is-4">${{ formatNumber(ingresoTotal) }}</p>
-                  </div>
-                </div>
-              </div>
-              <div class="level-right">
-                <div class="level-item">
-                  <b-icon icon="cash-multiple" size="is-large" type="is-success"></b-icon>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Ingreso del Día -->
       <div class="column is-3">
         <div class="card">
@@ -101,6 +78,29 @@
           </div>
         </div>
       </div>
+
+      <!-- Ingreso Pendiente -->
+      <div class="column is-3">
+        <div class="card">
+          <div class="card-content">
+            <div class="level is-mobile">
+              <div class="level-left">
+                <div class="level-item">
+                  <div>
+                    <p class="heading">PENDIENTE</p>
+                    <p class="title is-4">${{ formatNumber(pendingIncome) }}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="level-right">
+                <div class="level-item">
+                  <b-icon icon="clock" size="is-large" type="is-danger"></b-icon>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Filtro de Ventas por Fecha -->
@@ -152,7 +152,7 @@
                   :loading="cargando.ventas"
                   :disabled="!filtroFechas.inicio || !filtroFechas.fin"
                 >
-                  
+                
                 </b-button>
                 <b-button
                   type="is-light"
@@ -181,7 +181,9 @@
           <b-table-column field="total" label="Total" numeric v-slot="props">
             ${{ formatNumber(props.row.total) }}
           </b-table-column>
-    
+          <b-table-column field="items" label="Items" numeric v-slot="props">
+            {{ props.row.items }}
+          </b-table-column>
         </b-table>
       </div>
     </div>
@@ -214,7 +216,7 @@
             <div class="amount-badge" :class="{ 'has-amount': venta.total > 0 }">
               ${{ formatNumber(venta.total) }}
             </div>
-            
+           
           </div>
         </div>
         <div v-else class="has-text-centered py-6">
@@ -288,7 +290,89 @@
           <b-table-column field="total" label="Total" numeric v-slot="props">
             ${{ formatNumber(props.row.total) }}
           </b-table-column>
-         
+        
+        </b-table>
+      </div>
+    </div>
+
+    <!-- Cuentas por Cobrar -->
+    <div class="card">
+      <header class="card-header">
+        <p class="card-header-title">
+          <b-icon icon="cash" type="is-danger"></b-icon>
+          Cuentas por Cobrar
+        </p>
+      </header>
+      <div class="card-content">
+        <div class="columns">
+          <div class="column is-4">
+            <b-field>
+              <b-input placeholder="Buscar cliente" v-model="busquedaCliente" icon="magnify"></b-input>
+            </b-field>
+          </div>
+          <div class="column is-4">
+            <b-field>
+              <b-select placeholder="Filtrar por estado" v-model="filtroEstado">
+                <option value="">Todos</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="parcial">Pago Parcial</option>
+              </b-select>
+            </b-field>
+          </div>
+        </div>
+        <b-table
+          :data="accountsHoldingsAgrupados"
+          :loading="cargando.accountsHoldings"
+          :striped="true"
+          :hoverable="true"
+          :paginated="true"
+          :per-page="5"
+          :current-page.sync="currentPage"
+          :pagination-simple="false"
+          :pagination-size="'is-small'"
+          :pagination-position="'bottom'"
+          :default-sort-direction="'desc'"
+          default-sort="totalDeuda"
+          :empty="'No hay cuentas por cobrar pendientes'"
+          detailed
+          detail-key="customerId"
+          :show-detail-icon="true"
+        >
+          <b-table-column field="customerName" label="Cliente" sortable v-slot="props">
+            {{ props.row.customerName }}
+          </b-table-column>
+          <b-table-column field="totalDeuda" label="Total Adeudado" numeric sortable v-slot="props">
+            ${{ formatNumber(props.row.totalDeuda) }}
+          </b-table-column>
+          <b-table-column field="ultimaFecha" label="Última Compra" sortable v-slot="props">
+            {{ formatearFecha(props.row.ultimaFecha) }}
+          </b-table-column>
+          <b-table-column field="telefono" label="Teléfono" v-slot="props">
+            {{ props.row.telefono }}
+          </b-table-column>
+          <b-table-column field="status" label="Estado" v-slot="props">
+            <b-tag :type="getStatusType(props.row)">{{ getStatusText(props.row) }}</b-tag>
+          </b-table-column>
+
+          <template #detail="props">
+            <div class="content">
+              <p><strong>Detalle de transacciones:</strong></p>
+              <b-table :data="props.row.transacciones" :striped="true" :hoverable="true">
+                <b-table-column field="date" label="Fecha" v-slot="props">
+                  {{ formatearFecha(props.row.date) }}
+                </b-table-column>
+                <b-table-column field="total" label="Total" numeric v-slot="props">
+                  ${{ formatNumber(props.row.total) }}
+                </b-table-column>
+                <b-table-column field="paid" label="Pagado" numeric v-slot="props">
+                  ${{ formatNumber(props.row.paid) }}
+                </b-table-column>
+                <b-table-column field="toPay" label="Por Pagar" numeric v-slot="props">
+                  ${{ formatNumber(props.row.toPay) }}
+                </b-table-column>
+              </b-table>
+            </div>
+          </template>
         </b-table>
       </div>
     </div>
@@ -303,10 +387,11 @@ export default {
 
   data() {
     return {
-      ingresoTotal: 0,
       ingresoHoy: 0,
       ingresoSemanal: 0,
       ingresoMensual: 0,
+      pendingIncome: 0,
+      accountsHoldings: [],
       ventasPorFecha: [],
       ventasMensuales: [],
       ventasDiarias: [],
@@ -323,12 +408,13 @@ export default {
         ventas: false,
         mensual: false,
         diario: false,
-        totalIngresos: false,
         ingresosHoy: false,
         ingresosSemana: false,
         ingresosMes: false,
         ventasMensuales: false,
-        ventasDiarias: false
+        ventasDiarias: false,
+        ingresosPendientes: false,
+        accountsHoldings: false
       },
       meses: [
         'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -338,12 +424,11 @@ export default {
         { length: 5 }, 
         (_, i) => new Date().getFullYear() - i
       ),
-      mensajeTablaVacia: 'Seleccione un rango de fechas para ver las ventas'
+      mensajeTablaVacia: 'Seleccione un rango de fechas para ver las ventas',
+      busquedaCliente: '',
+      filtroEstado: '',
+      currentPage: 1,
     }
-  },
-
-  mounted() {
-    this.cargarDatos();
   },
 
   computed: {
@@ -363,7 +448,56 @@ export default {
         nombre: this.obtenerNombreMes(mejorMes.month),
         total: mejorMes.total
       };
+    },
+    accountsHoldingsFiltrados() {
+      return this.accountsHoldings.filter(account => {
+        const clienteMatch = this.getCustomerName(account).toLowerCase().includes(this.busquedaCliente.toLowerCase());
+        const estadoMatch = this.filtroEstado === '' || this.getStatusText(account).toLowerCase() === this.filtroEstado;
+        return clienteMatch && estadoMatch;
+      });
+    },
+    accountsHoldingsAgrupados() {
+      const agrupados = this.accountsHoldings.reduce((acc, cuenta) => {
+        const customerId = cuenta.customer.id;
+        if (!acc[customerId]) {
+          acc[customerId] = {
+            customerId: customerId,
+            customerName: cuenta.customer.name,
+            telefono: cuenta.customer.phone,
+            totalDeuda: 0,
+            ultimaFecha: new Date(0),
+            transacciones: []
+          };
+        }
+        acc[customerId].totalDeuda += (cuenta.total - cuenta.paid);
+        acc[customerId].transacciones.push(cuenta);
+        const fechaCuenta = new Date(cuenta.date);
+        if (fechaCuenta > acc[customerId].ultimaFecha) {
+          acc[customerId].ultimaFecha = fechaCuenta;
+        }
+        return acc;
+      }, {});
+
+      return Object.values(agrupados).filter(cuenta => {
+        const clienteMatch = cuenta.customerName.toLowerCase().includes(this.busquedaCliente.toLowerCase());
+        
+        if (this.filtroEstado === '') return clienteMatch;
+        
+        if (this.filtroEstado === 'pendiente') {
+          return clienteMatch && cuenta.totalDeuda > 0 && !cuenta.transacciones.some(t => t.paid > 0);
+        }
+        
+        if (this.filtroEstado === 'parcial') {
+          return clienteMatch && cuenta.totalDeuda > 0 && cuenta.transacciones.some(t => t.paid > 0);
+        }
+        
+        return clienteMatch;
+      });
     }
+  },
+
+  mounted() {
+    this.cargarDatos();
   },
 
   methods: {
@@ -397,10 +531,11 @@ export default {
     async cargarDatos() {
       try {
         await Promise.all([
-          this.obtenerIngresoTotal(),
           this.obtenerIngresoHoy(),
           this.obtenerIngresoSemanal(),
           this.obtenerIngresoMensual(),
+          this.obtenerIngresoPendiente(),
+          this.obtenerAccountsHoldings(),
           this.obtenerVentasMensuales(),
           this.obtenerVentasDiarias()
         ]);
@@ -431,14 +566,10 @@ export default {
         const startDate = formatearFecha(this.filtroFechas.inicio);
         const endDate = formatearFecha(this.filtroFechas.fin);
         
-        console.log('Consultando ventas:', { startDate, endDate });
-        
         const response = await apiRequest({
           method: 'GET',
           path: `sales?startDate=${startDate}&endDate=${endDate}`
         });
-
-        console.log('Respuesta ventas por fecha:', response);
 
         if (response.status === 200) {
           if (Array.isArray(response.data)) {
@@ -448,9 +579,15 @@ export default {
               items: Array.isArray(venta.products) ? venta.products.length : 
                      (typeof venta.items === 'number' ? venta.items : 0)
             }));
-            
+        
             if (this.ventasPorFecha.length === 0) {
-              this.mensajeTablaVacia = 'No se encontraron ventas en el período seleccionado';
+              this.mensajeTablaVacia = 'No se encontraron ventas en las fechas seleccionadas';
+              this.$buefy.toast.open({
+                message: 'No se encontraron ventas en las fechas seleccionadas',
+                type: 'is-warning',
+                position: 'is-bottom',
+                duration: 3000
+              });
             }
           } else {
             throw new Error('Formato de respuesta inválido');
@@ -466,28 +603,6 @@ export default {
       }
     },
 
-    async obtenerIngresoTotal() {
-      this.cargando.totalIngresos = true;
-      try {
-        const response = await apiRequest({
-          method: 'GET',
-          path: 'sales/total-income'
-        });
-
-        console.log('Respuesta ingreso total:', response);
-
-        if (response.status === 200) {
-          this.ingresoTotal = response.data || 0;
-        }
-      } catch (error) {
-        console.error('Error al obtener ingreso total:', error);
-        this.mostrarError('Error al cargar el ingreso total');
-        this.ingresoTotal = 0;
-      } finally {
-        this.cargando.totalIngresos = false;
-      }
-    },
-
     async obtenerIngresoHoy() {
       this.cargando.ingresosHoy = true;
       try {
@@ -495,8 +610,6 @@ export default {
           method: 'GET',
           path: 'sales/today-income'
         });
-
-        console.log('Respuesta ingreso hoy:', response);
 
         if (response.status === 200) {
           this.ingresoHoy = response.data || 0;
@@ -518,8 +631,6 @@ export default {
           path: 'sales/weekly-income'
         });
 
-        console.log('Respuesta ingreso semanal:', response);
-
         if (response.status === 200) {
           this.ingresoSemanal = response.data || 0;
         }
@@ -540,8 +651,6 @@ export default {
           path: 'sales/monthly-income'
         });
 
-        console.log('Respuesta ingreso mensual:', response);
-
         if (response.status === 200) {
           this.ingresoMensual = response.data || 0;
         }
@@ -554,6 +663,46 @@ export default {
       }
     },
 
+    async obtenerIngresoPendiente() {
+      this.cargando.ingresosPendientes = true;
+      try {
+        const response = await apiRequest({
+          method: 'GET',
+          path: 'sales/pending-income'
+        });
+
+        if (response.status === 200) {
+          this.pendingIncome = response.data || 0;
+        }
+      } catch (error) {
+        console.error('Error al obtener ingreso pendiente:', error);
+        this.mostrarError('Error al cargar el ingreso pendiente');
+        this.pendingIncome = 0;
+      } finally {
+        this.cargando.ingresosPendientes = false;
+      }
+    },
+
+    async obtenerAccountsHoldings() {
+      this.cargando.accountsHoldings = true;
+      try {
+        const response = await apiRequest({
+          method: 'GET',
+          path: 'accountsholdings'
+        });
+
+        if (response.status === 200) {
+          this.accountsHoldings = Array.isArray(response.data) ? response.data : [];
+        }
+      } catch (error) {
+        console.error('Error al obtener cuentas por cobrar:', error);
+        this.mostrarError('Error al cargar las cuentas por cobrar');
+        this.accountsHoldings = [];
+      } finally {
+        this.cargando.accountsHoldings = false;
+      }
+    },
+
     async obtenerVentasMensuales() {
       this.cargando.ventasMensuales = true;
       try {
@@ -562,37 +711,27 @@ export default {
           path: `sales/monthly/${this.yearFilter}`
         });
 
-        console.log('Respuesta ventas mensuales:', response);
-
         if (response.status === 200) {
           const ventasPorMes = Array.isArray(response.data) ? response.data : [];
-          console.log('Datos recibidos de ventas por mes:', ventasPorMes);
           
           const añoActual = new Date().getFullYear();
           const mesActualNum = new Date().getMonth() + 1;
           
-          // Crear array con todos los meses hasta el actual
           this.ventasMensuales = this.meses.map((_, index) => {
             const numeroMes = index + 1;
             
-            // Solo filtrar meses futuros si estamos en el año actual
             if (this.yearFilter === añoActual && numeroMes > mesActualNum) {
               return null;
             }
 
-            // Buscar datos del mes en la respuesta de la API
             const datosMes = ventasPorMes.find(v => v.month === numeroMes);
             
             return {
               month: numeroMes,
-              // Usar totalSales en lugar de total y convertir a número
               total: datosMes ? parseFloat(datosMes.totalSales) : 0,
-              // Calcular items desde products si existe, o usar 0
               items: datosMes && Array.isArray(datosMes.products) ? datosMes.products.length : 0
             };
-          }).filter(Boolean); // Eliminar meses nulos (futuros)
-
-          console.log('Ventas mensuales procesadas:', this.ventasMensuales);
+          }).filter(Boolean);
         }
       } catch (error) {
         console.error('Error detallado al obtener las ventas mensuales:', error);
@@ -606,36 +745,22 @@ export default {
     async obtenerVentasDiarias() {
       this.cargando.ventasDiarias = true;
       try {
-        console.log('Consultando ventas diarias:', {
-          mes: this.filtrosDiarios.mes,
-          año: this.filtrosDiarios.año
-        });
-
         const response = await apiRequest({
           method: 'GET',
           path: `sales/daily/${this.filtrosDiarios.mes}/${this.filtrosDiarios.año}`
         });
 
-        console.log('Respuesta ventas diarias:', response);
-
         if (response.status === 200) {
-          // Procesar los datos recibidos
           this.ventasDiarias = Array.isArray(response.data) ? response.data.map(venta => {
-            // Convertir la fecha a objeto Date
             const fecha = new Date(venta.day || venta.date);
             return {
               date: fecha,
-              // Usar totalSales en lugar de total y convertir a número
               total: venta.totalSales ? parseFloat(venta.totalSales) : 0,
-              // Obtener items desde products si existe
               items: Array.isArray(venta.products) ? venta.products.length : (venta.items || 0)
             };
           }) : [];
 
-          // Ordenar por fecha
           this.ventasDiarias.sort((a, b) => a.date - b.date);
-          
-          console.log('Ventas diarias procesadas:', this.ventasDiarias);
         }
       } catch (error) {
         console.error('Error al obtener las ventas diarias:', error);
@@ -660,7 +785,33 @@ export default {
       this.ventasPorFecha = [];
       this.mensajeTablaVacia = 'Seleccione un rango de fechas para ver las ventas';
     },
-  }
+    getCustomerName(row) {
+      return row.customer && row.customer.name ? row.customer.name : '';
+    },
+
+    getCustomerPhone(row) {
+      return row.customer && row.customer.phone ? row.customer.phone : '';
+    },
+    getStatusText(row) {
+      if (row.totalDeuda === 0) return 'Pagado';
+      if (row.transacciones.some(t => t.paid > 0)) return 'Pago Parcial';
+      return 'Pendiente';
+    },
+
+    getStatusType(row) {
+      if (row.totalDeuda === 0) return 'is-success';
+      if (row.transacciones.some(t => t.paid > 0)) return 'is-warning';
+      return 'is-danger';
+    },
+  },
+  watch: {
+    filtroEstado() {
+      this.obtenerAccountsHoldings();
+    },
+    busquedaCliente() {
+      this.obtenerAccountsHoldings();
+    }
+  },
 }
 </script>
 
