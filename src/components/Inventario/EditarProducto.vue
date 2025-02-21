@@ -1,55 +1,76 @@
 <template>
-	<section>
-		<h1 class="title is-1">Editar producto</h1>
-		<b-breadcrumb
-            align="is-left"
-        >
+    <section>
+        <h1 class="title is-1">Editar producto</h1>
+        <b-breadcrumb align="is-left">
             <b-breadcrumb-item tag='router-link' to="/">Inicio</b-breadcrumb-item>
             <b-breadcrumb-item tag='router-link' to="/inventario">Inventario</b-breadcrumb-item>
-            <b-breadcrumb-item  active>Editar producto</b-breadcrumb-item>
-        </b-breadcrumb>     
-		<form-producto :productoProp="datosProducto" @registrado="onEditar" v-if="datosProducto" />
-	</section>
+            <b-breadcrumb-item active>Editar producto</b-breadcrumb-item>
+        </b-breadcrumb>
+        <form-producto :productoProp="datosProducto" @registrado="onEditar" v-if="datosProducto" />
+    </section>
 </template>
 <script>
-	import HttpService from '../../Servicios/HttpService'
-	import FormProducto from './FormProducto'
-	export default{
-		name: "EditarProducto",
-		components: { FormProducto },
+import apiRequest from '../../Servicios/HttpService';
+import FormProducto from './FormProducto'
+export default {
+    name: "EditarProducto",
+    components: { FormProducto },
 
-		data:()=>({
-			cargando: false,
-			datosProducto: null
-		}),
+    data: () => ({
+        cargando: false,
+        datosProducto: null
+    }),
 
-		async mounted(){
-			this.cargando = true
-			const producto = await HttpService.obtenerConConsultas('productos.php', {
-				accion: 'obtener_por_id',
-				id: this.$route.params.id
-			})
-			this.datosProducto = producto
-			this.cargando = false
-		},
+    async mounted() {
+        this.cargando = true
+        const producto = await apiRequest({
+            method: 'GET',
+            path: `products/${this.$route.params.id}`
+        })
+        this.datosProducto = producto.data
+        this.cargando = false
+    },
 
-		methods: {
-			async onEditar(datosProducto) {
-				this.cargando = true
-				const resultado = await HttpService.editar('productos.php',{
-					accion: 'editar',
-					producto: datosProducto
-				})
+    methods: {
+        async onEditar(datosProducto) {
+            this.cargando = true
+			console.log('price', datosProducto)
+            const stock = Number(datosProducto.stock)
+            const { status } = await apiRequest({
+                method: 'PATCH',
+                path: `products/${this.$route.params.id}`,
+                data: {
+                    code: datosProducto.code,
+                    name: datosProducto.name,
+                    purchasePrice: datosProducto.purchasePrice,
+                    salePrice: datosProducto.salePrice,
+                    stock: stock,
+                    reservedStock: 0,
+                    wholesaleSale: datosProducto.wholesaleSale,
+                    touristPrice: datosProducto.touristPrice,
+                    wholesalePrice: datosProducto.wholesalePrice,
+                    wholesaleQuantity: datosProducto.wholesaleQuantity,
+                    brandId: datosProducto.brandId,
+                    categoryId: datosProducto.categoryId
+                }
+            })
 
-				if(resultado) {
-					this.cargando = false
-					this.$buefy.toast.open({
-                         type: 'is-info',
-                         message: 'Información de producto actualizada con éxito.'
-                    })
-                    this.$router.push({ name: 'ProductosComponent'})
-				}
-			}
-		}
-	}
+            if (status == 200) {
+                this.cargando = false
+                this.$buefy.toast.open({
+                    type: 'is-info',
+                    message: 'Información de producto actualizada con éxito.'
+                })
+                this.$router.push({ name: 'ProductosComponent' })
+            } else {
+                this.cargando = false
+                this.$buefy.toast.open({
+                    type: 'is-danger',
+                    message: 'Información de producto fallo al actualizar.'
+                })
+                this.$router.push({ name: 'ProductosComponent' })
+            }
+        }
+    }
+}
 </script>
