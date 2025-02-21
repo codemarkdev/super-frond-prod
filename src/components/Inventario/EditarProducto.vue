@@ -6,7 +6,7 @@
             <b-breadcrumb-item tag='router-link' to="/inventario">Inventario</b-breadcrumb-item>
             <b-breadcrumb-item active>Editar producto</b-breadcrumb-item>
         </b-breadcrumb>
-        <form-producto :productoProp="datosProducto" @registrado="onEditar" v-if="datosProducto" />
+        <form-producto :productoProp="datosProducto" @registrado="onEditar" v-if="datosProducto" ref="formProducto" />
     </section>
 </template>
 <script>
@@ -20,6 +20,12 @@ export default {
         cargando: false,
         datosProducto: null
     }),
+    watch: {
+        productoProp(newVal) {
+            this.producto = { ...newVal };
+            this.setSelectedValues(); 
+        }
+    },
 
     async mounted() {
         this.cargando = true
@@ -29,6 +35,9 @@ export default {
         })
         this.datosProducto = producto.data
         this.cargando = false
+        this.$nextTick(() => {
+            this.$refs.formProducto.setSelectedValues();
+        });
     },
 
     methods: {
