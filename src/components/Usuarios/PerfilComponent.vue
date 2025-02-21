@@ -124,7 +124,7 @@
   
           const response = await HttpService({
             method: 'POST',
-            path: `/Cash-Register/close/${userId}`,
+            path: `Cash-Register/close/${userId}`,
             data: {
               cashInHand: Number(this.cashInHand)
             }
