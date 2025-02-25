@@ -54,8 +54,7 @@
                     </b-table-column>
 
                     <b-table-column field="vendidoMayoreo" label="¿Mayoreo?" sortable v-slot="props">
-                        <b-tag type="is-danger" v-if="!props.row.wholesaleSale
-                        ">No</b-tag>
+                        <b-tag type="is-danger" v-if="!props.row.wholesaleSale">No</b-tag>
 
                         <div v-if="props.row.wholesaleSale">
                             <b>Precio: </b>${{ props.row.wholesalePrice }}<br>
@@ -80,38 +79,33 @@
 
                     <b-table-column field="acciones" label="Acciones" centered v-slot="props">
                         <div class="buttons is-centered">
-                        <b-button type="is-danger" @click="eliminar(props.row.id)">
-                            <b-icon icon="delete" />
-                        </b-button>
-
-                    
-                        <b-button type="is-info" @click="editar(props.row.id)">
-                            <b-icon icon="pen" />
-                        </b-button>
-                 
-
-                 
-                        <b-button type="is-primary" @click="agregarExistencia(props.row)">
-                            <b-icon icon="plus" />
-                        </b-button>
-                  
-
-                    
-                        <b-button type="is-warning" @click="quitarExistencia(props.row)">
-                            <b-icon icon="minus" />
-                        </b-button>
-                    </div>
+                            <b-tooltip label="Eliminar producto" position="is-top">
+                                <b-button type="is-danger" @click="eliminar(props.row.id)">
+                                    <b-icon icon="delete" />
+                                </b-button>
+                            </b-tooltip>
+                            <b-tooltip label="Editar producto" position="is-top">
+                                <b-button type="is-info" @click="editar(props.row.id)">
+                                    <b-icon icon="pen" />
+                                </b-button>
+                            </b-tooltip>
+                            <b-tooltip label="Agregar existencia" position="is-top">
+                                <b-button type="is-primary" @click="agregarExistencia(props.row)">
+                                    <b-icon icon="plus" />
+                                </b-button>
+                            </b-tooltip>
+                            <b-tooltip label="Quitar existencia" position="is-top">
+                                <b-button type="is-warning" @click="quitarExistencia(props.row)">
+                                    <b-icon icon="minus" />
+                                </b-button>
+                            </b-tooltip>
+                        </div>
                     </b-table-column>
                 </b-table>
             </div>
-            <b-pagination
-                v-if="isPaginated"
-                :total="productos.length"
-                :current.sync="currentPage"
-                :per-page="perPage"
-                class="is-hidden-tablet"
-            ></b-pagination>
+       
         </div>
+        
         <b-loading :is-full-page="true" v-model="cargando" :can-cancel="false"></b-loading>
     </section>
 </template>
@@ -160,9 +154,6 @@ export default {
                 trapFocus: true,
                 onConfirm: (value) => {
                     this.cargando = true
-
-                    // const cantidad = parseInt(value,10)
-                    // console.log('cantidasd', typeof(cantidad))
                     apiRequest({
                         method: 'PATCH', 
                         path: `products/${producto.id}/add-stock?quantity=${Number(value)}`
@@ -197,11 +188,6 @@ export default {
                         return
                     }
                     this.cargando = true
-                    // HttpService.registrar('productos.php', {
-                    //     accion: 'restar_existencia',
-                    //     cantidad: value,
-                    //     id: producto.id
-                    // })
                     
                     apiRequest({
                         method: 'PATCH', 
@@ -229,10 +215,7 @@ export default {
                 hasIcon: true,
                 onConfirm: () => {
                     this.cargando = true
-                    // HttpService.eliminar('productos.php', {
-                    //     accion: 'eliminar',
-                    //     id: idProducto
-                    // })
+
                     apiRequest({
                         method: 'DELETE', 
                         path: `products/${idProducto}`
@@ -272,14 +255,29 @@ export default {
             })
                 .then(respuesta => {
                     this.productos = respuesta.data.products
-                     
+                     apiRequest({
+                        method: "GET",
+                        path: 'products/product-stock/inventory-total'})
+                        .then(respuesta => {
+                            console.log('respuesta', respuesta)
+                            this.cartasTotales = [
+                                { nombre: "Número Productos", total: this.productos.length, icono: "package-variant-closed", clase: "has-text-danger" },
+                                { nombre: "Total Inventario", total: `$ ${respuesta.data.toFixed(2)}`, icono: "chart-bar-stacked", clase: "has-text-primary" },
+                        
+                               
+                            ]
 
-                    this.cartasTotales = [
-                        { nombre: "Número Productos", total: this.productos.length, icono: "package-variant-closed", clase: "has-text-danger" },
-                        { nombre: "Total productos", total: respuesta.totalProductos, icono: "chart-bar-stacked", clase: "has-text-primary" },
-                       
-                    ]
-
+                        })
+              
+                    apiRequest({
+                        method: "GET",
+                        path: 'products/product-stock/inventory-profit'
+                    })
+                        .then(respuesta => {
+                            this.cartasTotales.push(
+                                { nombre: "Ganancia", total: `$ ${respuesta.data.toFixed(2)}`, icono: "currency-usd", clase: "has-text-info" }
+                            )
+                        })
 
                     this.cargando = false
                 })

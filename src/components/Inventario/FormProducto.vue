@@ -2,7 +2,7 @@
     <section class="box">
         <b-field grouped group-multiline>
             <b-field label="Código de barras" expanded>
-                <b-input type="number" icon="barcode" placeholder="Código de barras"
+                <b-input type="text" icon="barcode" placeholder="Código de barras"
                     v-model="producto.code"></b-input>
             </b-field>
             <b-field label="Nombre" expanded>
@@ -107,9 +107,17 @@ export default {
         mensajesError: []
     }),
 
+    watch: {
+        productoProp(newVal) {
+            this.producto = { ...newVal };
+            this.setSelectedValues(); 
+        }
+    },
+
     mounted() {
         this.obtenerCategorias()
         this.obtenerMarcas()
+        this.producto ={ ...this.productoProp }
         if (this.productoProp) {
             this.producto = { ...this.productoProp }
             this.producto.wholesaleQuantity = parseInt(this.productoProp.wholesaleQuantity)
@@ -150,24 +158,21 @@ export default {
             }
         },
 
-
         setSelectedValues() {
-
-        if (this.marcas.length > 0) {
-            const selectedMarca = this.marcas.find(marca => marca.id === this.producto.brandId);
-            if (selectedMarca) {
-                this.producto.brandId = selectedMarca.id;
+            if (this.marcas.length > 0) {
+                const selectedMarca = this.marcas.find(marca => marca.id === this.producto.brand.id);
+                if (selectedMarca) {
+                    this.producto.brandId = selectedMarca.id;
+                }
             }
-        }
 
-      
-        if (this.categorias.length > 0) {
-            const selectedCategoria = this.categorias.find(categoria => categoria.id === this.producto.categoryId);
-            if (selectedCategoria) {
-                this.producto.categoryId = selectedCategoria.id;
+            if (this.categorias.length > 0) {
+                const selectedCategoria = this.categorias.find(categoria => categoria.id === this.producto.category.id);
+                if (selectedCategoria) {
+                    this.producto.categoryId = selectedCategoria.id;
+                }
             }
-        }
-    },
+        },
 
         obtenerMarcas() {
             apiRequest({

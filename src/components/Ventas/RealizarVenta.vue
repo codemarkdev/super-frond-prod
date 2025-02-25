@@ -102,7 +102,7 @@ aria-modal>
       onTerminar(venta){
         this.ventaRealizada = {
           total: this.total,
-          productos: this.productos,
+          products: this.productos,
           cliente: venta.cliente.id,
           usuario: AyudanteSesion.obtenerDatosSesion().id,
           nombreCliente: (venta.cliente.nombre) ? venta.cliente.nombre : 'MOSTRADOR',
