@@ -101,6 +101,29 @@
           </div>
         </div>
       </div>
+
+      <!-- Total Cuentas por Cobrar -->
+      <div class="column is-3">
+        <div class="card">
+          <div class="card-content">
+            <div class="level is-mobile">
+              <div class="level-left">
+                <div class="level-item">
+                  <div>
+                    <p class="heading">CUENTAS POR COBRAR</p>
+                    <p class="title is-4">${{ formatNumber(totalCuentasPorCobrar) }}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="level-right">
+                <div class="level-item">
+                  <b-icon icon="cash-multiple" size="is-large" type="is-warning"></b-icon>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Filtro de Ventas por Fecha -->
@@ -152,7 +175,7 @@
                   :loading="cargando.ventas"
                   :disabled="!filtroFechas.inicio || !filtroFechas.fin"
                 >
-                
+                  Buscar
                 </b-button>
                 <b-button
                   type="is-light"
@@ -391,6 +414,7 @@ export default {
       ingresoSemanal: 0,
       ingresoMensual: 0,
       pendingIncome: 0,
+      totalCuentasPorCobrar: 0,
       accountsHoldings: [],
       ventasPorFecha: [],
       ventasMensuales: [],
@@ -539,6 +563,8 @@ export default {
           this.obtenerVentasMensuales(),
           this.obtenerVentasDiarias()
         ]);
+        // Call obtenerTotalCuentasPorCobrar after accountsHoldings have been fetched
+        await this.obtenerTotalCuentasPorCobrar();
       } catch (error) {
         console.error('Error al cargar los datos:', error);
         this.mostrarError('Error al cargar los datos iniciales.');
@@ -771,6 +797,24 @@ export default {
       }
     },
 
+    async obtenerTotalCuentasPorCobrar() {
+      try {
+        // If we haven't fetched accountsHoldings yet, fetch them
+        if (this.accountsHoldings.length === 0) {
+          await this.obtenerAccountsHoldings();
+        }
+        
+        // Calculate the total from accountsHoldings
+        this.totalCuentasPorCobrar = this.accountsHoldings.reduce((total, account) => {
+          return total + (account.total - account.paid);
+        }, 0);
+      } catch (error) {
+        console.error('Error al calcular el total de cuentas por cobrar:', error);
+        this.mostrarError('Error al calcular el total de cuentas por cobrar');
+        this.totalCuentasPorCobrar = 0;
+      }
+    },
+
     mostrarError(mensaje) {
       this.$buefy.toast.open({
         message: mensaje,
@@ -785,6 +829,7 @@ export default {
       this.ventasPorFecha = [];
       this.mensajeTablaVacia = 'Seleccione un rango de fechas para ver las ventas';
     },
+
     getCustomerName(row) {
       return row.customer && row.customer.name ? row.customer.name : '';
     },
@@ -792,6 +837,7 @@ export default {
     getCustomerPhone(row) {
       return row.customer && row.customer.phone ? row.customer.phone : '';
     },
+
     getStatusText(row) {
       if (row.totalDeuda === 0) return 'Pagado';
       if (row.transacciones.some(t => t.paid > 0)) return 'Pago Parcial';
@@ -804,6 +850,7 @@ export default {
       return 'is-danger';
     },
   },
+
   watch: {
     filtroEstado() {
       this.obtenerAccountsHoldings();
@@ -979,4 +1026,3 @@ export default {
   }
 }
 </style>
-
