@@ -1,4 +1,5 @@
-<template>
+```vue type="vue" project="Historial de Ventas" file="HistorialVentas.vue"
+[v0-no-op-code-block-prefix]<template>
   <div class="historial-ventas">
     <header class="header">
       <h1 class="title is-2">Historial General</h1>
@@ -118,6 +119,75 @@
               <div class="level-right">
                 <div class="level-item">
                   <b-icon icon="cash-multiple" size="is-large" type="is-warning"></b-icon>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ganancia del Inventario -->
+      <div class="column is-3">
+        <div class="card">
+          <div class="card-content">
+            <div class="level is-mobile">
+              <div class="level-left">
+                <div class="level-item">
+                  <div>
+                    <p class="heading">GANANCIA INVENTARIO</p>
+                    <p class="title is-4">${{ formatNumber(inventoryProfit) }}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="level-right">
+                <div class="level-item">
+                  <b-icon icon="trending-up" size="is-large" type="is-success"></b-icon>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Valor Total del Inventario -->
+      <div class="column is-3">
+        <div class="card">
+          <div class="card-content">
+            <div class="level is-mobile">
+              <div class="level-left">
+                <div class="level-item">
+                  <div>
+                    <p class="heading">VALOR INVENTARIO</p>
+                    <p class="title is-4">${{ formatNumber(inventoryTotal) }}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="level-right">
+                <div class="level-item">
+                  <b-icon icon="package" size="is-large" type="is-info"></b-icon>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Stock del Inventario -->
+      <div class="column is-3">
+        <div class="card">
+          <div class="card-content">
+            <div class="level is-mobile">
+              <div class="level-left">
+                <div class="level-item">
+                  <div>
+                    <p class="heading">TOTAL PRODUCTOS</p>
+                    <p class="title is-4">{{ formatNumber(inventoryTotalStock) }}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="level-right">
+                <div class="level-item">
+                  <b-icon icon="archive" size="is-large" type="is-primary"></b-icon>
                 </div>
               </div>
             </div>
@@ -318,6 +388,31 @@
       </div>
     </div>
 
+    <!-- Ventas por Usuario -->
+    <div class="card mb-5">
+      <header class="card-header">
+        <p class="card-header-title">
+          <b-icon icon="account-multiple" type="is-info"></b-icon>
+          Ventas por Usuario
+        </p>
+      </header>
+      <div class="card-content">
+        <b-table
+          :data="ventasPorUsuario"
+          :striped="true"
+          :hoverable="true"
+          :empty="'No hay datos de ventas por usuario disponibles'"
+        >
+          <b-table-column field="username" label="Usuario" v-slot="props">
+            {{ props.row.username }}
+          </b-table-column>
+          <b-table-column field="totalSales" label="Total Ventas" numeric v-slot="props">
+            ${{ formatNumber(props.row.totalSales) }}
+          </b-table-column>
+        </b-table>
+      </div>
+    </div>
+
     <!-- Cuentas por Cobrar -->
     <div class="card">
       <header class="card-header">
@@ -415,10 +510,14 @@ export default {
       ingresoMensual: 0,
       pendingIncome: 0,
       totalCuentasPorCobrar: 0,
+      inventoryProfit: 0,
+      inventoryTotal: 0,
+      inventoryTotalStock: 0,
       accountsHoldings: [],
       ventasPorFecha: [],
       ventasMensuales: [],
       ventasDiarias: [],
+      ventasPorUsuario: [],
       filtroFechas: {
         inicio: null,
         fin: null
@@ -561,7 +660,11 @@ export default {
           this.obtenerIngresoPendiente(),
           this.obtenerAccountsHoldings(),
           this.obtenerVentasMensuales(),
-          this.obtenerVentasDiarias()
+          this.obtenerVentasDiarias(),
+          this.obtenerVentasPorUsuario(),
+          this.obtenerInventoryProfit(),
+          this.obtenerInventoryTotal(),
+          this.obtenerInventoryTotalStock()
         ]);
         // Call obtenerTotalCuentasPorCobrar after accountsHoldings have been fetched
         await this.obtenerTotalCuentasPorCobrar();
@@ -797,6 +900,26 @@ export default {
       }
     },
 
+    async obtenerVentasPorUsuario() {
+      try {
+        const response = await apiRequest({
+          method: 'GET',
+          path: 'users/report/sales-by-user'
+        });
+
+        if (response.status === 200) {
+          this.ventasPorUsuario = Array.isArray(response.data) ? response.data.map(user => ({
+            username: user.username,
+            totalSales: parseFloat(user.totalSales) || 0
+          })) : [];
+        }
+      } catch (error) {
+        console.error('Error al obtener ventas por usuario:', error);
+        this.mostrarError('Error al cargar las ventas por usuario');
+        this.ventasPorUsuario = [];
+      }
+    },
+
     async obtenerTotalCuentasPorCobrar() {
       try {
         // If we haven't fetched accountsHoldings yet, fetch them
@@ -812,6 +935,57 @@ export default {
         console.error('Error al calcular el total de cuentas por cobrar:', error);
         this.mostrarError('Error al calcular el total de cuentas por cobrar');
         this.totalCuentasPorCobrar = 0;
+      }
+    },
+
+    async obtenerInventoryProfit() {
+      try {
+        const response = await apiRequest({
+          method: 'GET',
+          path: 'products/inventory/total-profit'
+        });
+
+        if (response.status === 200) {
+          this.inventoryProfit = response.data || 0;
+        }
+      } catch (error) {
+        console.error('Error al obtener ganancia del inventario:', error);
+        this.mostrarError('Error al cargar la ganancia del inventario');
+        this.inventoryProfit = 0;
+      }
+    },
+
+    async obtenerInventoryTotal() {
+      try {
+        const response = await apiRequest({
+          method: 'GET',
+          path: 'products/inventory/total-value'
+        });
+
+        if (response.status === 200) {
+          this.inventoryTotal = response.data || 0;
+        }
+      } catch (error) {
+        console.error('Error al obtener valor total del inventario:', error);
+        this.mostrarError('Error al cargar el valor total del inventario');
+        this.inventoryTotal = 0;
+      }
+    },
+
+    async obtenerInventoryTotalStock() {
+      try {
+        const response = await apiRequest({
+          method: 'GET',
+          path: 'products/inventory/total-stock'
+        });
+
+        if (response.status === 200) {
+          this.inventoryTotalStock = response.data || 0;
+        }
+      } catch (error) {
+        console.error('Error al obtener total de stock:', error);
+        this.mostrarError('Error al cargar el total de stock');
+        this.inventoryTotalStock = 0;
       }
     },
 
