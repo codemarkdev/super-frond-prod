@@ -19,7 +19,7 @@ import EditarUsuario from '@/components/Usuarios/EditarUsuario'
 import ConfiguracionComponent from '@/components/Configuracion/ConfiguracionComponent'
 import PerfilComponent from '@/components/Usuarios/PerfilComponent'
 import CambiarPassword from '@/components/Usuarios/CambiarPassword'
-import InicioComponent from '@/components/InicioComponent'
+
 // Add this line to import the new component
 
 
@@ -33,8 +33,8 @@ const routes = [
   },
   {
     path: '/',
-    name: 'InicioComponent',
-    component: InicioComponent,
+    name: 'RealizarVenta',
+    component: RealizarVenta,
     meta: { requiresAuth: true }
   },
   {
