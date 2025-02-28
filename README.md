@@ -1,2 +1,2 @@
 # Pos
-© 20245 Sistema de ventas POS.
+© 2025 Sistema de ventas POS.
