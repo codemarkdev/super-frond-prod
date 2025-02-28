@@ -14,7 +14,7 @@ import EditarCliente from '@/components/Clientes/EditarCliente'
 import UsuariosComponent from '@/components/Usuarios/UsuariosComponent'
 import AgregarUsuario from '@/components/Usuarios/AgregarUsuario'
 import EditarUsuario from '@/components/Usuarios/EditarUsuario'
-import ConfiguracionComponent from '@/components/Configuracion/ConfiguracionComponent'
+import Pagos from '@/components/Pagos/Pagos'
 import PerfilComponent from '@/components/Usuarios/PerfilComponent'
 import CambiarPassword from '@/components/Usuarios/CambiarPassword'
 
@@ -121,9 +121,9 @@ const routes = [
     meta: { requiresAuth: true }
   },  
   {
-    path: '/configurar',
-    name: 'ConfiguracionComponent',
-    component: ConfiguracionComponent,
+    path: '/pagos',
+    name: 'Pagos',
+    component: Pagos,
     meta: { requiresAuth: true }
   },
   {
