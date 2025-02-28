@@ -25,11 +25,7 @@
                  Marcas y categorías
              </b-navbar-item> 
  
-             <b-navbar-item  tag="router-link" :to="{ path: '/realizar-venta' }">
-                
-                 <span></span>
-                 Vender
-             </b-navbar-item>
+     
  
              <b-navbar-item>
                 
@@ -42,18 +38,10 @@
                  <b-navbar-item tag="router-link" :to="{ path: '/reporte-cuentas' }">
                    
                      <span></span>
-                     Cuentas
+                    Hacer Pago
                  </b-navbar-item>
-                 <b-navbar-item tag="router-link" :to="{ path: '/reporte-apartados' }">
-                   
-                     <span></span>
-                     Apartados
-                 </b-navbar-item>
-                 <b-navbar-item tag="router-link" :to="{ path: '/reporte-cotizaciones' }">
-                   
-                     <span></span>
-                     Cotizaciones
-                 </b-navbar-item>
+                
+                
                  </b-navbar-dropdown>
              </b-navbar-item>
  

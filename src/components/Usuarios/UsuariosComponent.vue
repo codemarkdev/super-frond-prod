@@ -61,6 +61,7 @@
               default-sort="date"
               default-sort-direction="desc"
             >
+            
               <b-table-column field="date" label="Fecha" sortable v-slot="props">
                 {{ formatDate(props.row.date) }}
               </b-table-column>

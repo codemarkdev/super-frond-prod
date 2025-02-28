@@ -196,90 +196,115 @@
       </div>
     </div>
 
-    <!-- Filtro de Ventas por Fecha -->
-    <div class="card mb-5">
-      <header class="card-header">
-        <p class="card-header-title">
-          <b-icon icon="filter"></b-icon>
-          Filtrar Ventas por Fecha
-        </p>
-      </header>
-      <div class="card-content">
-        <div class="columns">
-          <div class="column is-4">
-            <b-field label="Fecha Inicial">
-              <b-datepicker
-                v-model="filtroFechas.inicio"
-                :max-date="filtroFechas.fin || new Date()"
-                :first-day-of-week="1"
-                locale="es-MX"
-                placeholder="Seleccione fecha inicial"
-                icon="calendar-today"
-                :focused="false"
-                :mobile-native="false"
-              ></b-datepicker>
-            </b-field>
+   <!-- Filtro de Ventas por Fecha -->
+<div class="card mb-5">
+  <header class="card-header">
+    <p class="card-header-title">
+      <b-icon icon="filter"></b-icon>
+      Filtrar Ventas por Fecha
+    </p>
+  </header>
+  <div class="card-content">
+    <div class="columns">
+      <div class="column is-4">
+        <b-field label="Fecha Inicial">
+          <b-datepicker
+            v-model="filtroFechas.inicio"
+            :max-date="filtroFechas.fin || new Date()"
+            :first-day-of-week="1"
+            locale="es-MX"
+            placeholder="Seleccione fecha inicial"
+            icon="calendar-today"
+            :focused="false"
+            :mobile-native="false"
+          ></b-datepicker>
+        </b-field>
+      </div>
+      <div class="column is-4">
+        <b-field label="Fecha Final">
+          <b-datepicker
+            v-model="filtroFechas.fin"
+            :min-date="filtroFechas.inicio"
+            :max-date="new Date()"
+            :first-day-of-week="1"
+            locale="es-MX"
+            placeholder="Seleccione fecha final"
+            icon="calendar-today"
+            :focused="false"
+            :mobile-native="false"
+          ></b-datepicker>
+        </b-field>
+      </div>
+      <div class="column is-4">
+        <b-field label="Buscar">
+          <div class="buttons">
+            <b-button
+              type="is-primary"
+              icon-left="magnify"
+              @click="obtenerVentasPorFecha"
+              :loading="cargando.ventas"
+              :disabled="!filtroFechas.inicio || !filtroFechas.fin"
+            >
+              Buscar
+            </b-button>
+            <b-button
+              type="is-light"
+              icon-left="close-circle"
+              @click="limpiarFiltroFechas"
+              :disabled="!filtroFechas.inicio && !filtroFechas.fin"
+            >
+              Limpiar
+            </b-button>
           </div>
-          <div class="column is-4">
-            <b-field label="Fecha Final">
-              <b-datepicker
-                v-model="filtroFechas.fin"
-                :min-date="filtroFechas.inicio"
-                :max-date="new Date()"
-                :first-day-of-week="1"
-                locale="es-MX"
-                placeholder="Seleccione fecha final"
-                icon="calendar-today"
-                :focused="false"
-                :mobile-native="false"
-              ></b-datepicker>
-            </b-field>
-          </div>
-          <div class="column is-4">
-            <b-field label="Buscar">
-              <div class="buttons">
-                <b-button
-                  type="is-primary"
-                  icon-left="magnify"
-                  @click="obtenerVentasPorFecha"
-                  :loading="cargando.ventas"
-                  :disabled="!filtroFechas.inicio || !filtroFechas.fin"
-                >
-                  Buscar
-                </b-button>
-                <b-button
-                  type="is-light"
-                  icon-left="close-circle"
-                  @click="limpiarFiltroFechas"
-                  :disabled="!filtroFechas.inicio && !filtroFechas.fin"
-                >
-                  Limpiar
-                </b-button>
-              </div>
-            </b-field>
-          </div>
-        </div>
-
-        <!-- Tabla de Ventas -->
-        <b-table
-          :data="ventasPorFecha"
-          :loading="cargando.ventas"
-          :striped="true"
-          :hoverable="true"
-          :empty="mensajeTablaVacia"
-        >
-          <b-table-column field="date" label="Fecha" v-slot="props">
-            {{ formatearFecha(props.row.date) }}
-          </b-table-column>
-          <b-table-column field="total" label="Total" numeric v-slot="props">
-            ${{ formatNumber(props.row.total) }}
-          </b-table-column>
-          <b-table-column field="items" label="Items" numeric v-slot="props">
-            {{ props.row.items }}
-          </b-table-column>
-        </b-table>
+        </b-field>
       </div>
     </div>
+
+    <!-- Tabla de Ventas -->
+    <b-table
+      :data="ventasPorFecha"
+      :loading="cargando.ventas"
+      :striped="true"
+      :hoverable="true"
+      :empty="mensajeTablaVacia"
+    >
+      <b-table-column field="date" label="Fecha" v-slot="props">
+        {{ formatearFecha(props.row.date) }}
+      </b-table-column>
+      <b-table-column field="totalWithIVA" label="Total con IVA" numeric v-slot="props">
+        ${{ formatNumber(props.row.totalWithIVA) }}
+      </b-table-column>
+      <b-table-column field="totalWithoutIVA" label="Total sin IVA" numeric v-slot="props">
+        ${{ formatNumber(props.row.totalWithoutIVA) }}
+      </b-table-column>
+      <b-table-column field="paid" label="Pagado" numeric v-slot="props">
+        ${{ formatNumber(props.row.paid) }}
+      </b-table-column>
+
+      <!-- Expansión de productos -->
+      <template v-slot:expanded-row="props">
+        <b-table :data="props.row.products" :striped="true">
+          <b-table-column field="id" label="ID">
+            {{ props.row.products.id }}
+          </b-table-column>
+          <b-table-column field="name" label="Nombre">
+            {{ props.row.products.name }}
+          </b-table-column>
+          <b-table-column field="price" label="Precio" numeric>
+            ${{ formatNumber(props.row.products.price) }}
+          </b-table-column>
+          <b-table-column field="priceWithoutIVA" label="Precio sin IVA" numeric>
+            ${{ formatNumber(props.row.products.priceWithoutIVA) }}
+          </b-table-column>
+          <b-table-column field="quantity" label="Cantidad" numeric>
+            {{ props.row.products.quantity }}
+          </b-table-column>
+        </b-table>
+      </template>
+    </b-table>
+  </div>
+</div>
+
 
     <!-- Ventas Mensuales -->
     <div class="card mb-5">
@@ -339,80 +364,7 @@
       </div>
     </div>
 
-    <!-- Ventas Diarias -->
-    <div class="card">
-      <header class="card-header">
-        <p class="card-header-title">
-          <b-icon icon="calendar-range"></b-icon>
-          Ventas Diarias
-        </p>
-        <div class="card-header-icon">
-          <div class="buttons has-addons">
-            <b-select 
-              v-model="filtrosDiarios.mes" 
-              size="is-small"
-              @input="obtenerVentasDiarias"
-            >
-              <option v-for="(mes, index) in meses" :key="index" :value="index + 1">
-                {{ mes }}
-              </option>
-            </b-select>
-            <b-select 
-              v-model="filtrosDiarios.año" 
-              size="is-small"
-              @input="obtenerVentasDiarias"
-            >
-              <option v-for="year in availableYears" :key="year" :value="year">
-                {{ year }}
-              </option>
-            </b-select>
-          </div>
-        </div>
-      </header>
-      <div class="card-content">
-        <b-table
-          :data="ventasDiarias"
-          :loading="cargando.diario"
-          :striped="true"
-          :hoverable="true"
-          :empty="!ventasDiarias.length ? 'No hay ventas para el período seleccionado' : ''"
-        >
-          <b-table-column field="date" label="Día" v-slot="props">
-            {{ new Date(props.row.date).getDate() }}
-          </b-table-column>
-          <b-table-column field="total" label="Total" numeric v-slot="props">
-            ${{ formatNumber(props.row.total) }}
-          </b-table-column>
-        
-        </b-table>
-      </div>
-    </div>
-
-    <!-- Ventas por Usuario -->
-    <div class="card mb-5">
-      <header class="card-header">
-        <p class="card-header-title">
-          <b-icon icon="account-multiple" type="is-info"></b-icon>
-          Ventas por Usuario
-        </p>
-      </header>
-      <div class="card-content">
-        <b-table
-          :data="ventasPorUsuario"
-          :striped="true"
-          :hoverable="true"
-          :empty="'No hay datos de ventas por usuario disponibles'"
-        >
-          <b-table-column field="username" label="Usuario" v-slot="props">
-            {{ props.row.username }}
-          </b-table-column>
-          <b-table-column field="totalSales" label="Total Ventas" numeric v-slot="props">
-            ${{ formatNumber(props.row.totalSales) }}
-          </b-table-column>
-        </b-table>
-      </div>
-    </div>
-
+  
     <!-- Cuentas por Cobrar -->
     <div class="card">
       <header class="card-header">
@@ -491,6 +443,30 @@
               </b-table>
             </div>
           </template>
+        </b-table>
+      </div>
+    </div>
+     <!-- Ventas por Usuario -->
+     <div class="card mb-5">
+      <header class="card-header">
+        <p class="card-header-title">
+          <b-icon icon="account-multiple" type="is-info"></b-icon>
+          Ventas por Usuario
+        </p>
+      </header>
+      <div class="card-content">
+        <b-table
+          :data="ventasPorUsuario"
+          :striped="true"
+          :hoverable="true"
+          :empty="'No hay datos de ventas por usuario disponibles'"
+        >
+          <b-table-column field="username" label="Usuario" v-slot="props">
+            {{ props.row.username }}
+          </b-table-column>
+          <b-table-column field="totalSales" label="Total Ventas" numeric v-slot="props">
+            ${{ formatNumber(props.row.totalSales) }}
+          </b-table-column>
         </b-table>
       </div>
     </div>
@@ -642,6 +618,8 @@ export default {
       });
     },
 
+    
+
     obtenerNombreMes(monthNumber) {
       return this.meses[monthNumber - 1] || '';
     },
@@ -675,62 +653,73 @@ export default {
     },
 
     async obtenerVentasPorFecha() {
-      if (!this.filtroFechas.inicio || !this.filtroFechas.fin) {
-        this.$buefy.toast.open({
-          message: 'Por favor, seleccione ambas fechas',
-          type: 'is-warning'
-        });
-        return;
-      }
+  if (!this.filtroFechas.inicio || !this.filtroFechas.fin) {
+    this.$buefy.toast.open({
+      message: 'Por favor, seleccione ambas fechas',
+      type: 'is-warning'
+    });
+    return;
+  }
 
-      this.cargando.ventas = true;
-      this.mensajeTablaVacia = 'Cargando ventas...';
+  this.cargando.ventas = true;
+  this.mensajeTablaVacia = 'Cargando ventas...';
 
-      try {
-        const formatearFecha = (fecha) => {
-          const d = new Date(fecha);
-          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        };
+  try {
+    const formatearFecha = (fecha) => {
+      const d = new Date(fecha);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    };
 
-        const startDate = formatearFecha(this.filtroFechas.inicio);
-        const endDate = formatearFecha(this.filtroFechas.fin);
-        
-        const response = await apiRequest({
-          method: 'GET',
-          path: `sales?startDate=${startDate}&endDate=${endDate}`
-        });
+    const startDate = formatearFecha(this.filtroFechas.inicio);
+    const endDate = formatearFecha(this.filtroFechas.fin);
+    
+    const response = await apiRequest({
+      method: 'GET',
+      path: `sales?startDate=${startDate}&endDate=${endDate}`
+    });
 
-        if (response.status === 200) {
-          if (Array.isArray(response.data)) {
-            this.ventasPorFecha = response.data.map(venta => ({
-              date: venta.date,
-              total: venta.total || 0,
-              items: Array.isArray(venta.products) ? venta.products.length : 
-                     (typeof venta.items === 'number' ? venta.items : 0)
-            }));
-        
-            if (this.ventasPorFecha.length === 0) {
-              this.mensajeTablaVacia = 'No se encontraron ventas en las fechas seleccionadas';
-              this.$buefy.toast.open({
-                message: 'No se encontraron ventas en las fechas seleccionadas',
-                type: 'is-warning',
-                position: 'is-bottom',
-                duration: 3000
-              });
-            }
-          } else {
-            throw new Error('Formato de respuesta inválido');
-          }
+    if (response.status === 200) {
+      const data = response.data;
+
+      if (Array.isArray(data)) {
+        this.ventasPorFecha = data.map(venta => ({
+          id: venta.id,
+          date: venta.date,
+          totalWithIVA: parseFloat(venta.totalWithIVA) || 0,
+          totalWithoutIVA: parseFloat(venta.totalWithoutIVA) || 0,
+          paid: parseFloat(venta.paid) || 0,
+          products: venta.products.map(producto => ({
+            id: producto.id,
+            name: `Producto ${producto.productId}`, // Aquí puedes hacer otra petición para traer el nombre real.
+            price: parseFloat(producto.price),
+            quantity: parseFloat(producto.quantity),
+            priceWithoutIVA: parseFloat(producto.priceWithoutIVA)
+          }))
+        }));
+
+        if (this.ventasPorFecha.length === 0) {
+          this.mensajeTablaVacia = 'No se encontraron ventas en las fechas seleccionadas';
+          this.$buefy.toast.open({
+            message: 'No se encontraron ventas en las fechas seleccionadas',
+            type: 'is-warning',
+            position: 'is-bottom',
+            duration: 3000
+          });
         }
-      } catch (error) {
-        console.error('Error al obtener ventas por fecha:', error);
-        this.mostrarError('Error al cargar las ventas. Por favor, intente nuevamente.');
-        this.ventasPorFecha = [];
-        this.mensajeTablaVacia = 'Error al cargar las ventas';
-      } finally {
-        this.cargando.ventas = false;
+      } else {
+        throw new Error('Formato de respuesta inválido');
       }
-    },
+    }
+  } catch (error) {
+    console.error('Error al obtener ventas por fecha:', error);
+    this.mostrarError('Error al cargar las ventas. Por favor, intente nuevamente.');
+    this.ventasPorFecha = [];
+    this.mensajeTablaVacia = 'Error al cargar las ventas';
+  } finally {
+    this.cargando.ventas = false;
+  }
+}
+,
 
     async obtenerIngresoHoy() {
       this.cargando.ingresosHoy = true;
@@ -871,34 +860,46 @@ export default {
       }
     },
 
-    async obtenerVentasDiarias() {
-      this.cargando.ventasDiarias = true;
-      try {
-        const response = await apiRequest({
-          method: 'GET',
-          path: `sales/daily/${this.filtrosDiarios.mes}/${this.filtrosDiarios.año}`
-        });
+   async obtenerVentasDiarias() {
+  this.cargando.ventasDiarias = true;
+  try {
+    // Verifica que los filtros tengan valores válidos
+    if (!this.filtrosDiarios.mes || !this.filtrosDiarios.año) {
+      this.$buefy.toast.open({
+        message: 'Seleccione mes y año antes de buscar.',
+        type: 'is-warning',
+        position: 'is-bottom'
+      });
+      this.cargando.ventasDiarias = false;
+      return;
+    }
 
-        if (response.status === 200) {
-          this.ventasDiarias = Array.isArray(response.data) ? response.data.map(venta => {
-            const fecha = new Date(venta.day || venta.date);
-            return {
-              date: fecha,
-              total: venta.totalSales ? parseFloat(venta.totalSales) : 0,
-              items: Array.isArray(venta.products) ? venta.products.length : (venta.items || 0)
-            };
-          }) : [];
+    // Llamada a la API con los parámetros correctos
+    const response = await apiRequest({
+      method: 'GET',
+      path: `sales/daily/${String(this.filtrosDiarios.mes).padStart(2, '0')}/${this.filtrosDiarios.año}`
+    });
 
-          this.ventasDiarias.sort((a, b) => a.date - b.date);
-        }
-      } catch (error) {
-        console.error('Error al obtener las ventas diarias:', error);
-        this.mostrarError('Error al cargar las ventas diarias');
-        this.ventasDiarias = [];
-      } finally {
-        this.cargando.ventasDiarias = false;
-      }
-    },
+    if (response.status === 200 && Array.isArray(response.data)) {
+      this.ventasDiarias = response.data.map(venta => ({
+        date: new Date(venta.day), // Asegurar conversión correcta
+        total: venta.totalSales ? parseFloat(venta.totalSales) : 0
+      }));
+
+      // Ordenar las ventas por fecha ascendente
+      this.ventasDiarias.sort((a, b) => a.date - b.date);
+    } else {
+      this.ventasDiarias = [];
+    }
+  } catch (error) {
+    console.error('Error al obtener las ventas diarias:', error);
+    this.mostrarError('Error al cargar las ventas diarias');
+    this.ventasDiarias = [];
+  } finally {
+    this.cargando.ventasDiarias = false;
+  }
+}
+,
 
     async obtenerVentasPorUsuario() {
       try {

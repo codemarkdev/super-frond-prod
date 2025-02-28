@@ -8,8 +8,6 @@ import MarcasCategorias from '@/components/MarcasCategorias/MarcasCategorias'
 import RealizarVenta from '@/components/Ventas/RealizarVenta'
 import ReporteVentas from '@/components/Ventas/ReporteVentas'
 import ReporteCuentas from '@/components/Ventas/ReporteCuentas'
-import ReporteApartados from '@/components/Ventas/ReporteApartados'
-import ReporteCotizaciones from '@/components/Ventas/ReporteCotizaciones'
 import ClientesComponent from '@/components/Clientes/ClientesComponent'
 import AgregarCliente from '@/components/Clientes/AgregarCliente'
 import EditarCliente from '@/components/Clientes/EditarCliente'
@@ -79,18 +77,7 @@ const routes = [
     component: ReporteCuentas,
     meta: { requiresAuth: true }
   },  
-  {
-    path: '/reporte-apartados',
-    name: 'ReporteApartados',
-    component: ReporteApartados,
-    meta: { requiresAuth: true }
-  },  
-  {
-    path: '/reporte-cotizaciones',
-    name: 'ReporteCotizaciones',
-    component: ReporteCotizaciones,
-    meta: { requiresAuth: true }
-  },
+ 
   {
     path: '/clientes',
     name: 'ClientesComponent',
