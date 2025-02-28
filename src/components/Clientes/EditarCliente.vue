@@ -13,7 +13,7 @@
     </section>
 </template>
 <script>
-    import HttpService from '../../Servicios/HttpService'
+    import apiRequest from '../../Servicios/HttpService';
     import FormCliente from './FormCliente'
 
     export default{
@@ -27,31 +27,47 @@
 
         async mounted(){
             this.cargando = true    
-            const cliente = await HttpService.obtenerConConsultas('clientes.php', {
-                accion: 'obtener_por_id',
-                id: this.$route.params.id
+            // const cliente = await HttpService.obtenerConConsultas('clientes.php', {
+            //     accion: 'obtener_por_id',
+            //     id: this.$route.params.id
+            // })
+            apiRequest({
+                method: 'GET',
+            path: `customers/${this.$route.params.id}`
+            }).then(cliente => {
+                this.datosCliente = cliente.data
+                this.cargando = false
             })
-
-            this.datosCliente = cliente
-            this.cargando = false
         },
 
         methods: {
             async onEditar(datosCliente){
                 this.cargando = true
-                const resultado = await HttpService.editar('clientes.php',{
-                    accion: 'editar',
-                    cliente: datosCliente
+                // const resultado = await HttpService.editar('clientes.php',{
+                //     accion: 'editar',
+                //     cliente: datosCliente
+                // })
+
+                apiRequest({
+                    method: 'PUT',
+                    path: `customers/${this.$route.params.id}`,
+                    data: datosCliente
+                }).then(resultado => {
+                    if(!resultado) {
+                        this.$buefy.toast.open('Error al editar')
+                        this.cargando = false
+                        return
+                    }
+                    else{
+                        this.cargando = false
+                        this.$buefy.toast.open({
+                            type: 'is-info',
+                            message: 'Información de cliente actualizada con éxito.'
+                        })
+                        this.$router.push({ name: 'ClientesComponent'})
+                    }
                 })
 
-                if(resultado) {
-                    this.cargando = false
-                    this.$buefy.toast.open({
-                         type: 'is-info',
-                         message: 'Información de cliente actualizada con éxito.'
-                    })
-                    this.$router.push({ name: 'ClientesComponent'})
-                }
             }
         }
     }

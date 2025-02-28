@@ -1,228 +1,233 @@
 <template>
     <section>
-        <nav-component :titulo="'Inventario'" :link="{ path: '/agregar-producto' }" :texto="'Agregar producto'"/>
-        <b-breadcrumb
-            align="is-left"
-        >
+        <nav-component :titulo="'Inventario'" :link="{ path: '/agregar-producto' }" :texto="'Agregar producto'" />
+        <b-breadcrumb align="is-left">
             <b-breadcrumb-item tag='router-link' to="/">Inicio</b-breadcrumb-item>
             <b-breadcrumb-item active>Inventario</b-breadcrumb-item>
-        </b-breadcrumb>     
-        <mensaje-inicial :titulo="'No se han encontrado productos :('" :subtitulo="'Agrega productos pulsando el botón de Agregar productos'" v-if="productos.length<1"/>
-        
-        <div v-if="productos.length>0">
-            <cartas-totales :totales="cartasTotales" />
-            <b-select v-model="perPage">
-                <option value="5">5 por página</option>
-                <option value="10">10 por página</option>
-                <option value="15">15 por página</option>
-                <option value="20">20 por página</option>
-            </b-select>
+        </b-breadcrumb>
+        <mensaje-inicial :titulo="'No se han encontrado productos :('"
+            :subtitulo="'Agrega productos pulsando el botón de Agregar productos'" v-if="productos.length < 1" />
 
-            <b-table
-            class="box"
-            :data="productos"
-            :paginated="isPaginated"
-            :per-page="perPage"
-            :current-page.sync="currentPage"
-            :pagination-simple="isPaginationSimple"
-            :pagination-position="paginationPosition"
-            :default-sort-direction="defaultSortDirection"
-            :pagination-rounded="isPaginationRounded"
-            :sort-icon="sortIcon"
-            :sort-icon-size="sortIconSize"
-            default-sort="user.first_name"
-            aria-next-label="Next page"
-            aria-previous-label="Previous page"
-            aria-page-label="Page"
-            aria-current-label="Current page"
-            >
-              <b-table-column field="codigo" label="Código" sortable searchable v-slot="props">
-                    {{ props.row.codigo }}
-                </b-table-column>
+        <div class="" v-if="productos.length > 0">
+            <cartas-totales :totales="cartasTotales" class="mb-4" />
+            <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
+                <b-select v-model="perPage" class="is-flex-grow-1 mr-2">
+                    <option value="5">5 por página</option>
+                    <option value="10">10 por página</option>
+                    <option value="15">15 por página</option>
+                    <option value="20">20 por página</option>
+                </b-select>
+             
+            </div>
+            <div class="table-container">
+                <b-table class="box" :data="productos" :paginated="isPaginated" :per-page="perPage"
+                    :current-page.sync="currentPage" :pagination-simple="isPaginationSimple"
+                    :pagination-position="paginationPosition" :default-sort-direction="defaultSortDirection"
+                    :pagination-rounded="isPaginationRounded" :sort-icon="sortIcon" :sort-icon-size="sortIconSize"
+                    default-sort="user.first_name" aria-next-label="Next page" aria-previous-label="Previous page"
+                    aria-page-label="Page" aria-current-label="Current page">
+                    <b-table-column field="code" label="Código de barras" sortable searchable v-slot="props">
+                        {{ props.row.code }}
+                    </b-table-column>
 
-                <b-table-column field="nombre" label="Nombre" sortable searchable v-slot="props">
-                    {{ props.row.nombre }}
-                </b-table-column>
+                    <b-table-column field="name" label="Nombre" sortable searchable v-slot="props">
+                        {{ props.row.name }}
+                    </b-table-column>
 
-                <b-table-column field="precioCompra" label="Precio compra" sortable v-slot="props">
-                    ${{ props.row.precioCompra }}
-                </b-table-column>
+                    <b-table-column field="precioCompra" label="Precio compra" sortable v-slot="props">
+                        ${{ props.row.purchasePrice }}
+                    </b-table-column>
 
-                <b-table-column field="precioVenta" label="Precio venta" sortable v-slot="props">
-                    ${{ props.row.precioVenta }}
-                </b-table-column>
+                    <b-table-column field="precioVenta" label="Precio venta" sortable v-slot="props">
+                        ${{ props.row.salePrice }}
+                    </b-table-column>
 
-                <b-table-column field="ganancia" label="Ganacia" sortable v-slot="props">
-                    <b>${{ props.row.precioVenta - props.row.precioCompra }}</b>
-                </b-table-column>
+                    <b-table-column field="precioTurista" label="Precio turista" sortable v-slot="props">
+                        ${{ props.row.touristPrice }}
+                    </b-table-column>
 
-                <b-table-column field="vendidoMayoreo" label="¿Mayoreo?" sortable v-slot="props">
-                    <b-tag type="is-danger" v-if="!props.row.vendidoMayoreo">No</b-tag>
+                    <b-table-column field="ganancia" label="Ganancia" sortable v-slot="props">
+                        <b>${{ (props.row.salePrice - props.row.purchasePrice).toFixed(2) }}</b>
+                    </b-table-column>
+                    <b-table-column field="ganancia" label="Ganancia turista" sortable v-slot="props">
+                        <b>${{ (props.row.touristPrice - props.row.purchasePrice).toFixed(2)}}</b>
+                    </b-table-column>
 
-                    <div v-if="props.row.vendidoMayoreo">
-                        <b>Precio: </b>${{ props.row.precioMayoreo}}<br>
-                        <b>A partir: </b>{{ props.row.cantidadMayoreo}}
-                    </div>
-                </b-table-column>
+                    <b-table-column field="vendidoMayoreo" label="¿Mayoreo?" sortable v-slot="props">
+                        <b-tag type="is-danger" v-if="!props.row.wholesaleSale">No</b-tag>
 
-                <b-table-column field="existencia" label="Existencia" sortable v-slot="props">
-                    {{ props.row.existencia }}
-                </b-table-column>
+                        <div v-if="props.row.wholesaleSale">
+                            <b>Precio: </b>${{ props.row.wholesalePrice }}<br>
+                            <b>A partir de: </b>{{ parseInt(props.row.wholesaleQuantity) }}
+                        </div>
+                    </b-table-column>
 
-                <b-table-column field="nombreMarca" label="Marca" sortable searchable v-slot="props">
-                    {{ props.row.nombreMarca }}
-                </b-table-column>
+                    <b-table-column field="existencia" label="Existencia" sortable v-slot="props">
+                        {{ props.row.stock }}
+                    </b-table-column>
+                    <!-- <b-table-column field="reservación de existencias " label="Reservación de existencias" v-slot="props">
+                        {{ props.row.reservedStock }}
+                    </b-table-column> -->
 
-                <b-table-column field="nombreCategoria" label="Categoría" sortable searchable v-slot="props">
-                    {{ props.row.nombreCategoria }}
-                </b-table-column>
+                    <b-table-column field="brand.brandName" label="Marca" sortable searchable v-slot="props">
+                        {{ props.row.brand.brandName }}
+                    </b-table-column>
 
-                <b-table-column field="eliminar" label="Eliminar" v-slot="props">
-                    <b-button type="is-danger" @click="eliminar(props.row.id)">
-                        <b-icon icon="delete" />
-                    </b-button>
-                </b-table-column>
+                    <b-table-column field="category.categoryName" label="Categoría" sortable searchable v-slot="props">
+                        {{ props.row.category.categoryName }}
+                    </b-table-column>
 
-                <b-table-column field="editar" label="Editar" v-slot="props">
-                    <b-button type="is-info" @click="editar(props.row.id)">
-                        <b-icon icon="pen" />
-                    </b-button>
-                </b-table-column>
-
-                <b-table-column field="editar" label="Agregar" v-slot="props">
-                    <b-button type="is-primary" @click="agregarExistencia(props.row)">
-                        <b-icon icon="plus" />
-                    </b-button>
-                </b-table-column>
-
-                <b-table-column field="editar" label="Quitar" v-slot="props">
-                    <b-button type="is-warning" @click="quitarExistencia(props.row)">
-                        <b-icon icon="minus" />
-                    </b-button>
-                </b-table-column>
-            </b-table>
+                    <b-table-column field="acciones" label="Acciones" centered v-slot="props">
+                        <div class="buttons is-centered">
+                            <b-tooltip label="Eliminar producto" position="is-top">
+                                <b-button type="is-danger" @click="eliminar(props.row.id)">
+                                    <b-icon icon="delete" />
+                                </b-button>
+                            </b-tooltip>
+                            <b-tooltip label="Editar producto" position="is-top">
+                                <b-button type="is-info" @click="editar(props.row.id)">
+                                    <b-icon icon="pen" />
+                                </b-button>
+                            </b-tooltip>
+                            <b-tooltip label="Agregar existencia" position="is-top">
+                                <b-button type="is-primary" @click="agregarExistencia(props.row)">
+                                    <b-icon icon="plus" />
+                                </b-button>
+                            </b-tooltip>
+                            <b-tooltip label="Quitar existencia" position="is-top">
+                                <b-button type="is-warning" @click="quitarExistencia(props.row)">
+                                    <b-icon icon="minus" />
+                                </b-button>
+                            </b-tooltip>
+                        </div>
+                    </b-table-column>
+                </b-table>
+            </div>
+       
         </div>
+        
         <b-loading :is-full-page="true" v-model="cargando" :can-cancel="false"></b-loading>
     </section>
 </template>
 <script>
-    import HttpService from '../../Servicios/HttpService'
-    import NavComponent from '../Extras/NavComponent'
-    import MensajeInicial from '../Extras/MensajeInicial'
-    import CartasTotales from '../Extras/CartasTotales'
+// import HttpService from '../../Servicios/HttpService'
+import NavComponent from '../Extras/NavComponent'
+import MensajeInicial from '../Extras/MensajeInicial'
+import CartasTotales from '../Extras/CartasTotales'
+import apiRequest from '../../Servicios/HttpService';
 
-    export default {
-        name: "ProductosComponent",
-        components: { NavComponent, MensajeInicial, CartasTotales },
+export default {
+    name: "ProductosComponent",
+    components: { NavComponent, MensajeInicial, CartasTotales },
 
-        data: ()=>({
-            productos: [],
-            cargando: false,
-            isPaginated: true,
-            isPaginationSimple: false,
-            isPaginationRounded: true,
-            paginationPosition: 'bottom',
-            defaultSortDirection: 'asc',
-            sortIcon: 'arrow-up',
-            sortIconSize: 'is-medium',
-            currentPage: 1,
-            perPage: 5,
-            cartasTotales: []
-        }),
+    data: () => ({
+        productos: [],
+        cargando: false,
+        isPaginated: true,
+        isPaginationSimple: false,
+        isPaginationRounded: true,
+        paginationPosition: 'bottom',
+        defaultSortDirection: 'asc',
+        sortIcon: 'arrow-up',
+        sortIconSize: 'is-medium',
+        currentPage: 1,
+        perPage: 5,
+        cartasTotales: []
+    }),
 
-        mounted(){
-            this.obtenerProductos()
+    mounted() {
+        this.obtenerProductos()
+    },
+
+    methods: {
+        agregarExistencia(producto) {
+            this.$buefy.dialog.prompt({
+                message: '¿Cuántas piezas vas a agregar de ' + producto.name+ '?',
+                cancelText: 'Cancelar',
+                confirmText: 'Agregar',
+                inputAttrs: {
+                    type: 'number',
+                    placeholder: 'Escribe la cantidad de productos', 
+                    value: '',
+                    min: 1
+                },
+                trapFocus: true,
+                onConfirm: (value) => {
+                    this.cargando = true
+                    apiRequest({
+                        method: 'PATCH', 
+                        path: `products/${producto.id}/add-stock?quantity=${Number(value)}`
+                    })
+                        .then(registrado => {
+                            if (registrado) {
+                                this.cargando = false
+                                this.$buefy.toast.open(value + ' Productos agregados a ' + producto.name)
+                                this.obtenerProductos()
+                            }
+                        })
+
+                }
+            })
         },
 
-        methods: {
-            agregarExistencia(producto){
-               this.$buefy.dialog.prompt({
-                   message: '¿Cuántas piezas vas a agregar de ' + producto.nombre + '?',
-                   cancelText: 'Cancelar',
-                   confirmText: 'Agregar',
-                   inputAttrs: {
-                       type: 'number',
-                       placeholder: 'Escribe la cantidad de productos',
-                       value: '',
-                       min: 1
-                   },
-                   trapFocus: true,
-                   onConfirm: (value) =>{ 
-                     this.cargando = true
-                     HttpService.registrar('productos.php', {
-                        accion: 'agregar_existencia',
-                        cantidad: value,
-                        id: producto.id
-                     })
-                     .then(registrado => {
-                        if(registrado){
-                           this.cargando = false
-                           this.$buefy.toast.open(value + ' Productos agregados a ' + producto.nombre)
-                           this.obtenerProductos()
-                        }
-                     })
-                    
-                  }
-               })
-            },
-
-            quitarExistencia(producto){
-               this.$buefy.dialog.prompt({
-                   message: '¿Cuántas piezas vas a quitar de ' + producto.nombre + '?',
-                   cancelText: 'Cancelar',
-                   confirmText: 'Quitar',
-                   inputAttrs: {
-                       type: 'number',
-                       placeholder: 'Escribe la cantidad de productos',
-                       value: '',
-                       min: 1
-                   },
-                   trapFocus: true,
-                   onConfirm: (value) =>{ 
-                     if(value > producto.existencia){
-                        this.$buefy.toast.open('No puedes quitar más de ' + producto.existencia + ' productos')
+        quitarExistencia(producto) {
+            this.$buefy.dialog.prompt({
+                message: '¿Cuántas piezas vas a quitar de ' + producto.name + '?',
+                cancelText: 'Cancelar',
+                confirmText: 'Quitar',
+                inputAttrs: {
+                    type: 'number',
+                    placeholder: 'Escribe la cantidad de productos',
+                    value: '',
+                    min: 1
+                },
+                trapFocus: true,
+                onConfirm: (value) => {
+                    if (value > producto.existencia) {
+                        this.$buefy.toast.open('No puedes quitar más de ' + producto.stock+ ' productos')
                         return
-                     }
-                     this.cargando = true
-                     HttpService.registrar('productos.php', {
-                        accion: 'restar_existencia',
-                        cantidad: value,
-                        id: producto.id
-                     })
-                     .then(registrado => {
-                        if(registrado){
-                           this.cargando = false
-                           this.$buefy.toast.open(value + ' Productos quitados a ' + producto.nombre)
-                           this.obtenerProductos()
-                        }
-                     })
+                    }
+                    this.cargando = true
                     
-                  }
-               })
-            },
-
-            async eliminar(idProducto){
-                this.$buefy.dialog.confirm({
-                    title: 'Eliminar producto',
-                    message: 'Seguro que quieres <b>eliminar</b> este producto? Esta acción no se puede revertir.',
-                    confirmText: 'Sí, eliminar',
-                    cancelText: 'Cancelar',
-                    type: 'is-danger',
-                    hasIcon: true,
-                    onConfirm: () => {
-                        this.cargando = true
-                        HttpService.eliminar('productos.php',{
-                            accion: 'eliminar',
-                            id: idProducto
+                    apiRequest({
+                        method: 'PATCH', 
+                        path: `products/${producto.id}/subtract-stock?quantity=${value}`
+                    })
+                        .then(registrado => {
+                            if (registrado) {
+                                this.cargando = false
+                                this.$buefy.toast.open(value + ' Productos quitados a ' + producto.name)
+                                this.obtenerProductos()
+                            }
                         })
+
+                }
+            })
+        },
+
+        async eliminar(idProducto) {
+            this.$buefy.dialog.confirm({
+                title: 'Eliminar producto',
+                message: 'Seguro que quieres <b>eliminar</b> este producto? Esta acción no se puede revertir.',
+                confirmText: 'Sí, eliminar',
+                cancelText: 'Cancelar',
+                type: 'is-danger',
+                hasIcon: true,
+                onConfirm: () => {
+                    this.cargando = true
+
+                    apiRequest({
+                        method: 'DELETE', 
+                        path: `products/${idProducto}`
+                    })
                         .then(resultado => {
-                            if(!resultado) {
+                            if (!resultado) {
                                 this.$buefy.toast.open('Error al eliminar')
                                 this.cargando = false
                                 return
                             }
 
-                            if(resultado){
+                            if (resultado) {
                                 this.cargando = false
                                 this.$buefy.toast.open({
                                     type: 'is-info',
@@ -231,35 +236,55 @@
                                 this.obtenerProductos()
                             }
                         })
-                    }
-                })
-            },
-
-            editar(idProducto){
-                this.$router.push({
-                    name: "EditarProducto",
-                    params: { id: idProducto}
-                })
-            },
-
-            obtenerProductos(){
-                this.cargando = true
-                let payload = {
-                    accion: 'obtener'
                 }
-                HttpService.obtenerConConsultas('productos.php', payload)
-                .then(respuesta => {
-                    this.productos = respuesta.productos
+            })
+        },
 
-                    this.cartasTotales = [
-                        {nombre: "Número Productos", total: this.productos.length, icono: "package-variant-closed", clase: "has-text-danger"},
-                        {nombre: "Total productos", total: respuesta.totalProductos, icono: "chart-bar-stacked", clase: "has-text-primary"},
-                        {nombre: "Total inventario", total: '$' + respuesta.totalInventario, icono: "currency-usd", clase: "has-text-success"},
-                        {nombre: "Ganancia", total: '$' + respuesta.gananciaInventario, icono: "currency-usd", clase: "has-text-info"},
-                    ]
+        editar(idProducto) {
+            this.$router.push({
+                name: "EditarProducto",
+                params: { id: idProducto }
+            })
+        },
+
+        obtenerProductos() {
+            this.cargando = true
+            apiRequest({
+                method: "GET",
+                path: 'products'
+            })
+                .then(respuesta => {
+                    this.productos = respuesta.data.products
+                     apiRequest({
+                        method: "GET",
+                        path: 'products/inventory/total-value'})
+                        .then(respuesta => {
+                            console.log('respuesta', respuesta)
+                            this.cartasTotales = [
+                                { nombre: "Número Productos", total: this.productos.length, icono: "package-variant-closed", clase: "has-text-danger" },
+                                { nombre: "Total Inventario", total: `$ ${respuesta.data.toFixed(2)}`, icono: "chart-bar-stacked", clase: "has-text-primary" },
+                        
+                               
+                            ]
+
+                        })
+              
+                    apiRequest({
+                        method: "GET",
+                        path: 'products/inventory/total-profit'
+                    })
+                        .then(respuesta => {
+                            this.cartasTotales.push(
+                                { nombre: "Ganancia a precio venta", total: `$ ${respuesta.data.toFixed(2)}`, icono: "currency-usd", clase: "has-text-info" }
+                            )
+                        })
+
                     this.cargando = false
                 })
-            }
+
+      
         }
     }
+}
 </script>
+

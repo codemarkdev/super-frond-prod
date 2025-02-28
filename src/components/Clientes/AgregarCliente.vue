@@ -1,52 +1,48 @@
 <template>
     <section>
         <p class="title is-1">Agregar cliente</p>
-         <b-breadcrumb
-            align="is-left"
-        >
+        <b-breadcrumb align="is-left">
             <b-breadcrumb-item tag='router-link' to="/">Inicio</b-breadcrumb-item>
-            <b-breadcrumb-item tag='router-link' to="/cientes">Clientes</b-breadcrumb-item>
+            <b-breadcrumb-item tag='router-link' to="/clientes">Clientes</b-breadcrumb-item>
             <b-breadcrumb-item active>Agregar cliente</b-breadcrumb-item>
         </b-breadcrumb>
-        <form-cliente :cliente="datosCliente" @registrar="onRegistrar"/>
+        <form-cliente :cliente="datosCliente" @registrar="onRegistrar" />
         <b-loading :is-full-page="true" v-model="cargando" :can-cancel="false"></b-loading>
     </section>
 </template>
 <script>
-    import FormCliente from './FormCliente'
-    import HttpService from '../../Servicios/HttpService'
+import apiRequest from '@/Servicios/HttpService';
+import FormCliente from './FormCliente'
+export default {
+    name: "AgregarCliente",
+    components: { FormCliente },
 
-    export default{
-        name: "AgregarCliente",
-        components: { FormCliente },
+    data: () => ({
+        cargando: false,
+        datosCliente: {
+            name: "",
+            phone: ""
+        }
+    }),
 
-        data: ()=>({
-            cargando: false,
-            datosCliente: {
-                nombre: "",
-                telefono: ""
-            }
-        }),
-
-        methods: {
-            onRegistrar(cliente){
-                console.log(cliente)
-                this.cargando = true
-                let payload = {
-                    accion: "registrar",
-                    cliente: cliente
-                }
-                HttpService.registrar("clientes.php", payload)
-                .then(registrado =>{
-                    if(registrado){
+    methods: {
+        onRegistrar(cliente) {
+            this.cargando = true
+            apiRequest({
+                method: 'POST',
+                path: 'customers',
+                data: cliente
+            })
+                .then(registrado => {
+                    if (registrado) {
                         this.$buefy.toast.open({
-                          type: 'is-info',
-                          message: 'Cliente registrado con éxito.'
+                            type: 'is-info',
+                            message: 'Cliente registrado con éxito.'
                         })
                         this.cargando = false
                     }
                 })
-            }
         }
     }
+}
 </script>

@@ -1,10 +1,10 @@
 <template>
 	<form>
 		<b-field label="Nombre del cliente" >
-            <b-input step="any" icon="account" type="text" placeholder="Ej. Juan" v-model="datosCliente.nombre"></b-input>
+            <b-input step="any" icon="account" type="text" placeholder="Ej. Juan" v-model="datosCliente.name"></b-input>
         </b-field>
         <b-field label="Teléfono del cliente" >
-            <b-input step="any" icon="phone" type="number" placeholder="Ej. 0000000" v-model="datosCliente.telefono"></b-input>
+            <b-input step="any" icon="phone" type="number" placeholder="Ej. 0000000" v-model="datosCliente.phone"></b-input>
         </b-field>
          <div class="buttons has-text-centered">
             <b-button type="is-primary" size="is-large" icon-left="check" @click="registrar">Registrar</b-button>
@@ -23,8 +23,8 @@
 
 		data:()=>({
 			datosCliente: {
-				nombre: "",
-				telefono: ""
+				name: "",
+				phone: ""
 			},
 			mensajesError: []
 		}),
@@ -39,8 +39,8 @@
 				if(this.mensajesError.length > 0) return
 				this.$emit("registrar", this.datosCliente)
 				this.datosCliente  = {
-					nombre: "",
-					telefono: ""
+					name: "",
+					phone: ""
 				}
 			}
 		}

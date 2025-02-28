@@ -13,8 +13,9 @@
     </section>
 </template>
 <script>
-    import HttpService from '../../Servicios/HttpService'
-    import FormUsuario from './FormUsuario'
+
+    import apiRequest from '@/Servicios/HttpService';
+import FormUsuario from './FormUsuario'
 
     export default{
         name: "EditarUsuario",
@@ -27,10 +28,15 @@
 
         async mounted(){
             this.cargando = true
-            const usuario = await HttpService.obtenerConConsultas('usuarios.php', {
-                accion: 'obtener_por_id',
-                id: this.$route.params.id
-            }) 
+            // const usuario = await HttpService.obtenerConConsultas('usuarios.php', {
+            //     accion: 'obtener_por_id',
+            //     id: this.$route.params.id
+            // }) 
+
+            const usuario = await apiRequest({
+                method: "get", 
+                path: `users/${this.$route.params.id}`
+            })
             this.datosUsuario = usuario
             this.cargando = false
         },
@@ -38,12 +44,18 @@
         methods: {
             async onEditar(datosUsuario) {
                 this.cargando = true
-                const resultado = await HttpService.editar('usuarios.php',{
-                    accion: 'editar',
-                    usuario: datosUsuario
+                // const resultado = await HttpService.editar('usuarios.php',{
+                //     accion: 'editar',
+                //     usuario: datosUsuario
+                // })
+
+                const resultado = await apiRequest({
+                    method: 'PUT', 
+                    path: `users/${this.$route.params.id}`,
+                    data: datosUsuario
                 })
 
-                if(resultado) {
+                if(resultado.data) {
                     this.cargando = false
                     this.$buefy.toast.open({
                          type: 'is-info',

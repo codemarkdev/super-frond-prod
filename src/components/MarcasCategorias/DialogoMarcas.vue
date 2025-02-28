@@ -10,7 +10,7 @@
 			</header>
 			<section class="modal-card-body">
 				<b-field label="Nombre de la marca" >
-					<b-input  type="text" placeholder="Ej. Pelikan" v-model="nombreMarca"></b-input>
+					<b-input  type="text" placeholder="Ej. Alimentos" v-model="nombreMarca"></b-input>
 				</b-field>
 			</section>
 			<footer class="modal-card-foot">

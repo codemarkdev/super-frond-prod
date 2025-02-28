@@ -1,5 +1,13 @@
 <template>
     <section>
+        <h1 class="title is-1">Cambiar contraseña</h1>
+        <b-breadcrumb
+            align="is-left"
+        >
+            <b-breadcrumb-item tag='router-link' to="/">Inicio</b-breadcrumb-item>
+            <b-breadcrumb-item tag='router-link' to="/usuarios">Usuarios</b-breadcrumb-item>
+            <b-breadcrumb-item active>Cambiar contraseña</b-breadcrumb-item>
+        </b-breadcrumb>
         <b-field label="Escribe la contraseña actual">
             <b-input type="password"
             placeholder="Contraseña actual"
@@ -31,9 +39,10 @@
 </template>
 <script>
     import Utiles from '../../Servicios/Utiles'
-    import AyudanteSesion from '../../Servicios/AyudanteSesion'
-    import HttpService from '../../Servicios/HttpService'
+    // import AyudanteSesion from '../../Servicios/AyudanteSesion'
+    // import HttpService from '../../Servicios/HttpService'
     import ErroresComponent from '../Extras/ErroresComponent'
+import apiRequest from '../../Servicios/HttpService';
 
     export default {
         name: "CambiarPassword",
@@ -55,7 +64,8 @@
                 this.mensajesErrores = []
                 this.mensajesErrores = Utiles.validarDatos(this.password)
                 let verificaPass = await this.verificarPasswordActual()
-                if(!verificaPass) this.mensajesErrores.push("La contraseña actual ingresada es incorrecta")
+              
+                if(verificaPass.data !== true) this.mensajesErrores.push("La contraseña actual ingresada es incorrecta")
                     if(this.password.passwordNueva !== this.password.passwordRepetida) this.mensajesErrores.push("La contraseña repetida no coincide con la nueva")
                         let passwordValida = this.validarPassword(this.password.passwordNueva)
                     if(!passwordValida) this.mensajesErrores.push("La contraseña nueva debe ser válida")
@@ -67,10 +77,18 @@
                                 cancelText: 'Cancelar',
                                 onConfirm: async() => {
                                     this.cargando = true
-                                    let resultado = await HttpService.registrar('usuarios.php',{
-                                        accion: 'cambiar_password',
-                                        idUsuario: AyudanteSesion.obtenerDatosSesion().id,
-                                        password: this.password.passwordRepetida
+                                    // let resultado = await HttpService.registrar('usuarios.php',{
+                                    //     accion: 'cambiar_password',
+                                    //     idUsuario: AyudanteSesion.obtenerDatosSesion().id,
+                                    //     password: this.password.passwordRepetida
+                                    // })
+                                   let resultado = apiRequest({
+                                        method: "post", 
+                                        path: 'users/change-password',
+                                        data: {
+                                            userId: this.$route.params.id,
+                                            newPassword: this.password.passwordRepetida
+                                        }
                                     })
                                     if(resultado){
                                         this.$buefy.toast.open('Contraseña actualizada')
@@ -84,13 +102,24 @@
                     },
 
                     async verificarPasswordActual(){
-                        let paylaod = {
-                            accion: "verificar_password",
-                            idUsuario: AyudanteSesion.obtenerDatosSesion().id,
-                            password: this.password.passwordActual
-                        }
+                        // let paylaod = {
+                        //     accion: "verificar_password",
+                        //     idUsuario: AyudanteSesion.obtenerDatosSesion().id,
+                        //     password: this.password.passwordActual
+                        // }
 
-                        return await HttpService.obtenerConConsultas('usuarios.php', paylaod)
+                        // return await HttpService.obtenerConConsultas('usuarios.php', paylaod)
+
+                     const resp=   apiRequest({
+                            method: 'POST', 
+                            path: 'users/verify-password',
+                            data: {
+                               password: this.password.passwordActual,
+                               userId: this.$route.params.id
+                            }
+                        }
+                        )
+                        return resp
                     },
 
                     validarPassword (password) {

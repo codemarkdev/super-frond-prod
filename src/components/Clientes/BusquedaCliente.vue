@@ -7,7 +7,7 @@
 				placeholder="Escribe el nombre del cliente"
 				:keep-first="true"
 				:data="clientesFiltrados"
-				field="nombre"
+				field="name"
 				@input="buscarClientes"
 				@select="seleccionarCliente"
 				size="is-medium"
@@ -16,13 +16,13 @@
 		</b-field>
 		<div class="notification is-info mt-2" v-if="clienteSeleccionado">
 			<button class="delete" @click="deseleccionarCliente"></button>
-			<p>Cliente: <b>{{ clienteSeleccionado.nombre }}</b></p>
-			<p>Teléfono: <b>{{ clienteSeleccionado.telefono }}</b></p>
+			<p>Cliente: <b>{{ clienteSeleccionado.name }}</b></p>
+			<p>Teléfono: <b>{{ clienteSeleccionado.phone }}</b></p>
 		</div>
 	</section>
 </template>
 <script>
-	import HttpService from '../../Servicios/HttpService'
+	import apiRequest from '../../Servicios/HttpService';
 
 	export default{
 		name: "BusquedaCliente",
@@ -45,14 +45,16 @@
 			},
 
 			buscarClientes(){
-				let payload = {
-					accion: 'obtener_por_nombre',
-					nombre: this.cliente
-				}
-
-				HttpService.obtenerConConsultas('clientes.php', payload)
+				if (!this.cliente.trim()) {
+				this.clientesEncontrados = [];
+				return;
+			}
+				apiRequest({
+					method: 'GET',
+				path: `customers/search/${this.cliente}`
+				})
 				.then(clientes =>{ 
-					this.clientesEncontrados = clientes
+					this.clientesEncontrados = clientes.status === 200 ? clientes.data : []
 				})
 			},
 		},
@@ -61,7 +63,7 @@
 			clientesFiltrados() {
 				return this.clientesEncontrados.filter(opcion => {
 					return (
-						opcion.nombre
+						opcion.name
 							.toString()
 							.toLowerCase()
 							.indexOf(this.cliente.toLowerCase()) >= 0

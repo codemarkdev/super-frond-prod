@@ -13,8 +13,9 @@
     </section>
 </template>
 <script>
-    import FormUsuario from './FormUsuario'
-    import HttpService from '../../Servicios/HttpService'
+    import apiRequest from '@/Servicios/HttpService';
+import FormUsuario from './FormUsuario'
+
 
     export default{
         name: "AgregarUsuario",
@@ -23,9 +24,10 @@
         data:()=>({
             cargando: false,
             datosUsuario: {
-                usuario: "",
-                nombre: "",
-                telefono: ""
+                username: "",
+                name: "",
+                phone: "",
+                password: "123456",
             }
         }),
 
@@ -33,12 +35,11 @@
             onRegistrar(usuario) {
                 console.log(usuario)
                 this.cargando = true
-                let payload = {
-                    accion: 'registrar',
-                    usuario: usuario
-                }
-
-                HttpService.registrar('usuarios.php', payload)
+                apiRequest({
+                 method: 'POST', 
+                 path: "users/register",
+                 data: usuario
+                })
                 .then(registrado => {
                     if(registrado) {
                         this.cargando = false

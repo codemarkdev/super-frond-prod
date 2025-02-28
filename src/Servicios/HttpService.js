@@ -1,50 +1,30 @@
-const  RUTA_GLOBAL = "http://localhost/pos/api/"
-const HttpService =  {
-	async registrar(ruta, datos) {
-		let respuesta = await fetch(RUTA_GLOBAL + ruta, {
-			method: "post",				
-			body: JSON.stringify(datos),
-		});
-		let resultado = await respuesta.json()
-		return resultado
-	},
+import axios from "axios";
 
-	async obtener(ruta) {
-		let respuesta = await fetch(RUTA_GLOBAL + ruta)
-		let resultado = await respuesta.json()
-		return resultado
-	},
+const apiRequest = async ({ method, path, data = {} }) => {
+  try {
+    const headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
 
-	async editar(ruta, datos) {
-		let respuesta = await fetch(RUTA_GLOBAL + ruta, {
-			method: "post",				
-			body: JSON.stringify(datos),
-		});
-		let resultado = await respuesta.json()
-		return resultado
-	},
+    const response = await axios({
+      method,
+      url: `${process.env.VUE_APP_API}${path}`,
+      data,
+      headers,
+    });
 
-	async eliminar(ruta, datos) {
-		let respuesta = await fetch(RUTA_GLOBAL + ruta, {
-			method: "post",				
-			body: JSON.stringify(datos),
-		});
-		let resultado = await respuesta.json()
-		return resultado
-	},
+    return response;
+  } catch (error) {
+    console.error("Error en la petición API:", {
+      mensaje: error.message,
+      url: `${process.env.VUE_APP_API}${path}`,
+      data: error.response?.data,
+      status: error.response?.status
+    });
 
-	async obtenerConConsultas(ruta, payload){
-		let respuesta = await fetch(RUTA_GLOBAL + ruta, {
-			method: "post",				
-			body: JSON.stringify(payload),
-		});
-		let resultado = await respuesta.json()
-		return resultado
-	},
+    return error.response || error;
+  }
+};
 
-	obtenerDatosNegocio(){
-		return this.obtener("configuracion/obtener_datos.php")
-	}
-}
-
-export default HttpService
+export default apiRequest;
