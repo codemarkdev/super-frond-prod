@@ -1,7 +1,7 @@
 <template>
 	<div class="tile is-ancestor">
 		<div class="tile is-parent">
-			<div class="card tile is-child" v-for="(item,index) in totales" :key="index">
+			<div class="card tile is-child " v-for="(item,index) in totales" :key="index">
 				<div class="card-content">
 					<div class="level is-mobile">
 						<div class="level-item">
@@ -31,3 +31,9 @@
 		props: ["totales"]
 	}
 </script>
+
+<style scoped>
+/* .card {
+    margin-right: 2.5rem;
+} */
+</style>

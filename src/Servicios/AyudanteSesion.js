@@ -7,8 +7,8 @@ const AyudanteSesion = {
     const datosUsuario = JSON.parse(localStorage.getItem('userData') || '{}')
     return {
       id: datosUsuario.id,
-      usuario: datosUsuario.usuario,
-      nombre: datosUsuario.nombre
+      usuario: datosUsuario.username,
+      nombre: datosUsuario.name
     }
   },
 

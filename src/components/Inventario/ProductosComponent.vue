@@ -8,8 +8,8 @@
         <mensaje-inicial :titulo="'No se han encontrado productos :('"
             :subtitulo="'Agrega productos pulsando el botón de Agregar productos'" v-if="productos.length < 1" />
 
-        <div v-if="productos.length > 0">
-            <cartas-totales :totales="cartasTotales" />
+        <div class="" v-if="productos.length > 0">
+            <cartas-totales :totales="cartasTotales" class="mb-4" />
             <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
                 <b-select v-model="perPage" class="is-flex-grow-1 mr-2">
                     <option value="5">5 por página</option>
@@ -65,9 +65,9 @@
                     <b-table-column field="existencia" label="Existencia" sortable v-slot="props">
                         {{ props.row.stock }}
                     </b-table-column>
-                    <b-table-column field="reservación de existencias " label="Reservación de existencias" v-slot="props">
+                    <!-- <b-table-column field="reservación de existencias " label="Reservación de existencias" v-slot="props">
                         {{ props.row.reservedStock }}
-                    </b-table-column>
+                    </b-table-column> -->
 
                     <b-table-column field="brand.brandName" label="Marca" sortable searchable v-slot="props">
                         {{ props.row.brand.brandName }}
@@ -257,7 +257,7 @@ export default {
                     this.productos = respuesta.data.products
                      apiRequest({
                         method: "GET",
-                        path: 'products/product-stock/inventory-total'})
+                        path: 'products/inventory/total-value'})
                         .then(respuesta => {
                             console.log('respuesta', respuesta)
                             this.cartasTotales = [
@@ -271,11 +271,11 @@ export default {
               
                     apiRequest({
                         method: "GET",
-                        path: 'products/product-stock/inventory-profit'
+                        path: 'products/inventory/total-profit'
                     })
                         .then(respuesta => {
                             this.cartasTotales.push(
-                                { nombre: "Ganancia", total: `$ ${respuesta.data.toFixed(2)}`, icono: "currency-usd", clase: "has-text-info" }
+                                { nombre: "Ganancia a precio venta", total: `$ ${respuesta.data.toFixed(2)}`, icono: "currency-usd", clase: "has-text-info" }
                             )
                         })
 
@@ -287,3 +287,4 @@ export default {
     }
 }
 </script>
+
