@@ -25,11 +25,7 @@
                  Marcas y categorías
              </b-navbar-item> 
  
-             <b-navbar-item  tag="router-link" :to="{ path: '/realizar-venta' }">
-                
-                 <span></span>
-                 Vender
-             </b-navbar-item>
+     
  
              <b-navbar-item>
                 
@@ -39,21 +35,13 @@
                      <span></span>
                      Ventas
                  </b-navbar-item>
-                 <b-navbar-item tag="router-link" :to="{ path: '/reporte-cuentas' }">
-                   
-                     <span></span>
-                     Cuentas
-                 </b-navbar-item>
-                 <b-navbar-item tag="router-link" :to="{ path: '/reporte-apartados' }">
-                   
-                     <span></span>
-                     Apartados
-                 </b-navbar-item>
-                 <b-navbar-item tag="router-link" :to="{ path: '/reporte-cotizaciones' }">
-                   
-                     <span></span>
-                     Cotizaciones
-                 </b-navbar-item>
+                 <b-navbar-item  tag="router-link" :to="{ path: '/Pagos' }">
+              
+              <span></span>
+             Hacer Pagos
+          </b-navbar-item>
+                
+                
                  </b-navbar-dropdown>
              </b-navbar-item>
  
@@ -71,11 +59,7 @@
          </template>
  
          <template #end>
-             <b-navbar-item  tag="router-link" :to="{ path: '/configurar' }">
-              
-                 <span></span>
-                 Configuraraciones
-             </b-navbar-item>
+           
  
              <b-navbar-item  tag="router-link" :to="{ path: '/perfil' }">
                  <b-icon

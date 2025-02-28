@@ -79,9 +79,11 @@
                 </div>
               </div>
   
+        
+  
               <div class="column is-full">
                 <div class="field">
-                  <label class="label">Efectivo en Mano</label>
+                  <label class="label">{{ cajaAbierta ? 'Efectivo en Mano' : 'Monto Inicial' }}</label>
                   <div class="control has-icons-left has-icons-right">
                     <input 
                       class="input is-medium"
@@ -109,7 +111,20 @@
                 <div class="field">
                   <div class="control">
                     <button 
+                      v-if="!cajaAbierta"
                       class="button is-primary is-fullwidth is-medium"
+                      :class="{ 'is-loading': cargando }"
+                      @click="abrirCaja"
+                      :disabled="!isValidAmount || cargando"
+                    >
+                      <span class="icon">
+                        <i class="mdi mdi-cash-register"></i>
+                      </span>
+                      <span>Abrir Caja</span>
+                    </button>
+                    <button 
+                      v-else
+                      class="button is-danger is-fullwidth is-medium"
                       :class="{ 'is-loading': cargando }"
                       @click="cerrarCaja"
                       :disabled="!isValidAmount || cargando"
@@ -228,7 +243,10 @@
         fechaActual: {
           fecha: '',
           hora: ''
-        }
+        },
+        totalVentasHoy: 0,
+        totalCuentasPorPagar: 0,
+        cajaAbierta: false,
       }
     },
   
@@ -243,6 +261,8 @@
     mounted() {
       this.cargarDatosUsuario();
       this.actualizarFecha();
+      this.obtenerTotalVentasHoy();
+      this.obtenerTotalCuentasPorPagar();
       setInterval(this.actualizarFecha, 60000); // Actualizar cada minuto
     },
   
@@ -305,15 +325,70 @@
         });
       },
   
+      async obtenerTotalVentasHoy() {
+        try {
+          const response = await HttpService({
+            method: 'GET',
+            path: 'sales/today-total'
+          });
+          if (response.status === 200 && response.data && typeof response.data.total === 'number') {
+            this.totalVentasHoy = response.data.total;
+          } else {
+            console.warn('Respuesta inesperada al obtener el total de ventas:', response);
+            this.totalVentasHoy = 0;
+          }
+        } catch (error) {
+          console.error('Error al obtener el total de ventas de hoy:', error);
+          // Mostrar mensaje más amigable cuando el endpoint no existe
+          if (error.response?.status === 404) {
+            console.warn('El endpoint de ventas no está disponible');
+          } else {
+            this.mostrarError('No se pudo cargar el total de ventas de hoy');
+          }
+          this.totalVentasHoy = 0;
+        }
+      },
+  
+      async obtenerTotalCuentasPorPagar() {
+        try {
+          const response = await HttpService({
+            method: 'GET',
+            path: 'accounts-payable/total'
+          });
+          if (response.status === 200 && response.data && typeof response.data.total === 'number') {
+            this.totalCuentasPorPagar = response.data.total;
+          } else {
+            console.warn('Respuesta inesperada al obtener el total de cuentas por pagar:', response);
+            this.totalCuentasPorPagar = 0;
+          }
+        } catch (error) {
+          console.error('Error al obtener el total de cuentas por pagar:', error);
+          // Mostrar mensaje más amigable cuando el endpoint no existe
+          if (error.response?.status === 404) {
+            console.warn('El endpoint de cuentas por pagar no está disponible');
+          } else {
+            this.mostrarError('No se pudo cargar el total de cuentas por pagar');
+          }
+          this.totalCuentasPorPagar = 0;
+        }
+      },
+  
       cerrarCaja() {
+        if (!this.cajaAbierta) {
+          this.$buefy.toast.open({
+            message: 'La caja no está abierta',
+            type: 'is-warning'
+          });
+          return;
+        }
         if (!this.isValidAmount) {
           this.$buefy.toast.open({
             message: 'Por favor ingrese un monto válido',
             type: 'is-warning'
-          })
-          return
+          });
+          return;
         }
-        this.showConfirmModal = true
+        this.showConfirmModal = true;
       },
   
       async confirmarCierre() {
@@ -342,6 +417,7 @@
             })
             this.cashInHand = null
             this.showConfirmModal = false
+            this.cajaAbierta = false
           } else {
             throw new Error('Error al cerrar la caja')
           }
@@ -364,7 +440,58 @@
           type: 'is-danger',
           duration: 5000
         });
-      }
+      },
+  
+      async abrirCaja() {
+        if (!this.isValidAmount) {
+          this.mostrarError('Por favor ingrese un monto válido');
+          return;
+        }
+  
+        this.cargando = true;
+        try {
+          const { id: userId } = AyudanteSesion.obtenerDatosSesion();
+          
+          if (!userId) {
+            throw new Error('ID de usuario no encontrado');
+          }
+  
+          const response = await HttpService({
+            method: 'POST',
+            path: `cash-register/open/${userId}`,
+            data: {
+              initialCash: this.cashInHand
+            }
+          });
+  
+          if (response.status === 201) {
+            this.$buefy.toast.open({
+              message: 'Caja abierta exitosamente',
+              type: 'is-success',
+              duration: 5000
+            });
+            this.cajaAbierta = true;
+            
+            // Intentar obtener los totales, pero no bloquear si fallan
+            try {
+              await Promise.all([
+                this.obtenerTotalVentasHoy(),
+                this.obtenerTotalCuentasPorPagar()
+              ]);
+            } catch (error) {
+              console.warn('No se pudieron actualizar los totales:', error);
+            }
+          } else {
+            throw new Error('Error al abrir la caja');
+          }
+        } catch (error) {
+          console.error('Error al abrir la caja:', error);
+          this.mostrarError(error.response?.data?.message || 'Error al abrir la caja. Por favor intente nuevamente.');
+        } finally {
+          this.cargando = false;
+          this.cashInHand = null;
+        }
+      },
     }
   }
   </script>
