@@ -7,7 +7,6 @@ import EditarProducto from '@/components/Inventario/EditarProducto'
 import MarcasCategorias from '@/components/MarcasCategorias/MarcasCategorias'
 import RealizarVenta from '@/components/Ventas/RealizarVenta'
 import ReporteVentas from '@/components/Ventas/ReporteVentas'
-import ReporteCuentas from '@/components/Ventas/ReporteCuentas'
 import ClientesComponent from '@/components/Clientes/ClientesComponent'
 import AgregarCliente from '@/components/Clientes/AgregarCliente'
 import EditarCliente from '@/components/Clientes/EditarCliente'
@@ -17,6 +16,7 @@ import EditarUsuario from '@/components/Usuarios/EditarUsuario'
 import Pagos from '@/components/Pagos/Pagos'
 import PerfilComponent from '@/components/Usuarios/PerfilComponent'
 import CambiarPassword from '@/components/Usuarios/CambiarPassword'
+import Empleados from '@/components/Empleados/Empleados.vue'
 
 // Add this line to import the new component
 
@@ -70,13 +70,7 @@ const routes = [
     name: 'ReporteVentas',
     component: ReporteVentas,
     meta: { requiresAuth: true }
-  },  
-  {
-    path: '/reporte-cuentas',
-    name: 'ReporteCuentas',
-    component: ReporteCuentas,
-    meta: { requiresAuth: true }
-  },  
+  },    
  
   {
     path: '/clientes',
@@ -124,6 +118,12 @@ const routes = [
     path: '/pagos',
     name: 'Pagos',
     component: Pagos,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/empleados',
+    name: 'Empleados',
+    component: Empleados,
     meta: { requiresAuth: true }
   },
   {

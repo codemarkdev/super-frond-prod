@@ -50,6 +50,11 @@
                  <span></span>
                  Usuarios
              </b-navbar-item>
+             <b-navbar-item  tag="router-link" :to="{ path: '/Empleados' }">
+              
+              <span></span>
+              Empleados
+          </b-navbar-item>
              <b-navbar-item  tag="router-link" :to="{ path: '/clientes' }">
                
                  <span></span>
