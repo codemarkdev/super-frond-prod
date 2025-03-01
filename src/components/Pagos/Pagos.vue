@@ -22,7 +22,7 @@
               </b-autocomplete>
             </b-field>
           </div>
-
+  
           <div v-if="clienteSeleccionado" class="field">
             <b-field label="Cuenta por Cobrar">
               <b-select v-model="cuentaSeleccionada" expanded>
@@ -35,7 +35,7 @@
               </b-select>
             </b-field>
           </div>
-
+  
           <div class="field">
             <b-field label="Monto" 
                     :type="{ 'is-danger': errores.amount }" 
@@ -50,7 +50,7 @@
               </b-input>
             </b-field>
           </div>
-
+  
           <div class="field">
             <div class="control">
               <b-button
@@ -66,8 +66,9 @@
         </form>
       </div>
     </div>
-   <!-- Cuentas por Cobrar -->
-   <div class="card mb-6">
+
+    <!-- Cuentas por Cobrar -->
+    <div class="card mb-6">
       <header class="card-header">
         <p class="card-header-title">
           <b-icon icon="account-cash" type="is-warning"></b-icon>
@@ -75,8 +76,23 @@
         </p>
       </header>
       <div class="card-content">
+        <!-- Buscador y filtro de estado -->
+        <div class="field is-grouped mb-4">
+          <div class="control is-expanded">
+            <b-input v-model="busquedaCliente" placeholder="Buscar por nombre de cliente" expanded></b-input>
+          </div>
+          <div class="control">
+            <b-select v-model="filtroEstado">
+              <option value="">Todos los estados</option>
+              <option value="Pagada">Pagada</option>
+              <option value="Pago Parcial">Pago Parcial</option>
+              <option value="Pendiente">Pendiente</option>
+            </b-select>
+          </div>
+        </div>
+  
         <b-table
-          :data="cuentasAgrupadasPorCliente"
+          :data="cuentasAgrupadasPaginadas"
           :loading="cargando.cuentas"
           :striped="true"
           :hoverable="true"
@@ -87,7 +103,7 @@
           <b-table-column field="customer.name" label="Cliente" v-slot="props">
             {{ props.row.customer.name }}
           </b-table-column>
-
+  
           <b-table-column field="customer.phone" label="Teléfono" v-slot="props">
             {{ props.row.customer.phone }}
           </b-table-column>
@@ -103,13 +119,13 @@
           <b-table-column field="totalToPay" label="Por Pagar" numeric v-slot="props">
             ${{ formatNumber(props.row.totalToPay) }}
           </b-table-column>
-
+  
           <b-table-column field="estado" label="Estado" v-slot="props">
             <b-tag :type="obtenerColorEstado(props.row)">
               {{ obtenerEstadoCuenta(props.row) }}
             </b-tag>
           </b-table-column>
-
+  
           <template #detail="props">
             <div class="content">
               <p><strong>Detalles de las cuentas:</strong></p>
@@ -132,15 +148,28 @@
               </b-table>
             </div>
           </template>
-
+  
           <template #empty>
             <div class="has-text-centered">No hay cuentas por cobrar registradas</div>
           </template>
         </b-table>
+  
+        <b-pagination
+          v-model="paginaActualCuentas"
+          :total="cuentasAgrupadasFiltradas.length"
+          :per-page="cuentasPorPagina"
+          :range-before="3"
+          :range-after="3"
+          order="is-centered"
+          aria-next-label="Página siguiente"
+          aria-previous-label="Página anterior"
+          aria-page-label="Página"
+          aria-current-label="Página actual">
+        </b-pagination>
       </div>
     </div>
-    <!-- Filtros -->
-    <div class="card mb-6">
+   <!-- Filtros -->
+   <div class="card mb-6">
       <header class="card-header">
         <p class="card-header-title">
           <b-icon icon="filter" type="is-info"></b-icon>
@@ -150,7 +179,7 @@
       <div class="card-content">
         <div class="field is-grouped">
           <div class="control">
-            <b-field label="ID de Historial de Pagos">
+            <b-field label="ID de Cuenta">
               <b-input
                 v-model="filtro.accountHoldingId"
                 type="number"
@@ -178,9 +207,6 @@
         </div>
       </div>
     </div>
-
- 
-
     <!-- Lista de Pagos -->
     <div class="card">
       <header class="card-header">
@@ -191,7 +217,7 @@
       </header>
       <div class="card-content">
         <b-table
-          :data="pagos"
+          :data="pagosPaginados"
           :loading="cargando.lista"
           :striped="true"
           :hoverable="true">
@@ -211,301 +237,348 @@
           <b-table-column field="accountHoldingId" label="ID Cuenta" v-slot="props">
             {{ props.row.accountHoldingId }}
           </b-table-column>
-
+  
           <template #empty>
             <div class="has-text-centered">No hay pagos registrados</div>
           </template>
         </b-table>
+  
+        <b-pagination
+          v-model="paginaActualPagos"
+          :total="pagos.length"
+          :per-page="pagosPorPagina"
+          :range-before="3"
+          :range-after="3"
+          order="is-centered"
+          aria-next-label="Página siguiente"
+          aria-previous-label="Página anterior"
+          aria-page-label="Página"
+          aria-current-label="Página actual">
+        </b-pagination>
       </div>
     </div>
   </div>
-</template>
-
-<script>
-import apiRequest from '@/Servicios/HttpService'
-
-export default {
-  name: 'GestionPagos',
-
-  data() {
-    return {
-      pagos: [],
-      nuevoPago: {
-        amount: '',
-        accountHoldingId: '',
-        customerId: '',
-        date: new Date().toISOString()
-      },
-      filtro: {
-        accountHoldingId: ''
-      },
-      cargando: {
-        lista: false,
-        creando: false,
-        filtrando: false,
-        cuentas: false
-      },
-      errores: {
-        amount: '',
-      },
-      cuentasPorCobrar: [],
-      nombreCliente: '',
-      clienteSeleccionado: null,
-      cuentaSeleccionada: null,
-    }
-  },
-
-  computed: {
-    clientesFiltrados() {
-      return this.cuentasAgrupadasPorCliente
-        .map(cuenta => cuenta.customer)
-        .filter(customer =>
-          customer.name.toLowerCase().includes(this.nombreCliente.toLowerCase())
-        )
+  </template>
+  
+  <script>
+  import apiRequest from '@/Servicios/HttpService'
+  
+  export default {
+    name: 'GestionPagos',
+  
+    data() {
+      return {
+        pagos: [],
+        nuevoPago: {
+          amount: '',
+          accountHoldingId: '',
+          customerId: '',
+          date: new Date().toISOString()
+        },
+        filtro: {
+          accountHoldingId: ''
+        },
+        cargando: {
+          lista: false,
+          creando: false,
+          filtrando: false,
+          cuentas: false
+        },
+        errores: {
+          amount: '',
+        },
+        cuentasPorCobrar: [],
+        nombreCliente: '',
+        clienteSeleccionado: null,
+        cuentaSeleccionada: null,
+        paginaActualPagos: 1,
+        pagosPorPagina: 5,
+        paginaActualCuentas: 1,
+        cuentasPorPagina: 5,
+        busquedaCliente: '',
+        filtroEstado: '',
+      }
     },
-    cuentasClienteSeleccionado() {
-      if (!this.clienteSeleccionado) return []
-      const clienteAgrupado = this.cuentasAgrupadasPorCliente.find(c => c.customer.id === this.clienteSeleccionado.id)
-      return clienteAgrupado ? clienteAgrupado.cuentas.filter(cuenta => parseFloat(cuenta.toPay) > 0) : []
-    },
-    cuentasAgrupadasPorCliente() {
-      const cuentasAgrupadas = this.cuentasPorCobrar.reduce((acc, cuenta) => {
-        const clienteId = cuenta.customer.id
-        if (!acc[clienteId]) {
-          acc[clienteId] = {
-            id: clienteId,
-            customer: cuenta.customer,
-            cuentas: [],
-            totalAmount: 0,
-            totalPaid: 0,
-            totalToPay: 0
+  
+    computed: {
+      clientesFiltrados() {
+        return this.cuentasAgrupadasPorCliente
+          .map(cuenta => cuenta.customer)
+          .filter(customer =>
+            customer.name.toLowerCase().includes(this.nombreCliente.toLowerCase())
+          )
+      },
+      cuentasClienteSeleccionado() {
+        if (!this.clienteSeleccionado) return []
+        const clienteAgrupado = this.cuentasAgrupadasPorCliente.find(c => c.customer.id === this.clienteSeleccionado.id)
+        return clienteAgrupado ? clienteAgrupado.cuentas.filter(cuenta => parseFloat(cuenta.toPay) > 0) : []
+      },
+      cuentasAgrupadasPorCliente() {
+        const cuentasAgrupadas = this.cuentasPorCobrar.reduce((acc, cuenta) => {
+          const clienteId = cuenta.customer.id
+          if (!acc[clienteId]) {
+            acc[clienteId] = {
+              id: clienteId,
+              customer: cuenta.customer,
+              cuentas: [],
+              totalAmount: 0,
+              totalPaid: 0,
+              totalToPay: 0
+            }
           }
-        }
-        acc[clienteId].cuentas.push(cuenta)
-        acc[clienteId].totalAmount += parseFloat(cuenta.total)
-        acc[clienteId].totalPaid += parseFloat(cuenta.paid)
-        acc[clienteId].totalToPay += parseFloat(cuenta.toPay)
-        return acc
-      }, {})
-
-      return Object.values(cuentasAgrupadas)
-    }
-  },
-
-  mounted() {
-    this.cargarPagos()
-    this.cargarCuentasPorCobrar()
-  },
-
-  methods: {
-    formatNumber(value) {
-      if (!value) return '0.00'
-      const num = typeof value === 'string' ? parseFloat(value) : Number(value)
-      return isNaN(num) ? '0.00' : num.toLocaleString('es-MX', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      })
+          acc[clienteId].cuentas.push(cuenta)
+          acc[clienteId].totalAmount += parseFloat(cuenta.total)
+          acc[clienteId].totalPaid += parseFloat(cuenta.paid)
+          acc[clienteId].totalToPay += parseFloat(cuenta.toPay)
+          return acc
+        }, {})
+  
+        return Object.values(cuentasAgrupadas)
+      },
+      pagosPaginados() {
+        const inicio = (this.paginaActualPagos - 1) * this.pagosPorPagina;
+        const fin = inicio + this.pagosPorPagina;
+        return this.pagos.slice(inicio, fin);
+      },
+      cuentasAgrupadasFiltradas() {
+        return this.cuentasAgrupadasPorCliente.filter(cuenta => {
+          const nombreCoincide = cuenta.customer.name.toLowerCase().includes(this.busquedaCliente.toLowerCase());
+          const estadoCoincide = this.filtroEstado === '' || this.obtenerEstadoCuenta(cuenta) === this.filtroEstado;
+          return nombreCoincide && estadoCoincide;
+        });
+      },
+      cuentasAgrupadasPaginadas() {
+        const inicio = (this.paginaActualCuentas - 1) * this.cuentasPorPagina;
+        const fin = inicio + this.cuentasPorPagina;
+        return this.cuentasAgrupadasFiltradas.slice(inicio, fin);
+      },
     },
-
-    formatDate(dateString) {
-      const date = new Date(dateString)
-      return date.toLocaleDateString('es-MX', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
+  
+    watch: {
+      busquedaCliente() {
+        this.paginaActualCuentas = 1;
+      },
+      filtroEstado() {
+        this.paginaActualCuentas = 1;
+      },
     },
-
-    obtenerEstadoCuenta(cuenta) {
-      if (parseFloat(cuenta.totalToPay) === 0) {
-        return 'Pagada'
-      } else if (parseFloat(cuenta.totalPaid) > 0) {
-        return 'Pago Parcial'
-      } else {
-        return 'Pendiente'
-      }
-    },
-
-    obtenerColorEstado(cuenta) {
-      const estado = this.obtenerEstadoCuenta(cuenta)
-      switch (estado) {
-        case 'Pagada':
-          return 'is-success'
-        case 'Pago Parcial':
-          return 'is-warning'
-        case 'Pendiente':
-          return 'is-danger'
-        default:
-          return 'is-info'
-      }
-    },
-
-    async cargarPagos() {
-      this.cargando.lista = true
-      try {
-        const response = await apiRequest({
-          method: 'GET',
-          path: 'payments'
-        })
-        
-        if (response?.data) {
-          this.pagos = Array.isArray(response.data) ? response.data : []
-        }
-      } catch (error) {
-        console.error('Error al cargar pagos:', error)
-        this.mostrarError('Error al cargar el historial de pagos')
-      } finally {
-        this.cargando.lista = false
-      }
-    },
-
-    async cargarCuentasPorCobrar() {
-      this.cargando.cuentas = true
-      try {
-        const response = await apiRequest({
-          method: 'GET',
-          path: 'accountsholdings'
-        })
-        
-        if (response?.data) {
-          this.cuentasPorCobrar = Array.isArray(response.data) ? response.data : []
-        }
-      } catch (error) {
-        console.error('Error al cargar cuentas por cobrar:', error)
-        this.mostrarError('Error al cargar las cuentas por cobrar')
-      } finally {
-        this.cargando.cuentas = false
-      }
-    },
-
-    seleccionarCliente(cliente) {
-      this.clienteSeleccionado = cliente
-      this.cuentaSeleccionada = null
-      this.nuevoPago.customerId = cliente ? cliente.id : ''
-    },
-
-    async crearPago() {
-      // Resetear errores
-      this.errores = {
-        amount: '',
-      }
-
-      // Validaciones básicas
-      if (!this.nuevoPago.amount || this.nuevoPago.amount <= 0) {
-        this.errores.amount = 'El monto debe ser mayor a 0'
-        return
-      }
-
-      if (!this.cuentaSeleccionada) {
-        this.mostrarError('Por favor, seleccione una cuenta por cobrar')
-        return
-      }
-
-      this.cargando.creando = true
-      try {
-        await apiRequest({
-          method: 'POST',
-          path: 'payments',
-          data: {
-            amount: this.nuevoPago.amount,
-            accountHoldingId: this.cuentaSeleccionada.id,
-            customerId: this.clienteSeleccionado.id,
-            date: new Date().toISOString()
-          }
-        })
-
-        // Limpiar formulario
-        this.nuevoPago.amount = ''
-        this.nombreCliente = ''
-        this.clienteSeleccionado = null
-        this.cuentaSeleccionada = null
-
-        // Mostrar mensaje de éxito
-        this.$buefy.toast.open({
-          message: 'Pago registrado exitosamente',
-          type: 'is-success'
-        })
-
-        // Recargar lista de pagos y cuentas por cobrar
-        await this.cargarPagos()
-        await this.cargarCuentasPorCobrar()
-      } catch (error) {
-        console.error('Error al crear pago:', error)
-        
-        if (error.response?.status === 400) {
-          this.mostrarError('El monto excede el saldo pendiente')
-        } else if (error.response?.status === 404) {
-          this.mostrarError('La cuenta especificada no existe')
-        } else {
-          this.mostrarError('Error al registrar el pago')
-        }
-      } finally {
-        this.cargando.creando = false
-      }
-    },
-
-    async filtrarPagos() {
-      if (!this.filtro.accountHoldingId) {
-        await this.cargarPagos()
-        return
-      }
-
-      this.cargando.filtrando = true
-      try {
-        const response = await apiRequest({
-          method: 'GET',
-          path: `payments/account-holding/${this.filtro.accountHoldingId}`
-        })
-        
-        if (response?.data) {
-          this.pagos = Array.isArray(response.data) ? response.data : []
-        }
-      } catch (error) {
-        console.error('Error al filtrar pagos:', error)
-        this.mostrarError('Error al filtrar los pagos')
-      } finally {
-        this.cargando.filtrando = false
-      }
-    },
-
-    limpiarFiltros() {
-      this.filtro.accountHoldingId = ''
+  
+    mounted() {
       this.cargarPagos()
+      this.cargarCuentasPorCobrar()
     },
-
-    mostrarError(mensaje) {
-      this.$buefy.toast.open({
-        message: mensaje,
-        type: 'is-danger',
-        duration: 5000
-      })
+  
+    methods: {
+      formatNumber(value) {
+        if (!value) return '0.00'
+        const num = typeof value === 'string' ? parseFloat(value) : Number(value)
+        return isNaN(num) ? '0.00' : num.toLocaleString('es-MX', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        })
+      },
+  
+      formatDate(dateString) {
+        const date = new Date(dateString)
+        
+        return date.toLocaleDateString('es-MX', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      },
+  
+      obtenerEstadoCuenta(cuenta) {
+        if (parseFloat(cuenta.totalToPay) === 0) {
+          return 'Pagada'
+        } else if (parseFloat(cuenta.totalPaid) > 0) {
+          return 'Pago Parcial'
+        } else {
+          return 'Pendiente'
+        }
+      },
+  
+      obtenerColorEstado(cuenta) {
+        const estado = this.obtenerEstadoCuenta(cuenta)
+        switch (estado) {
+          case 'Pagada':
+            return 'is-success'
+          case 'Pago Parcial':
+            return 'is-warning'
+          case 'Pendiente':
+            return 'is-danger'
+          default:
+            return 'is-info'
+        }
+      },
+  
+      async cargarPagos() {
+        this.cargando.lista = true
+        try {
+          const response = await apiRequest({
+            method: 'GET',
+            path: 'payments'
+          })
+          
+          if (response?.data) {
+            this.pagos = Array.isArray(response.data) ? response.data : []
+          }
+        } catch (error) {
+          console.error('Error al cargar pagos:', error)
+          this.mostrarError('Error al cargar el historial de pagos')
+        } finally {
+          this.cargando.lista = false
+        }
+      },
+  
+      async cargarCuentasPorCobrar() {
+        this.cargando.cuentas = true
+        try {
+          const response = await apiRequest({
+            method: 'GET',
+            path: 'accountsholdings'
+          })
+          
+          if (response?.data) {
+            this.cuentasPorCobrar = Array.isArray(response.data) ? response.data : []
+          }
+        } catch (error) {
+          console.error('Error al cargar cuentas por cobrar:', error)
+          this.mostrarError('Error al cargar las cuentas por cobrar')
+        } finally {
+          this.cargando.cuentas = false
+        }
+      },
+  
+      seleccionarCliente(cliente) {
+        this.clienteSeleccionado = cliente
+        this.cuentaSeleccionada = null
+        this.nuevoPago.customerId = cliente ? cliente.id : ''
+      },
+  
+      async crearPago() {
+        // Resetear errores
+        this.errores = {
+          amount: '',
+        }
+  
+        // Validaciones básicas
+        if (!this.nuevoPago.amount || this.nuevoPago.amount <= 0) {
+          this.errores.amount = 'El monto debe ser mayor a 0'
+          return
+        }
+  
+        if (!this.cuentaSeleccionada) {
+          this.mostrarError('Por favor, seleccione una cuenta por cobrar')
+          return
+        }
+  
+        this.cargando.creando = true
+        try {
+          await apiRequest({
+            method: 'POST',
+            path: 'payments',
+            data: {
+              amount: this.nuevoPago.amount,
+              accountHoldingId: this.cuentaSeleccionada.id,
+              customerId: this.clienteSeleccionado.id,
+              date: new Date().toISOString()
+            }
+          })
+  
+          // Limpiar formulario
+          this.nuevoPago.amount = ''
+          this.nombreCliente = ''
+          this.clienteSeleccionado = null
+          this.cuentaSeleccionada = null
+  
+          // Mostrar mensaje de éxito
+          this.$buefy.toast.open({
+            message: 'Pago registrado exitosamente',
+            type: 'is-success'
+          })
+  
+          // Recargar lista de pagos y cuentas por cobrar
+          await this.cargarPagos()
+          await this.cargarCuentasPorCobrar()
+        } catch (error) {
+          console.error('Error al crear pago:', error)
+          
+          if (error.response?.status === 400) {
+            this.mostrarError('El monto excede el saldo pendiente')
+          } else if (error.response?.status === 404) {
+            this.mostrarError('La cuenta especificada no existe')
+          } else {
+            this.mostrarError('Error al registrar el pago')
+          }
+        } finally {
+          this.cargando.creando = false
+        }
+      },
+  
+      async filtrarPagos() {
+        if (!this.filtro.accountHoldingId) {
+          await this.cargarPagos()
+          return
+        }
+  
+        this.cargando.filtrando = true
+        try {
+          const response = await apiRequest({
+            method: 'GET',
+            path: `payments/account-holding/${this.filtro.accountHoldingId}`
+          })
+          
+          if (response?.data) {
+            this.pagos = Array.isArray(response.data) ? response.data : []
+          }
+        } catch (error) {
+          console.error('Error al filtrar pagos:', error)
+          this.mostrarError('Error al filtrar los pagos')
+        } finally {
+          this.cargando.filtrando = false
+        }
+      },
+  
+      limpiarFiltros() {
+        this.filtro.accountHoldingId = ''
+        this.cargarPagos()
+      },
+  
+      mostrarError(mensaje) {
+        this.$buefy.toast.open({
+          message: mensaje,
+          type: 'is-danger',
+          duration: 5000
+        })
+      }
     }
   }
-}
-</script>
-
-<style scoped>
-.payments-management {
-  padding: 1.5rem;
-}
-
-.card {
-  margin-bottom: 1.5rem;
-}
-
-.card-header-title {
-  display: flex;
-  align-items: center;
-}
-
-.card-header-title .icon {
-  margin-right: 0.5rem;
-}
-
-.align-self-flex-end {
-  align-self: flex-end;
-}
-</style>
-
+  </script>
+  
+  <style scoped>
+  .payments-management {
+    padding: 1.5rem;
+  }
+  
+  .card {
+    margin-bottom: 1.5rem;
+  }
+  
+  .card-header-title {
+    display: flex;
+    align-items: center;
+  }
+  
+  .card-header-title .icon {
+    margin-right: 0.5rem;
+  }
+  
+  .align-self-flex-end {
+    align-self: flex-end;
+  }
+  </style>
+  
+  

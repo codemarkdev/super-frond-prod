@@ -361,18 +361,7 @@
             Detalles de Productos Vendidos
           </p>
           <div class="card-header-icon">
-            <div class="field is-grouped">
-              <div class="control">
-                <b-input 
-                  v-model="filtroProductos.id" 
-                  type="number" 
-                  size="is-small"
-                  placeholder="ID"
-                  min="1">
-                </b-input>
-              </div>
-            
-              
+            <div class="field is-grouped">  
             </div>
           </div>
         </header>
