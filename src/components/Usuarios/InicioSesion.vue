@@ -7,47 +7,113 @@
             <img src="@/assets/logo.png" alt="Logo" class="logo">
           </div>
 
-          <h1 class="title is-3 has-text-centered is-family-sans-serif animate__animated animate__fadeInDown">Bienvenido</h1>
-          <p class="subtitle is-6 has-text-centered animate__animated animate__fadeInUp">Ingresa tus datos para continuar</p>
+          <template v-if="mostrarRegistroInicial">
+            <h1 class="title is-3 has-text-centered is-family-sans-serif animate__animated animate__fadeInDown">Registro Inicial</h1>
+            <p class="subtitle is-6 has-text-centered animate__animated animate__fadeInUp">Crea el primer usuario administrador</p>
 
-          <form @submit.prevent="iniciarSesion">
-            <b-field label="Nombre de usuario" class="input-container animate__animated animate__fadeInLeft">
-              <b-input
-                v-model="usuario.username"
-                type="text"
-                placeholder="Ej. Juan"
-                required
-                expanded>
-              </b-input>
-            </b-field>
+            <form @submit.prevent="registrarUsuarioInicial">
+              <b-field label="Nombre de usuario" class="input-container animate__animated animate__fadeInLeft">
+                <b-input
+                  v-model="nuevoUsuario.username"
+                  type="text"
+                  placeholder="Ej. admin"
+                  required
+                  expanded>
+                </b-input>
+              </b-field>
 
-            <b-field label="Contraseña" class="input-container animate__animated animate__fadeInRight">
-              <b-input
-                v-model="usuario.password"
-                type="password"
-                placeholder="Contraseña"
-                required
-                password-reveal
-                expanded>
-              </b-input>
-            </b-field>
+              <b-field label="Nombre completo" class="input-container animate__animated animate__fadeInLeft">
+                <input
+                  v-model="nuevoUsuario.name"
+                  type="text"
+                  placeholder="Ej. Juan Pérez"
+                  required
+                  class="input"
+                  autocomplete="name">
+              </b-field>
 
-            <div v-if="loading" class="loading-spinner animate__animated animate__fadeIn">
-              <b-icon icon="loading" size="is-large" spin></b-icon>
-            </div>
+              <b-field label="Teléfono" class="input-container animate__animated animate__fadeInRight">
+                <b-input
+                  v-model="nuevoUsuario.phone"
+                  type="tel"
+                  placeholder="Ej. 22577777"
+                  required
+                  expanded>
+                </b-input>
+              </b-field>
 
-            <div v-else class="buttons-container animate__animated animate__fadeInUp">
-              <b-button 
-                native-type="submit"
-                type="is-primary" 
-                size="is-medium" 
-                icon-left="check" 
-                class="login-button"
-                :loading="loading">
-                Ingresar
-              </b-button>
-            </div>
-          </form>
+              <b-field label="Contraseña" class="input-container animate__animated animate__fadeInRight">
+                <b-input
+                  v-model="nuevoUsuario.password"
+                  type="password"
+                  placeholder="Contraseña"
+                  required
+                  password-reveal
+                  expanded>
+                </b-input>
+              </b-field>
+
+              <div v-if="loading" class="loading-spinner animate__animated animate__fadeIn">
+                <b-icon icon="loading" size="is-large" spin></b-icon>
+              </div>
+
+              <div v-else class="buttons-container animate__animated animate__fadeInUp">
+                <b-button 
+                  native-type="submit"
+                  type="is-primary" 
+                  size="is-medium" 
+                  icon-left="user-plus" 
+                  class="login-button"
+                  :loading="loading">
+                  Registrar Usuario
+                </b-button>
+              </div>
+            </form>
+          </template>
+
+          <template v-else>
+            <h1 class="title is-3 has-text-centered is-family-sans-serif animate__animated animate__fadeInDown">Bienvenido</h1>
+            <p class="subtitle is-6 has-text-centered animate__animated animate__fadeInUp">Ingresa tus datos para continuar</p>
+
+            <form @submit.prevent="iniciarSesion">
+              <b-field label="Nombre de usuario" class="input-container animate__animated animate__fadeInLeft">
+                <b-input
+                  v-model="usuario.username"
+                  type="text"
+                  placeholder="Ej. Juan"
+                  required
+                  expanded>
+                </b-input>
+              </b-field>
+
+              <b-field label="Contraseña" class="input-container animate__animated animate__fadeInRight">
+                <b-input
+                  v-model="usuario.password"
+                  type="password"
+                  placeholder="Contraseña"
+                  required
+                  password-reveal
+                  expanded>
+                </b-input>
+              </b-field>
+
+              <div v-if="loading" class="loading-spinner animate__animated animate__fadeIn">
+                <b-icon icon="loading" size="is-large" spin></b-icon>
+              </div>
+
+              <div v-else class="buttons-container animate__animated animate__fadeInUp">
+                <b-button 
+                  native-type="submit"
+                  type="is-primary" 
+                  size="is-medium" 
+                  icon-left="check" 
+                  class="login-button"
+                  :loading="loading">
+                  Ingresar
+                </b-button>
+              </div>
+            </form>
+          </template>
         </div>
       </div>
     </div>
@@ -55,7 +121,6 @@
 </template>
 
 <script>
-// import HttpService from '@/Servicios/HttpService'
 import AyudanteSesion from '@/Servicios/AyudanteSesion'
 import apiRequest from '@/Servicios/HttpService';
 
@@ -68,12 +133,77 @@ export default {
         username: "",
         password: ""
       },
+      nuevoUsuario: {
+        username: "",
+        name: "",
+        phone: "",
+        password: ""
+      },
       loading: false,
-      animateLogin: 'animate__animated animate__fadeIn'
+      animateLogin: 'animate__animated animate__fadeIn',
+      mostrarRegistroInicial: false
     }
   },
 
+  mounted() {
+    this.verificarUsuariosExistentes();
+  },
+
   methods: {
+    async verificarUsuariosExistentes() {
+      try {
+        const response = await apiRequest({
+          method: 'GET',
+          path: 'users'
+        });
+        this.mostrarRegistroInicial = response.data.length === 0;
+      } catch (error) {
+        console.error('Error al verificar usuarios existentes:', error);
+        this.mostrarRegistroInicial = true; // Asumimos que no hay usuarios si hay un error
+      }
+    },
+
+    async registrarUsuarioInicial() {
+      if (!this.nuevoUsuario.username || !this.nuevoUsuario.name || !this.nuevoUsuario.phone || !this.nuevoUsuario.password) {
+        this.$buefy.toast.open({
+          type: 'is-danger',
+          message: 'Por favor completa todos los campos'
+        });
+        return;
+      }
+
+      this.loading = true;
+
+      try {
+        const response = await apiRequest({
+          method: 'POST',
+          path: "users/register",
+          data: this.nuevoUsuario,
+        });
+
+        if (response.status === 201) {
+          this.$buefy.toast.open({
+            type: 'is-success',
+            message: 'Usuario administrador registrado exitosamente'
+          });
+
+          // Cambiamos a la vista de inicio de sesión
+          this.mostrarRegistroInicial = false;
+          this.animateLogin = 'animate__animated animate__fadeIn';
+        } else {
+          throw new Error('Error al registrar el usuario');
+        }
+      } catch (error) {
+        console.error("Error en el registro:", error);
+        this.$buefy.toast.open({
+          type: 'is-danger',
+          message: 'Error al registrar el usuario. Por favor, intenta de nuevo.'
+        });
+      } finally {
+        this.loading = false;
+      }
+    },
+
     async iniciarSesion() {
       if (!this.usuario.username || !this.usuario.password) {
         this.$buefy.toast.open({
@@ -86,14 +216,11 @@ export default {
       this.loading = true;
     
       try {
-        // const response = await HttpService.login(this.usuario);
-        // console.log('Respuesta completa:', response);
-       const response = await apiRequest({
+        const response = await apiRequest({
           method: 'POST', 
           path: "users/login",
           data: this.usuario, 
         })
-
 
         if (response.status === 201) {
           AyudanteSesion.establecerSesion(response.data);
@@ -138,8 +265,6 @@ export default {
     }
   }
 }
-
-
 </script>
 
 <style scoped>
@@ -217,3 +342,4 @@ export default {
   }
 }
 </style>
+
