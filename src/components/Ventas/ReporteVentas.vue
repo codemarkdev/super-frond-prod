@@ -480,57 +480,8 @@
           </div>
         </div>
       </div>
-
-      <!-- Productos más vendidos -->
-      <div class="card dashboard-card">
-        <header class="card-header">
-          <p class="card-header-title">
-            <b-icon icon="trophy" type="is-warning"></b-icon>
-            Productos más vendidos
-          </p>
-          <div class="card-header-icon">
-            <b-select
-              v-model="limite"
-              @input="obtenerProductosMayoresVentas"
-              size="is-small"
-            >
-              <option :value="5">Top 5</option>
-              <option :value="10">Top 10</option>
-              <option :value="15">Top 15</option>
-              <option :value="20">Top 20</option>
-            </b-select>
-          </div>
-        </header>
-        <div class="card-content">
-          <b-table
-            :data="productosMayoresVentas"
-            :loading="cargando.topSold"
-            :striped="true"
-            :hoverable="true"
-          >
-            <b-table-column
-              field="product_name"
-              label="Producto"
-              v-slot="props"
-            >
-              {{ props.row.product_name }}
-            </b-table-column>
-            <b-table-column
-              field="units"
-              label="Unidades"
-              numeric
-              v-slot="props"
-            >
-              {{ formatNumber(props.row.units) }}
-            </b-table-column>
-            <b-table-column field="total" label="Total" numeric v-slot="props">
-              ${{ formatNumber(props.row.total) }}
-            </b-table-column>
-          </b-table>
-        </div>
-      </div>
-      <!-- Cotizaciones por Rango de Fechas -->
-      <div class="card dashboard-card mb-6">
+ <!-- Cotizaciones por Rango de Fechas -->
+ <div class="card dashboard-card mb-6">
         <header class="card-header">
           <p class="card-header-title">
             <b-icon icon="file-document" type="is-info"></b-icon>
@@ -629,6 +580,55 @@
           </div>
         </div>
       </div>
+      <!-- Productos más vendidos -->
+      <div class="card dashboard-card">
+        <header class="card-header">
+          <p class="card-header-title">
+            <b-icon icon="trophy" type="is-warning"></b-icon>
+            Productos más vendidos
+          </p>
+          <div class="card-header-icon">
+            <b-select
+              v-model="limite"
+              @input="obtenerProductosMayoresVentas"
+              size="is-small"
+            >
+              <option :value="5">Top 5</option>
+              <option :value="10">Top 10</option>
+              <option :value="15">Top 15</option>
+              <option :value="20">Top 20</option>
+            </b-select>
+          </div>
+        </header>
+        <div class="card-content">
+          <b-table
+            :data="productosMayoresVentas"
+            :loading="cargando.topSold"
+            :striped="true"
+            :hoverable="true"
+          >
+            <b-table-column
+              field="product_name"
+              label="Producto"
+              v-slot="props"
+            >
+              {{ props.row.product_name }}
+            </b-table-column>
+            <b-table-column
+              field="units"
+              label="Unidades"
+              numeric
+              v-slot="props"
+            >
+              {{ formatNumber(props.row.units) }}
+            </b-table-column>
+            <b-table-column field="total" label="Total" numeric v-slot="props">
+              ${{ formatNumber(props.row.total) }}
+            </b-table-column>
+          </b-table>
+        </div>
+      </div>
+     
       <div class="columns is-multiline">
         <!-- Totales por marca -->
         <div class="column is-half">
