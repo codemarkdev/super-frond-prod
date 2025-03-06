@@ -217,7 +217,7 @@
       </header>
       <div class="card-content">
         <b-table
-          :data="pagosPaginados"
+          :data="pagos"
           :loading="cargando.lista"
           :striped="true"
           :hoverable="true">
@@ -245,10 +245,11 @@
   
         <b-pagination
           v-model="paginaActualPagos"
-          :total="pagos.length"
+          :total="totalPagos"
           :per-page="pagosPorPagina"
           :range-before="3"
           :range-after="3"
+          @change="cargarPagos"
           order="is-centered"
           aria-next-label="Página siguiente"
           aria-previous-label="Página anterior"
@@ -335,11 +336,6 @@
   
         return Object.values(cuentasAgrupadas)
       },
-      pagosPaginados() {
-        const inicio = (this.paginaActualPagos - 1) * this.pagosPorPagina;
-        const fin = inicio + this.pagosPorPagina;
-        return this.pagos.slice(inicio, fin);
-      },
       cuentasAgrupadasFiltradas() {
         return this.cuentasAgrupadasPorCliente.filter(cuenta => {
           const nombreCoincide = cuenta.customer.name.toLowerCase().includes(this.busquedaCliente.toLowerCase());
@@ -419,11 +415,13 @@
         try {
           const response = await apiRequest({
             method: 'GET',
-            path: 'payments'
+            path: `payments?page=${this.paginaActualPagos}&limit=${this.pagosPorPagina}`
           })
           
           if (response?.data) {
-            this.pagos = Array.isArray(response.data) ? response.data : []
+            this.pagos = response.data.data // Pagos 
+            this.totalPagos = Number(response.data.total) // Total de pagos
+            this.pagosPorPagina = Number(response.data.limit) // Pagos por página
           }
         } catch (error) {
           console.error('Error al cargar pagos:', error)
