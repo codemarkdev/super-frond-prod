@@ -14,9 +14,11 @@ import UsuariosComponent from '@/components/Usuarios/UsuariosComponent'
 import AgregarUsuario from '@/components/Usuarios/AgregarUsuario'
 import EditarUsuario from '@/components/Usuarios/EditarUsuario'
 import Pagos from '@/components/Pagos/Pagos'
-import PerfilComponent from '@/components/Usuarios/PerfilComponent'
+// import PerfilComponent from '@/components/Usuarios/PerfilComponent'
 import CambiarPassword from '@/components/Usuarios/CambiarPassword'
 import Empleados from '@/components/Empleados/Empleados.vue'
+import CierreCaja from '@/components/Caja/CierreCaja.vue'
+import PerfilComponent from '@/components/Usuarios/PerfilComponent.vue'
 
 // Add this line to import the new component
 
@@ -128,6 +130,12 @@ const routes = [
   },
   {
     path: '/perfil',
+    name: 'CierreCaja',
+    component: CierreCaja,
+    meta: { requiresAuth: true }
+  },  
+  {
+    path: '/perfil-old',
     name: 'PerfilComponent',
     component: PerfilComponent,
     meta: { requiresAuth: true }
