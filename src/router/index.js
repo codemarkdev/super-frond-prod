@@ -4,7 +4,7 @@ import InicioSesion from '@/components/Usuarios/InicioSesion'
 import ProductosComponent from '@/components/Inventario/ProductosComponent'
 import AgregarProducto from '@/components/Inventario/AgregarProducto'
 import EditarProducto from '@/components/Inventario/EditarProducto'
-import MarcasCategorias from '@/components/MarcasCategorias/MarcasCategorias'
+import ProveedoresMarcasCategorias from '@/components/MarcasCategoriasProveedores/ProveedoresMarcasCategorias.vue'
 import RealizarVenta from '@/components/Ventas/RealizarVenta'
 import ReporteVentas from '@/components/Ventas/ReporteVentas'
 import ClientesComponent from '@/components/Clientes/ClientesComponent'
@@ -56,9 +56,9 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/marcas-y-categorias',
-    name: 'MarcasCategorias',
-    component: MarcasCategorias,
+    path: '/proveedores-marcas-y-categorias',
+    name: 'MarcasCategoriasProveedores',
+    component: ProveedoresMarcasCategorias,
     meta: { requiresAuth: true }
   },
   {

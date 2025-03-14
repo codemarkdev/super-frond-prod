@@ -19,10 +19,10 @@
                  Inventario
              </b-navbar-item> 
  
-             <b-navbar-item  tag="router-link" :to="{ path: '/marcas-y-categorias' }">
+             <b-navbar-item  tag="router-link" :to="{ path: '/proveedores-marcas-y-categorias' }">
               
                  <span></span>
-                 Marcas y categorías
+                 Proveedores, Marcas y Categorías
              </b-navbar-item> 
  
      
