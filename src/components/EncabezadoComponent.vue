@@ -26,7 +26,12 @@
              </b-navbar-item> 
  
      
- 
+             <b-navbar-item  tag="router-link" :to="{ path: '/DetallesPedido' }">
+              
+              <span></span>
+              Detalles de Ordenes
+          </b-navbar-item> 
+
              <b-navbar-item>
                 
                  <b-navbar-dropdown label="Reportes" icon="home">
@@ -35,11 +40,7 @@
                      <span></span>
                      Ventas
                  </b-navbar-item>
-                 <b-navbar-item  tag="router-link" :to="{ path: '/Pagos' }">
-              
-              <span></span>
-             Hacer Pagos
-          </b-navbar-item>
+                 
                 
                 
                  </b-navbar-dropdown>

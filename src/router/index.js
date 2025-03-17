@@ -13,12 +13,13 @@ import EditarCliente from '@/components/Clientes/EditarCliente'
 import UsuariosComponent from '@/components/Usuarios/UsuariosComponent'
 import AgregarUsuario from '@/components/Usuarios/AgregarUsuario'
 import EditarUsuario from '@/components/Usuarios/EditarUsuario'
-import Pagos from '@/components/Pagos/Pagos'
+
 // import PerfilComponent from '@/components/Usuarios/PerfilComponent'
 import CambiarPassword from '@/components/Usuarios/CambiarPassword'
 import Empleados from '@/components/Empleados/Empleados.vue'
 import CierreCaja from '@/components/Caja/CierreCaja.vue'
 import PerfilComponent from '@/components/Usuarios/PerfilComponent.vue'
+import DetallesPedido from '@/components/OrdenesDetalles/DetallesPedido.vue'
 
 // Add this line to import the new component
 
@@ -59,6 +60,12 @@ const routes = [
     path: '/proveedores-marcas-y-categorias',
     name: 'MarcasCategoriasProveedores',
     component: ProveedoresMarcasCategorias,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/DetallesPedido',
+    name: 'Detalles de ordenes',
+    component: DetallesPedido,
     meta: { requiresAuth: true }
   },
   {
@@ -116,12 +123,7 @@ const routes = [
     component: CambiarPassword,
     meta: { requiresAuth: true }
   },  
-  {
-    path: '/pagos',
-    name: 'Pagos',
-    component: Pagos,
-    meta: { requiresAuth: true }
-  },
+
   {
     path: '/empleados',
     name: 'Empleados',
