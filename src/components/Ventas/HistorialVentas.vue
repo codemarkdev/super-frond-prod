@@ -101,59 +101,7 @@
         </div>
       </div>
 
-      <!-- Ingreso Pendiente -->
-      <div class="column is-3">
-        <div class="card">
-          <div class="card-content">
-            <div class="level is-mobile">
-              <div class="level-left">
-                <div class="level-item">
-                  <div>
-                    <p class="heading">PENDIENTE</p>
-                    <p class="title is-4">${{ formatNumber(pendingIncome) }}</p>
-                  </div>
-                </div>
-              </div>
-              <div class="level-right">
-                <div class="level-item">
-                  <b-icon
-                    icon="clock"
-                    size="is-large"
-                    type="is-danger"
-                  ></b-icon>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Total Cuentas por Cobrar -->
-      <div class="column is-3">
-        <div class="card">
-          <div class="card-content">
-            <div class="level is-mobile">
-              <div class="level-left">
-                <div class="level-item">
-                  <div>
-                    <p class="heading">CUENTAS POR COBRAR</p>
-                    <p class="title is-4">${{ formatNumber(pendingIncome) }}</p>
-                  </div>
-                </div>
-              </div>
-              <div class="level-right">
-                <div class="level-item">
-                  <b-icon
-                    icon="cash-multiple"
-                    size="is-large"
-                    type="is-warning"
-                  ></b-icon>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+     
 
       <!-- Ganancia del Inventario -->
       <div class="column is-3">
@@ -514,7 +462,7 @@ export default {
         ingresosMes: false,
         ventasMensuales: false,
         ventasDiarias: false,
-        ingresosPendientes: false,
+       
       },
       meses: [
         "Enero",
@@ -607,7 +555,6 @@ export default {
           this.obtenerIngresoHoy(),
           this.obtenerIngresoSemanal(),
           this.obtenerIngresoMensual(),
-          this.obtenerIngresoPendiente(),
           this.obtenerAccountsHoldings(),
           this.obtenerVentasMensuales(),
           this.obtenerVentasDiarias(),
@@ -756,26 +703,7 @@ export default {
         this.cargando.ingresosMes = false;
       }
     },
-
-    async obtenerIngresoPendiente() {
-      this.cargando.ingresosPendientes = true;
-      try {
-        const response = await apiRequest({
-          method: "GET",
-          path: "sales/pending-income",
-        });
-
-        if (response.status === 200) {
-          this.pendingIncome = response.data || 0;
-        }
-      } catch (error) {
-        console.error("Error al obtener ingreso pendiente:", error);
-        this.mostrarError("Error al cargar el ingreso pendiente");
-        this.pendingIncome = 0;
-      } finally {
-        this.cargando.ingresosPendientes = false;
-      }
-    },
+    
 
     async obtenerAccountsHoldings() {
       this.cargando.accountsHoldings = true;
@@ -912,30 +840,6 @@ export default {
       }
     },
 
-    async obtenerTotalCuentasPorCobrar() {
-      try {
-        // If we haven't fetched accountsHoldings yet, fetch them
-        if (this.accountsHoldings.length === 0) {
-          await this.obtenerAccountsHoldings();
-        }
-
-        // Calculate the total from accountsHoldings
-        this.totalCuentasPorCobrar = this.accountsHoldings.reduce(
-          (total, account) => {
-            return total + (account.total - account.paid);
-          },
-          0
-        );
-      } catch (error) {
-        console.error(
-          "Error al calcular el total de cuentas por cobrar:",
-          error
-        );
-        this.mostrarError("Error al calcular el total de cuentas por cobrar");
-        this.totalCuentasPorCobrar = 0;
-      }
-    },
-
     async obtenerInventoryProfit() {
       try {
         const response = await apiRequest({
@@ -1011,11 +915,7 @@ export default {
       return row.customer && row.customer.phone ? row.customer.phone : "";
     },
 
-    getStatusText(row) {
-      if (row.totalDeuda === 0) return "Pagado";
-      if (row.transacciones.some((t) => t.paid > 0)) return "Pago Parcial";
-      return "Pendiente";
-    },
+   
 
     getStatusType(row) {
       if (row.totalDeuda === 0) return "is-success";
