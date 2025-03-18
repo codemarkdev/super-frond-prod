@@ -20,6 +20,7 @@ import Empleados from '@/components/Empleados/Empleados.vue'
 import CierreCaja from '@/components/Caja/CierreCaja.vue'
 import PerfilComponent from '@/components/Usuarios/PerfilComponent.vue'
 import DetallesPedido from '@/components/OrdenesDetalles/DetallesPedido.vue'
+import Details from '@/components/OrdenesDetalles/OrderDatails.vue'
 
 // Add this line to import the new component
 
@@ -66,6 +67,12 @@ const routes = [
     path: '/DetallesPedido',
     name: 'Detalles de ordenes',
     component: DetallesPedido,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/Details',
+    name: 'OrderDetails',
+    component: Details,
     meta: { requiresAuth: true }
   },
   {

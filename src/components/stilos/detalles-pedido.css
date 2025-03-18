@@ -1,0 +1,585 @@
+/* Modificación para las tarjetas de pedidos - versión más compacta */
+.pedidos-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.pedido-card {
+  background-color: #fff;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: all 0.3s ease;
+}
+
+.pedido-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  cursor: pointer;
+  position: relative;
+  padding-right: 30px; /* Espacio para el icono de expansión */
+}
+
+.pedido-title {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pedido-title h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.pedido-date {
+  font-size: 0.8rem;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pedido-badge {
+  background-color: #e9ecef;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  color: #495057;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pedido-body {
+  padding: 8px 10px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: max-height 0.3s ease, opacity 0.2s ease, transform 0.2s ease;
+  overflow: hidden;
+}
+
+.provider-info h5 {
+  font-size: 0.85rem;
+  margin: 0 0 6px 0;
+  color: #495057;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.provider-details {
+  background-color: #f8f9fa;
+  padding: 6px;
+  border-radius: 5px;
+  font-size: 0.8rem;
+}
+
+.provider-name {
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.provider-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 3px;
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+.no-details {
+  background-color: #f8f9fa;
+  padding: 6px;
+  border-radius: 5px;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.pedido-footer {
+  padding: 6px 10px;
+  border-top: 1px solid #e9ecef;
+  background-color: #f8f9fa;
+  transition: max-height 0.3s ease, opacity 0.2s ease, transform 0.2s ease;
+  overflow: hidden;
+}
+
+.pedido-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.btn-action {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  transition: background-color 0.2s;
+}
+
+/* El resto del CSS se mantiene igual */
+.details-modal {
+  max-width: 800px;
+  width: 90%;
+}
+
+.pedido-details-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.details-section {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.details-section-title {
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+  color: #333;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 8px;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 10px;
+}
+
+.details-item {
+  margin-bottom: 8px;
+}
+
+.details-label {
+  font-weight: 600;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.details-value {
+  color: #333;
+}
+
+.details-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 0.9rem;
+}
+
+.details-table-header {
+  display: grid;
+  grid-template-columns: 0.5fr 0.5fr 1fr 1fr 1fr 1fr 1fr;
+  background-color: #e9ecef;
+  font-weight: 600;
+  border-radius: 4px 4px 0 0;
+}
+
+.details-table-row {
+  display: grid;
+  grid-template-columns: 0.5fr 0.5fr 1fr 1fr 1fr 1fr 1fr;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.details-table-cell {
+  padding: 8px 10px;
+  text-align: right;
+}
+
+.details-table-cell:first-child {
+  text-align: left;
+}
+
+.total-cell {
+  font-weight: 600;
+  color: #0056b3;
+}
+
+.details-totals {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+.details-total-row {
+  display: flex;
+  justify-content: space-between;
+  width: 250px;
+  padding: 5px 0;
+}
+
+.details-total-label {
+  font-weight: 600;
+  color: #555;
+}
+
+.details-total-value {
+  font-weight: 600;
+}
+
+.grand-total {
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 2px solid #dee2e6;
+}
+
+.grand-total .details-total-label,
+.grand-total .details-total-value {
+  font-size: 1.1rem;
+  color: #0056b3;
+}
+
+.no-details-message {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  color: #6c757d;
+}
+
+.no-details-message i {
+  font-size: 1.5rem;
+  color: #6c757d;
+}
+
+.btn-view {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.btn-view:hover {
+  background-color: #138496;
+}
+
+.order-details h5 {
+  font-size: 1rem;
+  margin: 15px 0 10px;
+  color: #495057;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.details-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail-item {
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.detail-title {
+  font-weight: 600;
+  color: #495057;
+}
+
+.detail-quantity {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.detail-body {
+  font-size: 0.9rem;
+}
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.price-item {
+  flex: 1;
+}
+
+.price-label {
+  color: #6c757d;
+  margin-bottom: 3px;
+}
+
+.price-value {
+  font-weight: 500;
+  color: #495057;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #dee2e6;
+}
+
+.total-label {
+  font-weight: 600;
+  color: #495057;
+}
+
+.total-value {
+  font-weight: 600;
+  color: #0056b3;
+}
+
+/* Estilos para modales */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-container {
+  background-color: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #6c757d;
+  cursor: pointer;
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  padding: 15px 20px;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.delete-modal {
+  max-width: 500px;
+}
+
+.delete-header {
+  background-color: #f8d7da;
+  border-bottom-color: #f5c6cb;
+}
+
+.delete-header h3 {
+  color: #721c24;
+}
+
+.delete-warning {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.warning-icon {
+  font-size: 3rem;
+  color: #dc3545;
+  margin-bottom: 15px;
+}
+
+.warning-text {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #721c24;
+  margin-bottom: 5px;
+}
+
+.warning-subtext {
+  color: #6c757d;
+  margin-bottom: 0;
+}
+
+.delete-details {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+.delete-detail-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.delete-detail-item:last-child {
+  margin-bottom: 0;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #495057;
+}
+
+.detail-value {
+  color: #212529;
+}
+
+.delete-actions {
+  justify-content: space-between;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+}
+
+.btn-danger:disabled {
+  background-color: #e4606d;
+  cursor: not-allowed;
+}
+
+.btn-edit {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.btn-edit:hover {
+  background-color: #e0a800;
+}
+
+.btn-delete {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-delete:hover {
+  background-color: #c82333;
+}
+
+/* Estilos para mensajes flotantes */
+.floating-message {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 12px 20px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1100;
+  animation: slideIn 0.3s ease-out;
+}
+
+.floating-message.success {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Añadir estos estilos para la funcionalidad de expansión/contracción */
+
+.toggle-card-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: transform 0.3s ease;
+  color: #6c757d;
+  font-size: 0.85rem;
+}
+
+.toggle-card-icon.rotate {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.pedido-card:not(.expanded) {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.pedido-card.expanded {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Modificar el estilo de las tarjetas para que sean más compactas cuando están contraídas */
+.pedido-card:not(.expanded) .pedido-header {
+  border-bottom: none;
+}

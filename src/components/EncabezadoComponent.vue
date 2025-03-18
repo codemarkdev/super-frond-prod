@@ -29,7 +29,12 @@
              <b-navbar-item  tag="router-link" :to="{ path: '/DetallesPedido' }">
               
               <span></span>
-              Detalles de Ordenes
+              Ordenes
+          </b-navbar-item> 
+          <b-navbar-item  tag="router-link" :to="{ path: '/Details' }">
+              
+              <span></span>
+              Detalles de Ordenes 
           </b-navbar-item> 
 
              <b-navbar-item>
