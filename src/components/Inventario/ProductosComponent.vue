@@ -24,6 +24,9 @@
                     :pagination-rounded="isPaginationRounded" :sort-icon="sortIcon" :sort-icon-size="sortIconSize"
                     default-sort="user.first_name" aria-next-label="Next page" aria-previous-label="Previous page"
                     aria-page-label="Page" aria-current-label="Current page">
+                    <b-table-column label="ID" sortable v-slot="props">
+                        {{ props.row.id }}
+                    </b-table-column>
                     <b-table-column field="code" label="Código de barras" sortable searchable v-slot="props">
                         {{ props.row.code }}
                     </b-table-column>

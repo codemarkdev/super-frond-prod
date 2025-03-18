@@ -21,30 +21,30 @@
               Terminar venta
             </b-button>
           </div>
-          <div class="level-item has-text-centered">
+          <!-- <div class="level-item has-text-centered">
             <b-button class="button is-responsive" type="is-info" inverted icon-left="wallet-plus" size="is-large"
               @click=" abrirDialogo('cuenta')">
               Agregar a cuenta
             </b-button>
-          </div>
-          <div class="level-item has-text-centered">
+          </div> -->
+          <!-- <div class="level-item has-text-centered">
             <b-button class="button is-responsive" type="is-dark" inverted icon-left="wallet-travel" size="is-large"
               @click=" abrirDialogo('apartado')">
               Realizar apartado
             </b-button>
-          </div>
+          </div> -->
           <div class="level-item has-text-centered">
             <b-button class="button is-responsive" type="is-danger" inverted icon-left="cancel" size="is-large"
               @click="cancelarVenta">
               Cancelar
             </b-button>
           </div>
-          <div class="level-item has-text-centered">
+          <!-- <div class="level-item has-text-centered">
             <b-button class="button is-responsive" type="is-warning" inverted icon-left="ticket-outline" size="is-large"
               @click="abrirDialogo('cotiza')">
               Cotizar
             </b-button>
-          </div>
+          </div> -->
         </nav>
       </div>
     </div>

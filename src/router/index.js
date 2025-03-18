@@ -176,7 +176,20 @@ router.beforeEach((to, from, next) => {
       : [view.href];
   });
 
-  if (!allowedPaths.includes(to.path)) {
+  const dynamicPaths = rolesConfig[rol].access.filter(path => path.includes(':'));
+
+  const isDynamicPathAllowed = (path) => {
+    return dynamicPaths.some(dynamicPath => {
+      const regex = new RegExp(`^${dynamicPath.replace(/:\w+/g, '\\w+')}$`);
+      return regex.test(path);
+    });
+  };
+
+  if (
+    !allowedPaths.includes(to.path) &&
+    !rolesConfig[rol].access.includes(to.path) &&
+    !isDynamicPathAllowed(to.path)
+  ) {
     return next('/');
   }
 

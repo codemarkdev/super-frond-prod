@@ -64,11 +64,9 @@ export default {
         };
     },
     computed: {
-        // Vistas sin hijos
         viewsWithoutChildren() {
             return this.views.filter(view => !view.children || view.children.length === 0);
         },
-        // Vistas con hijos
         viewsWithChildren() {
             return this.views.filter(view => view.children && view.children.length > 0);
         }
@@ -77,7 +75,8 @@ export default {
         const sesion = AyudanteSesion.obtenerDatosSesion();
         this.usuario = sesion.usuario;
         this.rol = sesion.rol;
-        this.views = rolesConfig[this.rol].views;
+        const roleConfig = rolesConfig[this.rol];
+        this.views = roleConfig.views; // Excluye hiddenAccess del navbar
     },
     methods: {
         salir() {
