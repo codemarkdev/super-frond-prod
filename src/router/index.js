@@ -13,17 +13,14 @@ import EditarCliente from '@/components/Clientes/EditarCliente'
 import UsuariosComponent from '@/components/Usuarios/UsuariosComponent'
 import AgregarUsuario from '@/components/Usuarios/AgregarUsuario'
 import EditarUsuario from '@/components/Usuarios/EditarUsuario'
-
-// import PerfilComponent from '@/components/Usuarios/PerfilComponent'
 import CambiarPassword from '@/components/Usuarios/CambiarPassword'
 import Empleados from '@/components/Empleados/Empleados.vue'
 import CierreCaja from '@/components/Caja/CierreCaja.vue'
 import PerfilComponent from '@/components/Usuarios/PerfilComponent.vue'
 import DetallesPedido from '@/components/OrdenesDetalles/DetallesPedido.vue'
 import Details from '@/components/OrdenesDetalles/OrderDatails.vue'
-
-// Add this line to import the new component
-
+import AyudanteSesion from '../Servicios/AyudanteSesion';
+import rolesConfig from '../config/RolesConfig';
 
 Vue.use(VueRouter)
 
@@ -159,22 +156,31 @@ const routes = [
 ]
 
 const router = new VueRouter({
-  mode: 'history',
-  base: process.env.BASE_URL,
+  mode: 'history', 
   routes
-})
+});
 
 router.beforeEach((to, from, next) => {
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-  const isAuthenticated = localStorage.getItem('userData')
-
-  if (requiresAuth && !isAuthenticated) {
-    next('/login')
-  } else if (to.path === '/login' && isAuthenticated) {
-    next('/')
-  } else {
-    next()
+  const sesion = AyudanteSesion.obtenerDatosSesion();
+  if (!sesion || !sesion.rol) {
+    if (to.path !== '/login') {
+      return next('/login');
+    }
+    return next();
   }
-})
 
-export default router
+  const rol = sesion.rol;
+  const allowedPaths = rolesConfig[rol].views.flatMap(view => {
+    return view.children && view.children.length > 0
+      ? [view.href, ...view.children.map(child => child.href)]
+      : [view.href];
+  });
+
+  if (!allowedPaths.includes(to.path)) {
+    return next('/');
+  }
+
+  next();
+});
+
+export default router;
