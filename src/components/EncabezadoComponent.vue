@@ -29,7 +29,7 @@
              <b-navbar-item  tag="router-link" :to="{ path: '/DetallesPedido' }">
               
               <span></span>
-              Ordenes
+              Realizar Ordenes
           </b-navbar-item> 
           <b-navbar-item  tag="router-link" :to="{ path: '/Details' }">
               
