@@ -35,8 +35,8 @@ const rolesConfig = {
             createView("Inventario", "/inventario"),
             createView("Proveedores, Marcas y Categorías", "/proveedores-marcas-y-categorias"),
             createView("Ordenes", "/Details", [
-                createView("Orden", "/Details"),
-                createView("Detalles de ordenes", "/DetallesPedido"),
+                createView("Detalles de orden", "/Details"),
+                createView("Orden", "/DetallesPedido"),
             ]),
         ],
         access: [

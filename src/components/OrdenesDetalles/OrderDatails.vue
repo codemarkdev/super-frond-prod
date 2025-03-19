@@ -126,16 +126,8 @@
                                                             <span class="info-label">Nombre:</span>
                                                             <span class="info-value">{{ producto.name }}</span>
                                                         </div>
-                                                        <div class="info-row">
-                                                            <span class="info-label">Marca:</span>
-                                                            <span class="info-value">{{
-                                                                obtenerNombreMarca(producto.brandId) }}</span>
-                                                        </div>
-                                                        <div class="info-row">
-                                                            <span class="info-label">Categoría:</span>
-                                                            <span class="info-value">{{
-                                                                obtenerNombreCategoria(producto.categoryId) }}</span>
-                                                        </div>
+                                                     
+                                                       
                                                         <div class="info-row">
                                                             <span class="info-label">Stock actual:</span>
                                                             <span class="info-value">{{ producto.stock }}
@@ -145,6 +137,39 @@
                                                             <span class="info-label">Precio de venta:</span>
                                                             <span class="info-value">{{
                                                                 formatearMoneda(producto.salePrice) }}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Permitir cambiar categoría y marca para productos existentes -->
+                                                <div v-if="producto.esExistente && producto.encontrado"
+                                                    class="form-row">
+                                                    <div class="form-group half">
+                                                        <label :for="`brandId_${index}`">
+                                                            <i class="fas fa-copyright label-icon"></i> Cambiar marca:
+                                                        </label>
+                                                        <div class="input-wrapper">
+                                                            <select :id="`brandId_${index}`" v-model="producto.brandId"
+                                                                class="form-control">
+                                                                <option v-for="marca in marcas" :key="marca.id"
+                                                                    :value="marca.id">
+                                                                    {{ marca.brandName }}
+                                                                </option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group half">
+                                                        <label :for="`categoryId_${index}`">
+                                                            <i class="fas fa-folder label-icon"></i> Cambiar categoría:
+                                                        </label>
+                                                        <div class="input-wrapper">
+                                                            <select :id="`categoryId_${index}`"
+                                                                v-model="producto.categoryId" class="form-control">
+                                                                <option v-for="categoria in categorias"
+                                                                    :key="categoria.id" :value="categoria.id">
+                                                                    {{ categoria.categoryName }}
+                                                                </option>
+                                                            </select>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -215,7 +240,7 @@
                                                                                 marca</option>
                                                                             <option v-for="marca in marcas"
                                                                                 :key="marca.id" :value="marca.id">
-                                                                                {{ marca.name }}
+                                                                                {{ marca.brandName }}
                                                                             </option>
                                                                         </select>
                                                                     </div>
@@ -234,7 +259,7 @@
                                                                             <option v-for="categoria in categorias"
                                                                                 :key="categoria.id"
                                                                                 :value="categoria.id">
-                                                                                {{ categoria.name }}
+                                                                                {{ categoria.categoryName }}
                                                                             </option>
                                                                         </select>
                                                                     </div>
@@ -323,7 +348,7 @@
                                                                         v-model="producto.wholesaleSale" />
                                                                     <span class="checkbox-text">
                                                                         <i class="fas fa-truck label-icon"></i>
-                                                                        Disponible para venta al por mayor
+                                                                        Disponible para venta al por mayor, Marque esta Opcion si desea vender a precio de mayoreo este producto
                                                                     </span>
                                                                 </label>
                                                             </div>
@@ -438,7 +463,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- Columna derecha: Resumen y Órdenes registradas -->
             <div class="right-column">
 
@@ -487,12 +511,12 @@
                                             <div class="product-details">
                                                 <span class="product-quantity">{{ producto.quantity }} unidades</span>
                                                 <span class="product-price">{{ formatearMoneda(producto.purchasePrice)
-                                                    }} $</span>
+                                                }} $</span>
                                             </div>
                                             <div v-if="producto.calculatedTaxUnit" class="product-tax">
                                                 <span class="tax-label">IVA:</span>
                                                 <span class="tax-value">{{ formatearMoneda(producto.calculatedTaxUnit)
-                                                    }} $</span>
+                                                }} $</span>
                                             </div>
                                         </div>
                                     </div>
@@ -507,44 +531,6 @@
                     </div>
                 </div>
 
-                <!-- Resumen de la orden -->
-                <div class="section">
-                    <div class="section-header">
-                        <div class="header-left">
-                            <i class="fas fa-receipt section-icon"></i>
-                            <h3>Resumen de la Orden</h3>
-                        </div>
-                    </div>
-                    <div class="section-content">
-                        <div class="summary-content">
-                            <div class="summary-row">
-                                <span class="summary-label">Factura:</span>
-                                <span class="summary-value">{{ ordenActual.invoiceNumber || 'No especificado' }}</span>
-                            </div>
-                            <div class="summary-row">
-                                <span class="summary-label">Productos:</span>
-                                <span class="summary-value">{{ ordenActual.products.length }}</span>
-                            </div>
-                            <div class="summary-row">
-                                <span class="summary-label">Total unidades:</span>
-                                <span class="summary-value">{{ calcularTotalUnidades() }}</span>
-                            </div>
-                            <div class="summary-row">
-                                <span class="summary-label">Subtotal:</span>
-                                <span class="summary-value">{{ formatearMoneda(calcularSubtotalOrden()) }}</span>
-                            </div>
-                            <div class="summary-row">
-                                <span class="summary-label">IVA estimado:</span>
-                                <span class="summary-value">{{ formatearMoneda(calcularIVATotalOrden()) }}</span>
-                            </div>
-                            <div class="summary-row total-row">
-                                <span class="summary-label">Total:</span>
-                                <span class="summary-value total-value">{{ formatearMoneda(calcularTotalOrden())
-                                    }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Búsqueda de orden por número de factura -->
                 <div class="section">
@@ -596,7 +582,7 @@
                                             class="search-product-item">
                                             <div class="search-product-header">
                                                 <span class="product-name">{{ detalle.product.name }}</span>
-                                                <span class="product-code">{{ detalle.product.code }}</span>
+                                                <span class="product-code"> Códigode del Producto {{ detalle.product.code }}</span>
                                                 <div class="product-actions">
                                                     <button type="button" @click="editarDetalle(detalle)"
                                                         class="btn-edit" :disabled="editandoDetalle === detalle.id">
@@ -633,7 +619,7 @@
                                                     <span class="detail-label">Subtotal:</span>
                                                     <span class="detail-value">{{
                                                         formatearMoneda(detalle.calculatedTotalPriceWithouthTax)
-                                                        }}</span>
+                                                    }}</span>
                                                 </div>
                                                 <div class="detail-row">
                                                     <span class="detail-label">IVA total:</span>
@@ -672,9 +658,7 @@
                                 </div>
 
                                 <div class="search-result-actions">
-                                    <button type="button" @click="cargarOrdenEncontrada" class="btn btn-primary">
-                                        <i class="fas fa-edit"></i> Editar esta orden
-                                    </button>
+                                   
                                     <button type="button" @click="obtenerResumenFinanciero" class="btn btn-info">
                                         <i class="fas fa-chart-pie"></i> Ver resumen financiero
                                     </button>
@@ -727,7 +711,7 @@
                                             <div class="detail-row">
                                                 <span class="detail-label">Precio unitario con IVA:</span>
                                                 <span class="detail-value">{{ formatearMoneda(detalle.unitPriceWithVAT)
-                                                    }}</span>
+                                                }}</span>
                                             </div>
                                             <div class="detail-row">
                                                 <span class="detail-label">Precio unitario sin IVA:</span>
@@ -737,7 +721,7 @@
                                             <div class="detail-row">
                                                 <span class="detail-label">Total con IVA:</span>
                                                 <span class="detail-value">{{ formatearMoneda(detalle.totalPriceWithVAT)
-                                                    }}</span>
+                                                }}</span>
                                             </div>
                                             <div class="detail-row">
                                                 <span class="detail-label">Total sin IVA:</span>
@@ -758,7 +742,7 @@
                                 <div class="summary-row">
                                     <span class="summary-label">Total IVA:</span>
                                     <span class="summary-value">{{ formatearMoneda(resumenFinanciero.summary.totalVAT)
-                                        }}</span>
+                                    }}</span>
                                 </div>
                                 <div class="summary-row total-row">
                                     <span class="summary-label">Total con IVA:</span>
@@ -853,14 +837,14 @@
                                 <span class="tax-label">IVA total estimado:</span>
                                 <span class="tax-value">{{
                                     formatearMoneda(calcularIVAEstimado(detalleEnEdicion.purchasePriceUnit) *
-                                    detalleEnEdicion.quantity) }}</span>
+                                        detalleEnEdicion.quantity) }}</span>
                             </div>
                             <div class="tax-preview-row total-row">
                                 <span class="tax-label">Total estimado con IVA:</span>
                                 <span class="tax-value total-value">{{
                                     formatearMoneda((parseFloat(detalleEnEdicion.purchasePriceUnit) +
                                         calcularIVAEstimado(detalleEnEdicion.purchasePriceUnit)) *
-                                    detalleEnEdicion.quantity) }}</span>
+                                        detalleEnEdicion.quantity) }}</span>
                             </div>
                         </div>
                     </div>
@@ -882,7 +866,6 @@
 
 <script>
 import apiRequest from '@/Servicios/HttpService';
-import '@/components/stilos/detalles.css';
 import '@/components/stilos/order-details.css';
 
 export default {

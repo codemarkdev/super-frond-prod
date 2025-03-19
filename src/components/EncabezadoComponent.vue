@@ -76,7 +76,7 @@ export default {
         this.usuario = sesion.usuario;
         this.rol = sesion.rol;
         const roleConfig = rolesConfig[this.rol];
-        this.views = roleConfig.views; // Excluye hiddenAccess del navbar
+        this.views = roleConfig.views; 
     },
     methods: {
         salir() {
