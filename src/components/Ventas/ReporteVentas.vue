@@ -105,193 +105,7 @@
         </div>
       </div>
 
-      <!-- Cuentas por Cobrar -->
-      <div class="card dashboard-card mb-6">
-        <header class="card-header">
-          <p class="card-header-title">
-            <b-icon icon="cash" type="is-success"></b-icon>
-            Historial de Cuentas por Cobrar
-          </p>
-        </header>
-        <div class="card-content">
-          <!-- Filtros -->
-          <div class="field is-grouped mb-4">
-            <div class="control is-expanded">
-              <b-input
-                v-model="busquedaCliente"
-                placeholder="Buscar por nombre de cliente"
-                expanded
-              ></b-input>
-            </div>
-            <div class="control">
-              <b-select v-model="filtroEstado">
-                <option value="">Todos los estados</option>
-                <option value="Pagada">Pagada</option>
-                <option value="Pendiente">Pendiente</option>
-              </b-select>
-            </div>
-          </div>
-
-          <b-table
-            :data="cuentasAgrupadasPaginadas"
-            :loading="cargando.cuentas"
-            :striped="true"
-            :hoverable="true"
-            detailed
-            detail-key="id"
-            :show-detail-icon="true"
-          >
-            <b-table-column
-              field="customer.name"
-              label="Cliente"
-              v-slot="props"
-            >
-              {{ props.row.customer.name }}
-            </b-table-column>
-
-            <b-table-column
-              field="customer.phone"
-              label="Teléfono"
-              v-slot="props"
-            >
-              {{ props.row.customer.phone }}
-            </b-table-column>
-
-            <b-table-column
-              field="totalAmount"
-              label="Total"
-              numeric
-              v-slot="props"
-            >
-              ${{ formatNumber(props.row.totalAmount) }}
-            </b-table-column>
-
-            <b-table-column
-              field="totalPaid"
-              label="Pagado"
-              numeric
-              v-slot="props"
-            >
-              ${{ formatNumber(props.row.totalPaid) }}
-            </b-table-column>
-
-            <b-table-column
-              field="totalToPay"
-              label="Por Pagar"
-              numeric
-              v-slot="props"
-            >
-              ${{ formatNumber(props.row.totalToPay) }}
-            </b-table-column>
-
-            <b-table-column field="estado" label="Estado" v-slot="props">
-              <b-tag :type="obtenerColorEstado(props.row)">
-                {{ obtenerEstadoCuenta(props.row) }}
-              </b-tag>
-            </b-table-column>
-
-            <template #detail="props">
-              <div class="content">
-                <p><strong>Detalles de las cuentas:</strong></p>
-                <b-table
-                  :data="props.row.cuentas"
-                  :striped="true"
-                  :hoverable="true"
-                >
-                  <b-table-column field="id" label="ID Cuenta" v-slot="props">
-                    {{ props.row.id }}
-                  </b-table-column>
-                  <b-table-column
-                    field="total"
-                    label="Total"
-                    numeric
-                    v-slot="props"
-                  >
-                    ${{ formatNumber(props.row.total) }}
-                  </b-table-column>
-                  <b-table-column
-                    field="paid"
-                    label="Pagado"
-                    numeric
-                    v-slot="props"
-                  >
-                    ${{ formatNumber(props.row.paid) }}
-                  </b-table-column>
-                  <b-table-column
-                    field="toPay"
-                    label="Por Pagar"
-                    numeric
-                    v-slot="props"
-                  >
-                    ${{ formatNumber(props.row.toPay) }}
-                  </b-table-column>
-                  <b-table-column field="date" label="Fecha" v-slot="props">
-                    {{ formatDate(props.row.date) }}
-                  </b-table-column>
-                </b-table>
-              </div>
-            </template>
-
-            <template #empty>
-              <div class="has-text-centered">
-                No hay cuentas por cobrar registradas
-              </div>
-            </template>
-          </b-table>
-
-          <b-pagination
-            v-model="paginaActualCuentas"
-            :total="cuentasPaginacion.total"
-            :per-page="cuentasPorPagina"
-            :range-before="3"
-            :range-after="3"
-            order="is-centered"
-            aria-next-label="Página siguiente"
-            aria-previous-label="Página anterior"
-            aria-page-label="Página"
-            aria-current-label="Página actual"
-          >
-          </b-pagination>
-        </div>
-      </div>
-      <!-- Historial de Pagos -->
-      <div class="card dashboard-card mb-6">
-        <header class="card-header">
-          <p class="card-header-title">
-            <b-icon icon="cash-multiple" type="is-primary"></b-icon>
-            Historial de Pagos
-          </p>
-        </header>
-        <div class="card-content">
-          <b-table
-            :data="pagosPaginados"
-            :loading="cargando.pagos"
-            :striped="true"
-            :hoverable="true"
-          >
-            <b-table-column field="date" label="Fecha" v-slot="props">
-              {{ formatDate(props.row.date) }}
-            </b-table-column>
-            <b-table-column field="amount" label="Monto" numeric v-slot="props">
-              ${{ formatNumber(props.row.amount) }}
-            </b-table-column>
-          </b-table>
-
-          <b-pagination
-            v-model="paginaActualPagos"
-            :total="historialPagos.total"
-            :per-page="historialPagos.limit"
-            :range-before="3"
-            :range-after="3"
-            order="is-centered"
-            aria-next-label="Siguiente página"
-            aria-previous-label="Página anterior"
-            aria-page-label="Página"
-            aria-current-label="Página actual"
-          >
-          </b-pagination>
-        </div>
-      </div>
+ 
       <!-- Detalles de Productos Vendidos -->
       <div class="card dashboard-card mb-6">
         <header class="card-header">
@@ -439,18 +253,36 @@
           <div class="field is-grouped mb-4">
             <div class="control">
               <b-field label="Fecha de Inicio">
-                <b-datepicker
-                  v-model="filtroIVARango.startDate"
-                  placeholder="Seleccione fecha de inicio"
-                ></b-datepicker>
+                <div class="date-input-container" ref="ivaStartDateContainer">
+                  <input 
+                    type="text" 
+                    class="input" 
+                    placeholder="dd/mm/aaaa" 
+                    v-model="ivaFechaInicioInput"
+                    @click="toggleIvaStartCalendar"
+                    readonly
+                  >
+                  <span class="icon is-right">
+                    <i class="mdi mdi-calendar"></i>
+                  </span>
+                </div>
               </b-field>
             </div>
             <div class="control">
               <b-field label="Fecha de Fin">
-                <b-datepicker
-                  v-model="filtroIVARango.endDate"
-                  placeholder="Seleccione fecha de fin"
-                ></b-datepicker>
+                <div class="date-input-container" ref="ivaEndDateContainer">
+                  <input 
+                    type="text" 
+                    class="input" 
+                    placeholder="dd/mm/aaaa" 
+                    v-model="ivaFechaFinInput"
+                    @click="toggleIvaEndCalendar"
+                    readonly
+                  >
+                  <span class="icon is-right">
+                    <i class="mdi mdi-calendar"></i>
+                  </span>
+                </div>
               </b-field>
             </div>
             <div class="control align-self-flex-end">
@@ -480,106 +312,7 @@
           </div>
         </div>
       </div>
- <!-- Cotizaciones por Rango de Fechas -->
- <div class="card dashboard-card mb-6">
-        <header class="card-header">
-          <p class="card-header-title">
-            <b-icon icon="file-document" type="is-info"></b-icon>
-            Cotizaciones por Rango de Fechas
-          </p>
-        </header>
-        <div class="card-content">
-          <div class="field is-grouped mb-4">
-            <div class="control">
-              <b-field label="Fecha de Inicio">
-                <b-datepicker
-                  v-model="filtroCotizaciones.startDate"
-                  placeholder="Seleccione fecha de inicio"
-                >
-                </b-datepicker>
-              </b-field>
-            </div>
-            <div class="control">
-              <b-field label="Fecha de Fin">
-                <b-datepicker
-                  v-model="filtroCotizaciones.endDate"
-                  placeholder="Seleccione fecha de fin"
-                >
-                </b-datepicker>
-              </b-field>
-            </div>
-            <div class="control align-self-flex-end">
-              <b-button
-                type="is-primary"
-                @click="obtenerCotizaciones"
-                :loading="cargando.cotizaciones"
-              >
-                Consultar
-              </b-button>
-            </div>
-            <div class="control align-self-flex-end">
-              <b-button
-                type="is-light"
-                @click="
-                  filtroCotizaciones = { startDate: null, endDate: null };
-                  cotizaciones = [];
-                "
-                :disabled="!cotizaciones.length"
-              >
-                Limpiar
-              </b-button>
-            </div>
-          </div>
-
-          <div v-if="cotizaciones.length">
-            <b-table
-              :data="cotizaciones"
-              :loading="cargando.cotizaciones"
-              :striped="true"
-              :hoverable="true"
-            >
-              <b-table-column field="id" label="ID" v-slot="props">
-                {{ props.row.id }}
-              </b-table-column>
-              <b-table-column field="date" label="Fecha" v-slot="props">
-                {{ formatDate(props.row.date) }}
-              </b-table-column>
-              <b-table-column
-                field="total"
-                label="Total"
-                numeric
-                v-slot="props"
-              >
-                ${{ formatNumber(props.row.total) }}
-              </b-table-column>
-              <b-table-column
-                field="customer.name"
-                label="Cliente"
-                v-slot="props"
-              >
-                {{ props.row.customer.name }}
-              </b-table-column>
-              <b-table-column
-                field="customer.phone"
-                label="Teléfono Cliente"
-                v-slot="props"
-              >
-                {{ props.row.customer.phone }}
-              </b-table-column>
-              <b-table-column field="user.name" label="Usuario" v-slot="props">
-                {{ props.row.user.name }}
-              </b-table-column>
-              <b-table-column
-                field="user.phone"
-                label="Teléfono Usuario"
-                v-slot="props"
-              >
-                {{ props.row.user.phone }}
-              </b-table-column>
-            </b-table>
-          </div>
-        </div>
-      </div>
+      
       <!-- Productos más vendidos -->
       <div class="card dashboard-card">
         <header class="card-header">
@@ -781,12 +514,167 @@
         </div>
       </div>
     </div>
+    
+    <!-- Calendarios flotantes para IVA -->
+    <div v-if="showIvaStartCalendar" class="floating-calendar" :style="ivaStartCalendarStyle" ref="ivaStartCalendarRef">
+      <div class="calendar-header">
+        <div class="month-year">
+          {{ nombreMesIvaStart }} de {{ ivaStartCalendarYear }}
+          <div class="nav-buttons">
+            <button @click.stop="prevMonth('ivaStart')">
+              <span class="icon">←</span>
+            </button>
+            <button @click.stop="nextMonth('ivaStart')">
+              <span class="icon">→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="weekdays">
+        <div v-for="day in diasSemana" :key="day">{{ day }}</div>
+      </div>
+      <div class="days">
+        <div 
+          v-for="day in ivaStartCalendarDays" 
+          :key="day.id"
+          :class="[
+            'day', 
+            { 'other-month': day.otherMonth },
+            { 'selected': isSelectedIvaStartDate(day.date) },
+            { 'today': isToday(day.date) }
+          ]"
+          @click.stop="selectIvaStartDate(day.date)"
+        >
+          {{ day.day }}
+        </div>
+      </div>
+      <div class="calendar-footer">
+        <button class="btn-clear" @click.stop="clearIvaStartDate">Borrar</button>
+        <button class="btn-today" @click.stop="setTodayAsIvaStart">Hoy</button>
+      </div>
+    </div>
+
+    <div v-if="showIvaEndCalendar" class="floating-calendar" :style="ivaEndCalendarStyle" ref="ivaEndCalendarRef">
+      <div class="calendar-header">
+        <div class="month-year">
+          {{ nombreMesIvaEnd }} de {{ ivaEndCalendarYear }}
+          <div class="nav-buttons">
+            <button @click.stop="prevMonth('ivaEnd')">
+              <span class="icon">←</span>
+            </button>
+            <button @click.stop="nextMonth('ivaEnd')">
+              <span class="icon">→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="weekdays">
+        <div v-for="day in diasSemana" :key="day">{{ day }}</div>
+      </div>
+      <div class="days">
+        <div 
+          v-for="day in ivaEndCalendarDays" 
+          :key="day.id"
+          :class="[
+            'day', 
+            { 'other-month': day.otherMonth },
+            { 'selected': isSelectedIvaEndDate(day.date) },
+            { 'today': isToday(day.date) }
+          ]"
+          @click.stop="selectIvaEndDate(day.date)"
+        >
+          {{ day.day }}
+        </div>
+      </div>
+      <div class="calendar-footer">
+        <button class="btn-clear" @click.stop="clearIvaEndDate">Borrar</button>
+        <button class="btn-today" @click.stop="setTodayAsIvaEnd">Hoy</button>
+      </div>
+    </div>
+    
+    <!-- Calendarios flotantes para Cotizaciones -->
+    <div v-if="showCotizacionesStartCalendar" class="floating-calendar" :style="cotizacionesStartCalendarStyle" ref="cotizacionesStartCalendarRef">
+      <div class="calendar-header">
+        <div class="month-year">
+          {{ nombreMesCotizacionesStart }} de {{ cotizacionesStartCalendarYear }}
+          <div class="nav-buttons">
+            <button @click.stop="prevMonth('cotizacionesStart')">
+              <span class="icon">←</span>
+            </button>
+            <button @click.stop="nextMonth('cotizacionesStart')">
+              <span class="icon">→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="weekdays">
+        <div v-for="day in diasSemana" :key="day">{{ day }}</div>
+      </div>
+      <div class="days">
+        <div 
+          v-for="day in cotizacionesStartCalendarDays" 
+          :key="day.id"
+          :class="[
+            'day', 
+            { 'other-month': day.otherMonth },
+            { 'selected': isSelectedCotizacionesStartDate(day.date) },
+            { 'today': isToday(day.date) }
+          ]"
+          @click.stop="selectCotizacionesStartDate(day.date)"
+        >
+          {{ day.day }}
+        </div>
+      </div>
+      <div class="calendar-footer">
+        <button class="btn-clear" @click.stop="clearCotizacionesStartDate">Borrar</button>
+        <button class="btn-today" @click.stop="setTodayAsCotizacionesStart">Hoy</button>
+      </div>
+    </div>
+
+    <div v-if="showCotizacionesEndCalendar" class="floating-calendar" :style="cotizacionesEndCalendarStyle" ref="cotizacionesEndCalendarRef">
+      <div class="calendar-header">
+        <div class="month-year">
+          {{ nombreMesCotizacionesEnd }} de {{ cotizacionesEndCalendarYear }}
+          <div class="nav-buttons">
+            <button @click.stop="prevMonth('cotizacionesEnd')">
+              <span class="icon">←</span>
+            </button>
+            <button @click.stop="nextMonth('cotizacionesEnd')">
+              <span class="icon">→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="weekdays">
+        <div v-for="day in diasSemana" :key="day">{{ day }}</div>
+      </div>
+      <div class="days">
+        <div 
+          v-for="day in cotizacionesEndCalendarDays" 
+          :key="day.id"
+          :class="[
+            'day', 
+            { 'other-month': day.otherMonth },
+            { 'selected': isSelectedCotizacionesEndDate(day.date) },
+            { 'today': isToday(day.date) }
+          ]"
+          @click.stop="selectCotizacionesEndDate(day.date)"
+        >
+          {{ day.day }}
+        </div>
+      </div>
+      <div class="calendar-footer">
+        <button class="btn-clear" @click.stop="clearCotizacionesEndDate">Borrar</button>
+        <button class="btn-today" @click.stop="setTodayAsCotizacionesEnd">Hoy</button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import apiRequest from "@/Servicios/HttpService";
 import HistorialVentas from "../Ventas/HistorialVentas";
+import '@/components/stilos/detalles.css';
 
 export default {
   name: "InicioComponent",
@@ -796,6 +684,10 @@ export default {
   },
 
   data() {
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth();
+    
     return {
       historialPagos: {
         data: [],
@@ -901,6 +793,60 @@ export default {
       busquedaCliente: "",
       filtroEstado: "",
       cuentasPorPagina: 10,
+      
+      // Nuevas variables para los calendarios personalizados
+      // Calendario IVA
+      ivaFechaInicioInput: "",
+      ivaFechaFinInput: "",
+      showIvaStartCalendar: false,
+      showIvaEndCalendar: false,
+      ivaStartCalendarMonth: currentMonth,
+      ivaStartCalendarYear: currentYear,
+      ivaEndCalendarMonth: currentMonth,
+      ivaEndCalendarYear: currentYear,
+      ivaStartCalendarStyle: {
+        top: '0px',
+        left: '0px'
+      },
+      ivaEndCalendarStyle: {
+        top: '0px',
+        left: '0px'
+      },
+      
+      // Calendario Cotizaciones
+      cotizacionesFechaInicioInput: "",
+      cotizacionesFechaFinInput: "",
+      showCotizacionesStartCalendar: false,
+      showCotizacionesEndCalendar: false,
+      cotizacionesStartCalendarMonth: currentMonth,
+      cotizacionesStartCalendarYear: currentYear,
+      cotizacionesEndCalendarMonth: currentMonth,
+      cotizacionesEndCalendarYear: currentYear,
+      cotizacionesStartCalendarStyle: {
+        top: '0px',
+        left: '0px'
+      },
+      cotizacionesEndCalendarStyle: {
+        top: '0px',
+        left: '0px'
+      },
+      
+      // Variables comunes para los calendarios
+      diasSemana: ["L", "M", "X", "J", "V", "S", "D"],
+      meses: [
+        "enero",
+        "febrero",
+        "marzo",
+        "abril",
+        "mayo",
+        "junio",
+        "julio",
+        "agosto",
+        "septiembre",
+        "octubre",
+        "noviembre",
+        "diciembre",
+      ],
     };
   },
 
@@ -969,10 +915,47 @@ export default {
       const fin = inicio + this.cuentasPorPagina;
       return this.cuentasAgrupadasFiltradas.slice(inicio, fin);
     },
+    
+    // Computed properties para los calendarios de IVA
+    nombreMesIvaStart() {
+      return this.meses[this.ivaStartCalendarMonth];
+    },
+    nombreMesIvaEnd() {
+      return this.meses[this.ivaEndCalendarMonth];
+    },
+    ivaStartCalendarDays() {
+      return this.getCalendarDays(this.ivaStartCalendarYear, this.ivaStartCalendarMonth);
+    },
+    ivaEndCalendarDays() {
+      return this.getCalendarDays(this.ivaEndCalendarYear, this.ivaEndCalendarMonth);
+    },
+    
+    // Computed properties para los calendarios de Cotizaciones
+    nombreMesCotizacionesStart() {
+      return this.meses[this.cotizacionesStartCalendarMonth];
+    },
+    nombreMesCotizacionesEnd() {
+      return this.meses[this.cotizacionesEndCalendarMonth];
+    },
+    cotizacionesStartCalendarDays() {
+      return this.getCalendarDays(this.cotizacionesStartCalendarYear, this.cotizacionesStartCalendarMonth);
+    },
+    cotizacionesEndCalendarDays() {
+      return this.getCalendarDays(this.cotizacionesEndCalendarYear, this.cotizacionesEndCalendarMonth);
+    },
   },
 
   mounted() {
     this.cargarTodosDatos();
+    document.addEventListener('click', this.handleClickOutside);
+    window.addEventListener('resize', this.updateCalendarPositions);
+    window.addEventListener('scroll', this.updateCalendarPositions);
+  },
+
+  beforeDestroy() {
+    document.removeEventListener('click', this.handleClickOutside);
+    window.removeEventListener('resize', this.updateCalendarPositions);
+    window.removeEventListener('scroll', this.updateCalendarPositions);
   },
 
   methods: {
@@ -1233,7 +1216,7 @@ export default {
 
     async obtenerIVARango() {
       if (!this.filtroIVARango.startDate || !this.filtroIVARango.endDate) {
-        this.mostrarError("Por favor, seleccione ambas fechas");
+       
         return;
       }
 
@@ -1307,38 +1290,7 @@ export default {
       }
     },
 
-    async obtenerCotizaciones() {
-      if (
-        !this.filtroCotizaciones.startDate ||
-        !this.filtroCotizaciones.endDate
-      ) {
-        this.mostrarError("Por favor, seleccione ambas fechas");
-        return;
-      }
-
-      this.cargando.cotizaciones = true;
-      try {
-        const formatDate = (date) => {
-          return date.toISOString().split("T")[0];
-        };
-
-        const response = await apiRequest({
-          method: "GET",
-          path: `quotations?startDate=${formatDate(
-            this.filtroCotizaciones.startDate
-          )}&endDate=${formatDate(this.filtroCotizaciones.endDate)}`,
-        });
-
-        if (response?.data) {
-          this.cotizaciones = Array.isArray(response.data) ? response.data : [];
-        }
-      } catch (error) {
-        console.error("Error al obtener cotizaciones:", error);
-        this.mostrarError("Error al cargar las cotizaciones");
-      } finally {
-        this.cargando.cotizaciones = false;
-      }
-    },
+    
 
     cambiarPaginaProductos(pagina) {
       this.productosPaginacion.currentPage = pagina;
@@ -1368,6 +1320,13 @@ export default {
       this.filtroVentasUsuario.id = null;
       this.filtroVentasUsuario.year = new Date().getFullYear();
     },
+    
+    limpiarCotizaciones() {
+      this.filtroCotizaciones = { startDate: null, endDate: null };
+      this.cotizacionesFechaInicioInput = "";
+      this.cotizacionesFechaFinInput = "";
+      this.cotizaciones = [];
+    },
 
     mostrarError(mensaje) {
       this.$buefy.toast.open({
@@ -1376,6 +1335,7 @@ export default {
         duration: 5000,
       });
     },
+    
     obtenerEstadoCuenta(cuenta) {
       if (parseFloat(cuenta.totalToPay) === 0) {
         return "Pagada";
@@ -1383,6 +1343,7 @@ export default {
         return "Pendiente";
       }
     },
+    
     obtenerColorEstado(cuenta) {
       const estado = this.obtenerEstadoCuenta(cuenta);
       switch (estado) {
@@ -1392,6 +1353,470 @@ export default {
           return "is-danger";
         default:
           return "is-info";
+      }
+    },
+    
+    // Métodos para el calendario personalizado
+    getCalendarDays(year, month) {
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const daysInMonth = lastDay.getDate();
+      
+      // Obtener el día de la semana del primer día (0 = domingo, 1 = lunes, ..., 6 = sábado)
+      let firstDayOfWeek = firstDay.getDay();
+      // Ajustar para que lunes sea 0
+      firstDayOfWeek = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+      
+      const days = [];
+      
+      // Días del mes anterior
+      const prevMonth = month === 0 ? 11 : month - 1;
+      const prevMonthYear = month === 0 ? year - 1 : year;
+      const daysInPrevMonth = new Date(prevMonthYear, prevMonth + 1, 0).getDate();
+      
+      for (let i = 0; i < firstDayOfWeek; i++) {
+        const day = daysInPrevMonth - firstDayOfWeek + i + 1;
+        days.push({
+          day,
+          date: new Date(prevMonthYear, prevMonth, day),
+          otherMonth: true,
+          id: `prev-${day}`
+        });
+      }
+      
+      // Días del mes actual
+      for (let i = 1; i <= daysInMonth; i++) {
+        days.push({
+          day: i,
+          date: new Date(year, month, i),
+          otherMonth: false,
+          id: `current-${i}`
+        });
+      }
+      
+      // Días del mes siguiente
+      const nextMonth = month === 11 ? 0 : month + 1;
+      const nextMonthYear = month === 11 ? year + 1 : year;
+      const remainingDays = 42 - days.length; // 6 filas x 7 días
+      
+      for (let i = 1; i <= remainingDays; i++) {
+        days.push({
+          day: i,
+          date: new Date(nextMonthYear, nextMonth, i),
+          otherMonth: true,
+          id: `next-${i}`
+        });
+      }
+      
+      return days;
+    },
+    
+    isToday(date) {
+      const today = new Date();
+      return date.getDate() === today.getDate() &&
+             date.getMonth() === today.getMonth() &&
+             date.getFullYear() === today.getFullYear();
+    },
+    
+    formatDateForInput(date) {
+      if (!date) return '';
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    },
+    
+    // Métodos para el calendario de IVA
+    toggleIvaStartCalendar() {
+      if (this.showIvaEndCalendar) {
+        this.showIvaEndCalendar = false;
+      }
+      if (this.showCotizacionesStartCalendar) {
+        this.showCotizacionesStartCalendar = false;
+      }
+      if (this.showCotizacionesEndCalendar) {
+        this.showCotizacionesEndCalendar = false;
+      }
+      this.showIvaStartCalendar = !this.showIvaStartCalendar;
+      if (this.showIvaStartCalendar) {
+        this.$nextTick(() => {
+          this.positionIvaStartCalendar();
+        });
+      }
+    },
+    
+    toggleIvaEndCalendar() {
+      if (this.showIvaStartCalendar) {
+        this.showIvaStartCalendar = false;
+      }
+      if (this.showCotizacionesStartCalendar) {
+        this.showCotizacionesStartCalendar = false;
+      }
+      if (this.showCotizacionesEndCalendar) {
+        this.showCotizacionesEndCalendar = false;
+      }
+      this.showIvaEndCalendar = !this.showIvaEndCalendar;
+      if (this.showIvaEndCalendar) {
+        this.$nextTick(() => {
+          this.positionIvaEndCalendar();
+        });
+      }
+    },
+    
+    positionIvaStartCalendar() {
+      const inputEl = this.$refs.ivaStartDateContainer;
+      if (inputEl && this.$refs.ivaStartCalendarRef) {
+        const rect = inputEl.getBoundingClientRect();
+        const calendarHeight = this.$refs.ivaStartCalendarRef.offsetHeight;
+        const windowHeight = window.innerHeight;
+        
+        // Verificar si hay suficiente espacio debajo
+        const spaceBelow = windowHeight - rect.bottom;
+        const showBelow = spaceBelow >= calendarHeight;
+        
+        this.ivaStartCalendarStyle = {
+          top: showBelow ? `${rect.bottom + window.scrollY}px` : `${rect.top + window.scrollY - calendarHeight}px`,
+          left: `${rect.left + window.scrollX}px`,
+          zIndex: '1000'
+        };
+      }
+    },
+    
+    positionIvaEndCalendar() {
+      const inputEl = this.$refs.ivaEndDateContainer;
+      if (inputEl && this.$refs.ivaEndCalendarRef) {
+        const rect = inputEl.getBoundingClientRect();
+        const calendarHeight = this.$refs.ivaEndCalendarRef.offsetHeight;
+        const windowHeight = window.innerHeight;
+        
+        // Verificar si hay suficiente espacio debajo
+        const spaceBelow = windowHeight - rect.bottom;
+        const showBelow = spaceBelow >= calendarHeight;
+        
+        this.ivaEndCalendarStyle = {
+          top: showBelow ? `${rect.bottom + window.scrollY}px` : `${rect.top + window.scrollY - calendarHeight}px`,
+          left: `${rect.left + window.scrollX}px`,
+          zIndex: '1000'
+        };
+      }
+    },
+    
+    isSelectedIvaStartDate(date) {
+      if (!this.filtroIVARango.startDate) return false;
+      
+      return date.getDate() === this.filtroIVARango.startDate.getDate() &&
+             date.getMonth() === this.filtroIVARango.startDate.getMonth() &&
+             date.getFullYear() === this.filtroIVARango.startDate.getFullYear();
+    },
+    
+    isSelectedIvaEndDate(date) {
+      if (!this.filtroIVARango.endDate) return false;
+      
+      return date.getDate() === this.filtroIVARango.endDate.getDate() &&
+             date.getMonth() === this.filtroIVARango.endDate.getMonth() &&
+             date.getFullYear() === this.filtroIVARango.endDate.getFullYear();
+    },
+    
+    selectIvaStartDate(date) {
+      this.filtroIVARango.startDate = new Date(date);
+      this.ivaFechaInicioInput = this.formatDateForInput(date);
+      this.showIvaStartCalendar = false;
+    },
+    
+    selectIvaEndDate(date) {
+      this.filtroIVARango.endDate = new Date(date);
+      this.ivaFechaFinInput = this.formatDateForInput(date);
+      this.showIvaEndCalendar = false;
+    },
+    
+    clearIvaStartDate() {
+      this.filtroIVARango.startDate = null;
+      this.ivaFechaInicioInput = "";
+      this.showIvaStartCalendar = false;
+    },
+    
+    clearIvaEndDate() {
+      this.filtroIVARango.endDate = null;
+      this.ivaFechaFinInput = "";
+      this.showIvaEndCalendar = false;
+    },
+    
+    setTodayAsIvaStart() {
+      const today = new Date();
+      this.filtroIVARango.startDate = today;
+      this.ivaFechaInicioInput = this.formatDateForInput(today);
+      this.ivaStartCalendarMonth = today.getMonth();
+      this.ivaStartCalendarYear = today.getFullYear();
+      this.showIvaStartCalendar = false;
+    },
+    
+    setTodayAsIvaEnd() {
+      const today = new Date();
+      this.filtroIVARango.endDate = today;
+      this.ivaFechaFinInput = this.formatDateForInput(today);
+      this.ivaEndCalendarMonth = today.getMonth();
+      this.ivaEndCalendarYear = today.getFullYear();
+      this.showIvaEndCalendar = false;
+    },
+    
+    // Métodos para el calendario de Cotizaciones
+    toggleCotizacionesStartCalendar() {
+      if (this.showCotizacionesEndCalendar) {
+        this.showCotizacionesEndCalendar = false;
+      }
+      if (this.showIvaStartCalendar) {
+        this.showIvaStartCalendar = false;
+      }
+      if (this.showIvaEndCalendar) {
+        this.showIvaEndCalendar = false;
+      }
+      this.showCotizacionesStartCalendar = !this.showCotizacionesStartCalendar;
+      if (this.showCotizacionesStartCalendar) {
+        this.$nextTick(() => {
+          this.positionCotizacionesStartCalendar();
+        });
+      }
+    },
+    
+    toggleCotizacionesEndCalendar() {
+      if (this.showCotizacionesStartCalendar) {
+        this.showCotizacionesStartCalendar = false;
+      }
+      if (this.showIvaStartCalendar) {
+        this.showIvaStartCalendar = false;
+      }
+      if (this.showIvaEndCalendar) {
+        this.showIvaEndCalendar = false;
+      }
+      this.showCotizacionesEndCalendar = !this.showCotizacionesEndCalendar;
+      if (this.showCotizacionesEndCalendar) {
+        this.$nextTick(() => {
+          this.positionCotizacionesEndCalendar();
+        });
+      }
+    },
+    
+    positionCotizacionesStartCalendar() {
+      const inputEl = this.$refs.cotizacionesStartDateContainer;
+      if (inputEl && this.$refs.cotizacionesStartCalendarRef) {
+        const rect = inputEl.getBoundingClientRect();
+        const calendarHeight = this.$refs.cotizacionesStartCalendarRef.offsetHeight;
+        const windowHeight = window.innerHeight;
+        
+        // Verificar si hay suficiente espacio debajo
+        const spaceBelow = windowHeight - rect.bottom;
+        const showBelow = spaceBelow >= calendarHeight;
+        
+        this.cotizacionesStartCalendarStyle = {
+          top: showBelow ? `${rect.bottom + window.scrollY}px` : `${rect.top + window.scrollY - calendarHeight}px`,
+          left: `${rect.left + window.scrollX}px`,
+          zIndex: '1000'
+        };
+      }
+    },
+    
+    positionCotizacionesEndCalendar() {
+      const inputEl = this.$refs.cotizacionesEndDateContainer;
+      if (inputEl && this.$refs.cotizacionesEndCalendarRef) {
+        const rect = inputEl.getBoundingClientRect();
+        const calendarHeight = this.$refs.cotizacionesEndCalendarRef.offsetHeight;
+        const windowHeight = window.innerHeight;
+        
+        // Verificar si hay suficiente espacio debajo
+        const spaceBelow = windowHeight - rect.bottom;
+        const showBelow = spaceBelow >= calendarHeight;
+        
+        this.cotizacionesEndCalendarStyle = {
+          top: showBelow ? `${rect.bottom + window.scrollY}px` : `${rect.top + window.scrollY - calendarHeight}px`,
+          left: `${rect.left + window.scrollX}px`,
+          zIndex: '1000'
+        };
+      }
+    },
+    
+    isSelectedCotizacionesStartDate(date) {
+      if (!this.filtroCotizaciones.startDate) return false;
+      
+      return date.getDate() === this.filtroCotizaciones.startDate.getDate() &&
+             date.getMonth() === this.filtroCotizaciones.startDate.getMonth() &&
+             date.getFullYear() === this.filtroCotizaciones.startDate.getFullYear();
+    },
+    
+    isSelectedCotizacionesEndDate(date) {
+      if (!this.filtroCotizaciones.endDate) return false;
+      
+      return date.getDate() === this.filtroCotizaciones.endDate.getDate() &&
+             date.getMonth() === this.filtroCotizaciones.endDate.getMonth() &&
+             date.getFullYear() === this.filtroCotizaciones.endDate.getFullYear();
+    },
+    
+    selectCotizacionesStartDate(date) {
+      this.filtroCotizaciones.startDate = new Date(date);
+      this.cotizacionesFechaInicioInput = this.formatDateForInput(date);
+      this.showCotizacionesStartCalendar = false;
+    },
+    
+    selectCotizacionesEndDate(date) {
+      this.filtroCotizaciones.endDate = new Date(date);
+      this.cotizacionesFechaFinInput = this.formatDateForInput(date);
+      this.showCotizacionesEndCalendar = false;
+    },
+    
+    clearCotizacionesStartDate() {
+      this.filtroCotizaciones.startDate = null;
+      this.cotizacionesFechaInicioInput = "";
+      this.showCotizacionesStartCalendar = false;
+    },
+    
+    clearCotizacionesEndDate() {
+      this.filtroCotizaciones.endDate = null;
+      this.cotizacionesFechaFinInput = "";
+      this.showCotizacionesEndCalendar = false;
+    },
+    
+    setTodayAsCotizacionesStart() {
+      const today = new Date();
+      this.filtroCotizaciones.startDate = today;
+      this.cotizacionesFechaInicioInput = this.formatDateForInput(today);
+      this.cotizacionesStartCalendarMonth = today.getMonth();
+      this.cotizacionesStartCalendarYear = today.getFullYear();
+      this.showCotizacionesStartCalendar = false;
+    },
+    
+    setTodayAsCotizacionesEnd() {
+      const today = new Date();
+      this.filtroCotizaciones.endDate = today;
+      this.cotizacionesFechaFinInput = this.formatDateForInput(today);
+      this.cotizacionesEndCalendarMonth = today.getMonth();
+      this.cotizacionesEndCalendarYear = today.getFullYear();
+      this.showCotizacionesEndCalendar = false;
+    },
+    
+    // Métodos comunes para todos los calendarios
+    prevMonth(type) {
+      switch(type) {
+        case 'ivaStart':
+          if (this.ivaStartCalendarMonth === 0) {
+            this.ivaStartCalendarMonth = 11;
+            this.ivaStartCalendarYear--;
+          } else {
+            this.ivaStartCalendarMonth--;
+          }
+          break;
+        case 'ivaEnd':
+          if (this.ivaEndCalendarMonth === 0) {
+            this.ivaEndCalendarMonth = 11;
+            this.ivaEndCalendarYear--;
+          } else {
+            this.ivaEndCalendarMonth--;
+          }
+          break;
+        case 'cotizacionesStart':
+          if (this.cotizacionesStartCalendarMonth === 0) {
+            this.cotizacionesStartCalendarMonth = 11;
+            this.cotizacionesStartCalendarYear--;
+          } else {
+            this.cotizacionesStartCalendarMonth--;
+          }
+          break;
+        case 'cotizacionesEnd':
+          if (this.cotizacionesEndCalendarMonth === 0) {
+            this.cotizacionesEndCalendarMonth = 11;
+            this.cotizacionesEndCalendarYear--;
+          } else {
+            this.cotizacionesEndCalendarMonth--;
+          }
+          break;
+      }
+    },
+    
+    nextMonth(type) {
+      switch(type) {
+        case 'ivaStart':
+          if (this.ivaStartCalendarMonth === 11) {
+            this.ivaStartCalendarMonth = 0;
+            this.ivaStartCalendarYear++;
+          } else {
+            this.ivaStartCalendarMonth++;
+          }
+          break;
+        case 'ivaEnd':
+          if (this.ivaEndCalendarMonth === 11) {
+            this.ivaEndCalendarMonth = 0;
+            this.ivaEndCalendarYear++;
+          } else {
+            this.ivaEndCalendarMonth++;
+          }
+          break;
+        case 'cotizacionesStart':
+          if (this.cotizacionesStartCalendarMonth === 11) {
+            this.cotizacionesStartCalendarMonth = 0;
+            this.cotizacionesStartCalendarYear++;
+          } else {
+            this.cotizacionesStartCalendarMonth++;
+          }
+          break;
+        case 'cotizacionesEnd':
+          if (this.cotizacionesEndCalendarMonth === 11) {
+            this.cotizacionesEndCalendarMonth = 0;
+            this.cotizacionesEndCalendarYear++;
+          } else {
+            this.cotizacionesEndCalendarMonth++;
+          }
+          break;
+      }
+    },
+    
+    updateCalendarPositions() {
+      if (this.showIvaStartCalendar) {
+        this.positionIvaStartCalendar();
+      }
+      if (this.showIvaEndCalendar) {
+        this.positionIvaEndCalendar();
+      }
+      if (this.showCotizacionesStartCalendar) {
+        this.positionCotizacionesStartCalendar();
+      }
+      if (this.showCotizacionesEndCalendar) {
+        this.positionCotizacionesEndCalendar();
+      }
+    },
+    
+    handleClickOutside(event) {
+      // Cerrar calendario IVA inicio si se hace clic fuera
+      if (this.showIvaStartCalendar && 
+          this.$refs.ivaStartCalendarRef && 
+          !this.$refs.ivaStartCalendarRef.contains(event.target) &&
+          this.$refs.ivaStartDateContainer && 
+          !this.$refs.ivaStartDateContainer.contains(event.target)) {
+        this.showIvaStartCalendar = false;
+      }
+      
+      // Cerrar calendario IVA fin si se hace clic fuera
+      if (this.showIvaEndCalendar && 
+          this.$refs.ivaEndCalendarRef && 
+          !this.$refs.ivaEndCalendarRef.contains(event.target) &&
+          this.$refs.ivaEndDateContainer && 
+          !this.$refs.ivaEndDateContainer.contains(event.target)) {
+        this.showIvaEndCalendar = false;
+      }
+      
+      // Cerrar calendario Cotizaciones inicio si se hace clic fuera
+      if (this.showCotizacionesStartCalendar && 
+          this.$refs.cotizacionesStartCalendarRef && 
+          !this.$refs.cotizacionesStartCalendarRef.contains(event.target) &&
+          this.$refs.cotizacionesStartDateContainer && 
+          !this.$refs.cotizacionesStartDateContainer.contains(event.target)) {
+        this.showCotizacionesStartCalendar = false;
+      }
+      
+      // Cerrar calendario Cotizaciones fin si se hace clic fuera
+      if (this.showCotizacionesEndCalendar && 
+          this.$refs.cotizacionesEndCalendarRef && 
+          !this.$refs.cotizacionesEndCalendarRef.contains(event.target) &&
+          this.$refs.cotizacionesEndDateContainer && 
+          !this.$refs.cotizacionesEndDateContainer.contains(event.target)) {
+        this.showCotizacionesEndCalendar = false;
       }
     },
   },
@@ -1476,6 +1901,129 @@ export default {
   margin-bottom: 1.5rem;
 }
 
+/* Estilos para el contenedor de entrada de fecha */
+.date-input-container {
+  position: relative;
+  width: 100%;
+}
+
+.date-input-container .icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* Estilos para el calendario flotante */
+.floating-calendar {
+  position: absolute;
+  width: 300px;
+  background-color: white;
+  border: 1px solid #dbdbdb;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  z-index: 1000;
+}
+
+.calendar-header {
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.month-year {
+  font-weight: bold;
+  position: relative;
+  font-size: 1.1rem;
+  text-transform: capitalize;
+}
+
+.nav-buttons {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: flex;
+  gap: 10px;
+}
+
+.nav-buttons button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 5px;
+  font-size: 1.2rem;
+  color: #3273dc;
+}
+
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 5px;
+}
+
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 35px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.day:hover {
+  background-color: #f5f5f5;
+}
+
+.day.other-month {
+  color: #b5b5b5;
+}
+
+.day.selected {
+  background-color: #3273dc;
+  color: white;
+}
+
+.day.today {
+  border: 1px solid #3273dc;
+}
+
+.calendar-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.btn-clear, .btn-today {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #3273dc;
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+
+.btn-clear:hover, .btn-today:hover {
+  background-color: #f0f0f0;
+}
+
+.btn-today {
+  font-weight: bold;
+}
+
 @media screen and (max-width: 768px) {
   .dashboard {
     padding: 1rem;
@@ -1483,6 +2031,12 @@ export default {
 
   .column {
     padding: 0.5rem;
+  }
+  
+  .floating-calendar {
+    width: 280px;
+    left: 50% !important;
+    transform: translateX(-50%);
   }
 }
 </style>
