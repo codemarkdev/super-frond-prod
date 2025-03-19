@@ -25,12 +25,13 @@
                                 Asegúrese de contar correctamente el efectivo antes de cerrar la caja.
                             </p>
                         </div>
-                        <confir-modal :cashInHand="cashInHand" :cargando="cargando"
-                            :showConfirmModal.sync="showConfirmModal" @confirmar-cierre="confirmarCierreCaja" />
-                        <cierre-info v-if="cierreInfo" :cierreInfo="cierreInfo" />
+                        
                     </div>
                 </div>
             </div>
+            <confir-modal :cashInHand="cashInHand" :cargando="cargando"
+                            :showConfirmModal.sync="showConfirmModal" @confirmar-cierre="confirmarCierreCaja" />
+                        <cierre-info v-if="cierreInfo" :cierreInfo="cierreInfo" />
     </section>
 </template>
 
@@ -78,7 +79,6 @@ export default {
         this.dataUser();
         this.formatDateToYYYYMMDD();
         this.obtenerTotalVentasHoy();
-        this.obtenerTotalCuentasPorPagar();
         this.validCashRegister();
         setInterval(this.actualizarFecha, 60000);
     },
@@ -123,7 +123,7 @@ export default {
             console.log(data)
 
             if (status == 200) {
-                data.length > 0 ? this.cajaAbierta = true : this.cajaAbierta = false
+                data.length > 0 && data?.[0]?.state == 'open' ? this.cajaAbierta = true : this.cajaAbierta = false
                 const hasClosedState = data.some(item => item.state === 'closed');
                 hasClosedState ? this.disableBtn = true : this.disableBtn = false
 
@@ -193,7 +193,8 @@ export default {
                     method: 'POST',
                     path: `cash-register/open/${userId}`,
                     data: {
-                        initialCash: this.cashInHand
+                        initialCash: this.cashInHand,
+                        state: "open"
                     }
                 });
 
@@ -237,7 +238,9 @@ export default {
                     method: 'POST',
                     path: `cash-register/close/${userId}`,
                     data: {
-                        cashInHand: Number(this.cashInHand)
+                        cashInHand: Number(this.cashInHand), 
+                        state: "closed",
+                        totalPayments: 0
                     }
                 })
 
@@ -248,6 +251,7 @@ export default {
                         type: 'is-success',
                         duration: 5000
                     })
+                    this.validCashRegister()
                     this.cashInHand = null
                     this.showConfirmModal = false
                     // this.cajaAbierta = false
@@ -288,24 +292,7 @@ export default {
             }
         },
 
-        async obtenerTotalCuentasPorPagar() {
-            try {
-                const { data } = await apiRequest({
-                    method: 'GET',
-                    path: 'sales/pending-income'
-                });
-                this.totalCuentasPorPagar = data ?? 0
-
-            } catch (error) {
-                console.error('Error al obtener el total de cuentas por pagar:', error);
-                if (error.response?.status === 404) {
-                    console.warn('El endpoint de cuentas por pagar no está disponible');
-                } else {
-                    this.mostrarError('No se pudo cargar el total de cuentas por pagar');
-                }
-                this.totalCuentasPorPagar = 0;
-            }
-        },
+    
     }
 }
 </script>

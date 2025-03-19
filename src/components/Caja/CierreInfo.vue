@@ -17,9 +17,9 @@
             <div class="column is-half">
               <p><strong>Total Ventas:</strong> {{ formatNumber(cierreInfo.totalSales) }}</p>
             </div>
-            <div class="column is-half">
+            <!-- <div class="column is-half">
               <p><strong>Total Pagos:</strong> {{ formatNumber(cierreInfo.totalPayments) }}</p>
-            </div>
+            </div> -->
             <div class="column is-half">
               <p><strong>Efectivo Esperado:</strong> {{ formatNumber(cierreInfo.expectedCash) }}</p>
             </div>
