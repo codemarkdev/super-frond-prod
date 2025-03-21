@@ -480,8 +480,8 @@
           </div>
         </div>
       </div>
- <!-- Cotizaciones por Rango de Fechas -->
- <div class="card dashboard-card mb-6">
+      <!-- Cotizaciones por Rango de Fechas -->
+      <div class="card dashboard-card mb-6">
         <header class="card-header">
           <p class="card-header-title">
             <b-icon icon="file-document" type="is-info"></b-icon>
@@ -628,7 +628,7 @@
           </b-table>
         </div>
       </div>
-     
+
       <div class="columns is-multiline">
         <!-- Totales por marca -->
         <div class="column is-half">
