@@ -31,7 +31,7 @@
     </b-field>
     <div class="buttons has-text-centered">
         <b-button type="is-primary" size="is-large" icon-left="check" @click="registrar">Cambiar contraseña</b-button>
-        <b-button type="is-dark" size="is-large" icon-left="cancel" tag="router-link" to="/perfil">Cancelar</b-button>
+        <b-button type="is-dark" size="is-large" icon-left="cancel" tag="router-link" to="/usuarios">Cancelar</b-button>
     </div>
     <errores-component :errores="mensajesErrores" v-if="mensajesErrores.length > 0" />
     <b-loading :is-full-page="true" v-model="cargando" :can-cancel="false"></b-loading>
@@ -64,11 +64,13 @@ import apiRequest from '../../Servicios/HttpService';
                 this.mensajesErrores = []
                 this.mensajesErrores = Utiles.validarDatos(this.password)
                 let verificaPass = await this.verificarPasswordActual()
-              
-                if(verificaPass.data !== true) this.mensajesErrores.push("La contraseña actual ingresada es incorrecta")
+                 
+                if(verificaPass !== true) this.mensajesErrores.push("La contraseña actual ingresada es incorrecta")
+               
                     if(this.password.passwordNueva !== this.password.passwordRepetida) this.mensajesErrores.push("La contraseña repetida no coincide con la nueva")
                         let passwordValida = this.validarPassword(this.password.passwordNueva)
                     if(!passwordValida) this.mensajesErrores.push("La contraseña nueva debe ser válida")
+                  
                         if(this.mensajesErrores.length > 0) return
 
                             this.$buefy.dialog.confirm({
@@ -77,11 +79,6 @@ import apiRequest from '../../Servicios/HttpService';
                                 cancelText: 'Cancelar',
                                 onConfirm: async() => {
                                     this.cargando = true
-                                    // let resultado = await HttpService.registrar('usuarios.php',{
-                                    //     accion: 'cambiar_password',
-                                    //     idUsuario: AyudanteSesion.obtenerDatosSesion().id,
-                                    //     password: this.password.passwordRepetida
-                                    // })
                                    let resultado = apiRequest({
                                         method: "post", 
                                         path: 'users/change-password',
@@ -102,15 +99,9 @@ import apiRequest from '../../Servicios/HttpService';
                     },
 
                     async verificarPasswordActual(){
-                        // let paylaod = {
-                        //     accion: "verificar_password",
-                        //     idUsuario: AyudanteSesion.obtenerDatosSesion().id,
-                        //     password: this.password.passwordActual
-                        // }
 
-                        // return await HttpService.obtenerConConsultas('usuarios.php', paylaod)
 
-                     const resp=   apiRequest({
+                     const resp=  await apiRequest({
                             method: 'POST', 
                             path: 'users/verify-password',
                             data: {
@@ -119,7 +110,7 @@ import apiRequest from '../../Servicios/HttpService';
                             }
                         }
                         )
-                        return resp
+                        return resp.data
                     },
 
                     validarPassword (password) {

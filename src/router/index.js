@@ -4,7 +4,7 @@ import InicioSesion from '@/components/Usuarios/InicioSesion'
 import ProductosComponent from '@/components/Inventario/ProductosComponent'
 import AgregarProducto from '@/components/Inventario/AgregarProducto'
 import EditarProducto from '@/components/Inventario/EditarProducto'
-import MarcasCategorias from '@/components/MarcasCategorias/MarcasCategorias'
+import ProveedoresMarcasCategorias from '@/components/MarcasCategoriasProveedores/ProveedoresMarcasCategorias.vue'
 import RealizarVenta from '@/components/Ventas/RealizarVenta'
 import ReporteVentas from '@/components/Ventas/ReporteVentas'
 import ClientesComponent from '@/components/Clientes/ClientesComponent'
@@ -13,13 +13,14 @@ import EditarCliente from '@/components/Clientes/EditarCliente'
 import UsuariosComponent from '@/components/Usuarios/UsuariosComponent'
 import AgregarUsuario from '@/components/Usuarios/AgregarUsuario'
 import EditarUsuario from '@/components/Usuarios/EditarUsuario'
-import Pagos from '@/components/Pagos/Pagos'
-import PerfilComponent from '@/components/Usuarios/PerfilComponent'
 import CambiarPassword from '@/components/Usuarios/CambiarPassword'
 import Empleados from '@/components/Empleados/Empleados.vue'
-
-// Add this line to import the new component
-
+import CierreCaja from '@/components/Caja/CierreCaja.vue'
+import PerfilComponent from '@/components/Usuarios/PerfilComponent.vue'
+import DetallesPedido from '@/components/OrdenesDetalles/DetallesPedido.vue'
+import Details from '@/components/OrdenesDetalles/OrderDatails.vue'
+import AyudanteSesion from '../Servicios/AyudanteSesion';
+import rolesConfig from '../config/RolesConfig';
 
 Vue.use(VueRouter)
 
@@ -54,9 +55,21 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/marcas-y-categorias',
-    name: 'MarcasCategorias',
-    component: MarcasCategorias,
+    path: '/proveedores-marcas-y-categorias',
+    name: 'MarcasCategoriasProveedores',
+    component: ProveedoresMarcasCategorias,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/DetallesPedido',
+    name: 'Detalles de ordenes',
+    component: DetallesPedido,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/Details',
+    name: 'OrderDetails',
+    component: Details,
     meta: { requiresAuth: true }
   },
   {
@@ -114,12 +127,7 @@ const routes = [
     component: CambiarPassword,
     meta: { requiresAuth: true }
   },  
-  {
-    path: '/pagos',
-    name: 'Pagos',
-    component: Pagos,
-    meta: { requiresAuth: true }
-  },
+
   {
     path: '/empleados',
     name: 'Empleados',
@@ -128,6 +136,12 @@ const routes = [
   },
   {
     path: '/perfil',
+    name: 'CierreCaja',
+    component: CierreCaja,
+    meta: { requiresAuth: true }
+  },  
+  {
+    path: '/perfil-old',
     name: 'PerfilComponent',
     component: PerfilComponent,
     meta: { requiresAuth: true }
@@ -142,22 +156,44 @@ const routes = [
 ]
 
 const router = new VueRouter({
-  mode: 'history',
-  base: process.env.BASE_URL,
+  mode: 'history', 
   routes
-})
+});
 
 router.beforeEach((to, from, next) => {
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-  const isAuthenticated = localStorage.getItem('userData')
-
-  if (requiresAuth && !isAuthenticated) {
-    next('/login')
-  } else if (to.path === '/login' && isAuthenticated) {
-    next('/')
-  } else {
-    next()
+  const sesion = AyudanteSesion.obtenerDatosSesion();
+  if (!sesion || !sesion.rol) {
+    if (to.path !== '/login') {
+      return next('/login');
+    }
+    return next();
   }
-})
 
-export default router
+  const rol = sesion.rol;
+  const allowedPaths = rolesConfig[rol].views.flatMap(view => {
+    return view.children && view.children.length > 0
+      ? [view.href, ...view.children.map(child => child.href)]
+      : [view.href];
+  });
+
+  const dynamicPaths = rolesConfig[rol].access.filter(path => path.includes(':'));
+
+  const isDynamicPathAllowed = (path) => {
+    return dynamicPaths.some(dynamicPath => {
+      const regex = new RegExp(`^${dynamicPath.replace(/:\w+/g, '\\w+')}$`);
+      return regex.test(path);
+    });
+  };
+
+  if (
+    !allowedPaths.includes(to.path) &&
+    !rolesConfig[rol].access.includes(to.path) &&
+    !isDynamicPathAllowed(to.path)
+  ) {
+    return next('/');
+  }
+
+  next();
+});
+
+export default router;

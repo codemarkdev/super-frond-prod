@@ -233,7 +233,7 @@
       return {
         cashInHand: null,
         cargando: false,
-        showConfirmModal: false,
+        showConfirmModal: true,
         cierreInfo: null,
         userData: {
           username: '',

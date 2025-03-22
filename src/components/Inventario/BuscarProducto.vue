@@ -1,10 +1,12 @@
 <template>
 	<b-field label="Buscar producto por nombre o código de barras">
-		<b-autocomplete v-model="producto" id="producto"
+		<b-autocomplete 
+		v-model="producto" id="producto"
 			placeholder="Escribe el nombre o el código de barras del producto" :keep-first="true"
 			:data="productosFiltrados" field="name" @input="buscarProductos" @select="seleccionarProducto"
 			size="is-large">
 		</b-autocomplete>
+		
 	</b-field>
 </template>
 <script>
@@ -53,6 +55,9 @@ export default {
 
 	computed: {
 		productosFiltrados() {
+			if (this.productosEncontrados.length === 0) {
+                return [{ name: "No existen productos con ese nombre", noResults: true }]
+            }
 			return this.productosEncontrados.filter(opcion => {
 				return (
 					opcion?.name
@@ -71,3 +76,4 @@ export default {
 
 }
 </script>
+

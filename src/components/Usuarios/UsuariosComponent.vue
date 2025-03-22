@@ -19,10 +19,12 @@
         <b-table-column field="acciones" label="Acciones" centered v-slot="props">
           <div class="buttons is-centered">
             <b-button 
-              type="is-danger" 
-              icon-left="delete"
+            style="width: 100px"
+              :type="props.row.isActive ? 'is-danger' : 'is-success'"
+              @click="isActive(props.row.id)"
+              
               size="is-small"
-              @click="eliminar(props.row.id)">Eliminar</b-button>
+              >{{ props.row.isActive ? 'Desactivar': 'Activar' }}</b-button>
            
             <b-button 
               type="is-info"
@@ -65,6 +67,9 @@
               <b-table-column field="date" label="Fecha" sortable v-slot="props">
                 {{ formatDate(props.row.date) }}
               </b-table-column>
+              <b-table-column class="state" field="state" label="Estado de" sortable v-slot="props">
+                {{ props.row.state == 'closed' ? 'Cerrada' : 'Abierta' }}
+              </b-table-column>
   
               <b-table-column field="cashInHand" label="Efectivo" numeric sortable v-slot="props">
                 {{ formatCurrency(props.row.cashInHand) }}
@@ -74,9 +79,9 @@
                 {{ formatCurrency(props.row.totalSales) }}
               </b-table-column>
   
-              <b-table-column field="totalPayments" label="Pagos" numeric sortable v-slot="props">
+              <!-- <b-table-column field="totalPayments" label="Pagos" numeric sortable v-slot="props">
                 {{ formatCurrency(props.row.totalPayments) }}
-              </b-table-column>
+              </b-table-column> -->
   
               <b-table-column field="expectedCash" label="Esperado" numeric sortable v-slot="props">
                 {{ formatCurrency(props.row.expectedCash) }}
@@ -117,38 +122,61 @@
     },
   
     methods: {
-      async eliminar(idUsuario) {
-        this.$buefy.dialog.confirm({
-          title: 'Eliminar usuario',
-          message: 'Seguro que quieres <b>eliminar</b> este usuario? Esta acción no se puede revertir.',
-          confirmText: 'Sí, eliminar',
-          cancelText: 'Cancelar',
-          type: 'is-danger',
-          hasIcon: true,
-          onConfirm: () => {
-            this.cargando = true
-            apiRequest({
-              method: 'DELETE', 
-              path: `users/${idUsuario}`
-            })
-            .then(resultado => {
-              if(!resultado.data) {
-                this.$buefy.toast.open('Error al eliminar')
-                this.cargando = false
-                return
-              }
+      // async eliminar(idUsuario) {
+      //   this.$buefy.dialog.confirm({
+      //     title: 'Eliminar usuario',
+      //     message: 'Seguro que quieres <b>eliminar</b> este usuario? Esta acción no se puede revertir.',
+      //     confirmText: 'Sí, eliminar',
+      //     cancelText: 'Cancelar',
+      //     type: 'is-danger',
+      //     hasIcon: true,
+      //     onConfirm: () => {
+      //       this.cargando = true
+      //       apiRequest({
+      //         method: 'DELETE', 
+      //         path: `users/${idUsuario}`
+      //       })
+      //       .then(resultado => {
+      //         if(!resultado.data) {
+      //           this.$buefy.toast.open('Error al eliminar')
+      //           this.cargando = false
+      //           return
+      //         }
   
-              if(resultado.data){
-                this.cargando = false
-                this.$buefy.toast.open({
-                  type: 'is-info',
-                  message: 'Usuario eliminado.'
-                })
-                this.obtenerUsuarios()
-              }
+      //         if(resultado.data){
+      //           this.cargando = false
+      //           this.$buefy.toast.open({
+      //             type: 'is-info',
+      //             message: 'Usuario eliminado.'
+      //           })
+      //           this.obtenerUsuarios()
+      //         }
+      //       })
+      //     }
+      //   })
+      // },
+
+      async isActive (idUsuario) {
+        this.cargando = true
+       const {status, data} = await apiRequest({
+          method: 'POST',
+          path: `users/${idUsuario}/isActive` 
+       })
+
+          if(status == 201) {
+            this.cargando = false
+            this.$buefy.toast.open({
+              type: 'is-info',
+              message: `El usuario ${data.username} ha sido ${data.isActive ? 'activado' : 'desactivado'}.`
             })
+            this.obtenerUsuarios()
+           
+          }else{
+            this.$buefy.toast.open('Error al cambiar el estado del usuario')
+            this.cargando = false
+            return
           }
-        })
+        
       },
   
       editar(idUsuario) {
