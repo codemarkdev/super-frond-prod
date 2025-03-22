@@ -27,7 +27,7 @@ import FormUsuario from './FormUsuario'
                 username: "",
                 name: "",
                 phone: "",
-                password: "123456",
+                password: "codemark.es",
             }
         }),
 
