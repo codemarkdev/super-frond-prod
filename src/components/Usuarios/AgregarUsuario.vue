@@ -45,7 +45,7 @@ import FormUsuario from './FormUsuario'
                         this.cargando = false
                         this.$buefy.toast.open({
                           type: 'is-info',
-                          message: 'Usuario registrado con éxito. Recuerda que la contraseña por defecto es 123456'
+                          message: 'Usuario registrado con éxito. Recuerda que la contraseña por defecto es codemark.es'
                         })
                     }
                 })
