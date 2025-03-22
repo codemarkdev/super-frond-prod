@@ -1,4 +1,5 @@
-<template>
+```vue type="vue" project="Historial Ventas" file="HistorialVentas.vue"
+[v0-no-op-code-block-prefix]<template>
   <div class="historial-ventas">
     <header class="header">
       <h1 class="title is-2">Historial General</h1>
@@ -266,6 +267,15 @@
           <b-table-column field="date" label="Fecha" v-slot="props">
             {{ formatearFecha(props.row.date) }}
           </b-table-column>
+          <b-table-column field="products" label="Productos" v-slot="props">
+            <div v-if="props.row.products && props.row.products.length">
+              <div v-for="(producto, index) in props.row.products" :key="index" class="producto-item">
+                {{ producto.productName || 'Producto ' + producto.productId }}
+                <span class="cantidad">({{ producto.quantity }})</span>
+              </div>
+            </div>
+            <span v-else>Sin productos</span>
+          </b-table-column>
           <b-table-column field="totalWithIVA" label="Total con IVA" numeric v-slot="props">
             ${{ formatNumber(props.row.totalWithIVA) }}
           </b-table-column>
@@ -278,10 +288,45 @@
           <b-table-column field="paid" label="Pagado" numeric v-slot="props">
             ${{ formatNumber(props.row.paid) }}
           </b-table-column>
-          <b-table-column field="actions" label="Acciones" v-slot="props">
-            <b-button size="is-small" type="is-info" icon-left="eye" @click="verDetalles(props.row)">
-              Ver productos
-            </b-button>
+          <b-table-column field="actions" label="Acciones" v-slot="props" width="420">
+            <div class="action-buttons">
+              <!-- Ver productos -->
+              <b-button size="is-small" type="is-info" icon-left="eye" @click="verDetalles(props.row)">
+                Ver productos
+              </b-button>
+              
+              <!-- Dropdown para opciones de PDF -->
+              <b-dropdown aria-role="list" position="is-bottom-left" append-to-body>
+                <template #trigger>
+                  <b-button size="is-small" type="is-primary" icon-left="file-pdf">
+                    PDF
+                    <b-icon icon="menu-down"></b-icon>
+                  </b-button>
+                </template>
+                
+                <b-dropdown-item aria-role="listitem" @click="descargarPDF(props.row)" 
+                  :disabled="cargando.pdf === props.row.id">
+                  <b-icon icon="download"></b-icon>
+                  Descargar PDF
+                </b-dropdown-item>
+                
+                <b-dropdown-item aria-role="listitem" @click="descargarPDFThermal(props.row)" 
+                  :disabled="cargando.pdfThermal === props.row.id">
+                  <b-icon icon="printer"></b-icon>
+                  Descargar Térmico
+                </b-dropdown-item>
+                
+                <b-dropdown-item aria-role="listitem" @click="verPDF(props.row)">
+                  <b-icon icon="eye"></b-icon>
+                  Ver PDF
+                </b-dropdown-item>
+                
+                <b-dropdown-item aria-role="listitem" @click="verPDFThermal(props.row)">
+                  <b-icon icon="eye"></b-icon>
+                  Ver Térmico
+                </b-dropdown-item>
+              </b-dropdown>
+            </div>
           </b-table-column>
         </b-table>
       </div>
@@ -488,6 +533,8 @@ export default {
         ingresosSemana: false,
         ingresosMes: false,
         ventas: false,
+        pdf: null, // Para controlar el estado de carga del PDF por ID de venta
+        pdfThermal: null, // Para controlar el estado de carga del PDF térmico por ID de venta
       },
       mensajeTablaVacia: "Seleccione un rango de fechas para ver las ventas",
       modalDetalles: {
@@ -581,6 +628,119 @@ export default {
   },
 
   methods: {
+    // Método para descargar PDF
+    async descargarPDF(venta) {
+      if (!venta || !venta.id) {
+        this.mostrarError("ID de venta no válido");
+        return;
+      }
+
+      this.cargando.pdf = venta.id; // Establecer el ID de la venta que está cargando
+
+      try {
+        const response = await apiRequest({
+          method: "GET",
+          path: `print/download-pdf/${venta.id}`,
+          responseType: 'blob', // Importante para recibir el archivo como blob
+        });
+
+        if (response.status === 200) {
+          // Crear un objeto URL para el blob
+          const blob = new Blob([response.data], { type: 'application/pdf' });
+          const url = window.URL.createObjectURL(blob);
+          
+          // Crear un enlace temporal y hacer clic en él para descargar
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', `venta-${venta.id}.pdf`);
+          document.body.appendChild(link);
+          link.click();
+          
+          // Limpiar
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(link);
+          
+          this.$buefy.toast.open({
+            message: "PDF descargado correctamente",
+            type: "is-success",
+            duration: 3000,
+          });
+        }
+      } catch (error) {
+        console.error("Error al descargar el PDF:", error);
+        this.mostrarError("Error al descargar el PDF. Por favor, intente nuevamente.");
+      } finally {
+        this.cargando.pdf = null; // Restablecer el estado de carga
+      }
+    },
+
+    // Método para descargar PDF térmico
+    async descargarPDFThermal(venta) {
+      if (!venta || !venta.id) {
+        this.mostrarError("ID de venta no válido");
+        return;
+      }
+
+      this.cargando.pdfThermal = venta.id;
+
+      try {
+        const response = await apiRequest({
+          method: "GET",
+          path: `print/download-pdf-thermal/${venta.id}`,
+          responseType: 'blob',
+        });
+
+        if (response.status === 200) {
+          const blob = new Blob([response.data], { type: 'application/pdf' });
+          const url = window.URL.createObjectURL(blob);
+          
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', `venta-termica-${venta.id}.pdf`);
+          document.body.appendChild(link);
+          link.click();
+          
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(link);
+          
+          this.$buefy.toast.open({
+            message: "PDF térmico descargado correctamente",
+            type: "is-success",
+            duration: 3000,
+          });
+        }
+      } catch (error) {
+        console.error("Error al descargar el PDF térmico:", error);
+        this.mostrarError("Error al descargar el PDF térmico. Por favor, intente nuevamente.");
+      } finally {
+        this.cargando.pdfThermal = null;
+      }
+    },
+
+    // Método para ver PDF en nueva pestaña
+    verPDF(venta) {
+      if (!venta || !venta.id) {
+        this.mostrarError("ID de venta no válido");
+        return;
+      }
+
+      // Usar la variable de entorno para construir la URL correctamente
+      const url = `${process.env.VUE_APP_API}print/view/${venta.id}`;
+      window.open(url, '_blank');
+    },
+
+    // Método para ver PDF térmico en nueva pestaña
+    verPDFThermal(venta) {
+      if (!venta || !venta.id) {
+        this.mostrarError("ID de venta no válido");
+        return;
+      }
+
+      // Usar la variable de entorno para construir la URL correctamente
+      const url = `${process.env.VUE_APP_API}print/viewThermal/${venta.id}`;
+      window.open(url, '_blank');
+    },
+
     async obtenerVentasMensuales(year) {
       this.cargandoVentasMensuales = true;
       try {
@@ -967,7 +1127,41 @@ export default {
         });
 
         if (response.status === 200) {
+          // Guardar las ventas obtenidas
           this.ventasPorFecha = response.data;
+
+          // Si hay ventas, obtener los nombres de los productos
+          if (this.ventasPorFecha.length > 0) {
+            // Para cada venta, obtener los nombres de sus productos
+            await Promise.all(
+              this.ventasPorFecha.map(async (venta) => {
+                if (venta.products && venta.products.length > 0) {
+                  // Para cada producto en la venta, obtener su nombre
+                  await Promise.all(
+                    venta.products.map(async (producto) => {
+                      try {
+                        // Obtener el nombre del producto
+                        const productoResponse = await apiRequest({
+                          method: "GET",
+                          path: `sold-products/${producto.productId}/product`,
+                        });
+
+                        if (productoResponse.status === 200 && productoResponse.data.length > 0) {
+                          // Asignar el nombre del producto
+                          producto.productName = productoResponse.data[0]?.product_name || `Producto ${producto.productId}`;
+                        } else {
+                          producto.productName = `Producto ${producto.productId}`;
+                        }
+                      } catch (error) {
+                        console.error(`Error al obtener nombre del producto ${producto.productId}:`, error);
+                        producto.productName = `Producto ${producto.productId}`;
+                      }
+                    })
+                  );
+                }
+              })
+            );
+          }
 
           if (this.ventasPorFecha.length === 0) {
             this.mensajeTablaVacia =
@@ -1158,6 +1352,13 @@ export default {
 .buttons {
   display: flex;
   gap: 0.5rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .mb-5 {
@@ -1386,6 +1587,18 @@ export default {
 .summary-value {
   font-size: 1.25rem;
   font-weight: bold;
+}
+
+/* Estilos para los productos en la tabla */
+.producto-item {
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+.producto-item .cantidad {
+  color: #666;
+  font-size: 0.85rem;
+  margin-left: 4px;
 }
 
 @media screen and (max-width: 768px) {

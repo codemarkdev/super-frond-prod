@@ -12,12 +12,7 @@
           </p>
         </header>
         <div class="card-content">
-          <b-table
-            :data="usuarios"
-            :loading="cargando.usuarios"
-            :striped="true"
-            :hoverable="true"
-          >
+          <b-table :data="usuarios" :loading="cargando.usuarios" :striped="true" :hoverable="true">
             <b-table-column field="id" label="ID" v-slot="props">
               {{ props.row.id }}
             </b-table-column>
@@ -45,12 +40,7 @@
           <div class="field is-grouped mb-4">
             <div class="control">
               <b-field label="ID de Usuario">
-                <b-input
-                  v-model="filtroVentasUsuario.id"
-                  type="number"
-                  min="1"
-                  placeholder="ID del usuario"
-                ></b-input>
+                <b-input v-model="filtroVentasUsuario.id" type="number" min="1" placeholder="ID del usuario"></b-input>
               </b-field>
             </div>
             <div class="control">
@@ -63,41 +53,24 @@
               </b-field>
             </div>
             <div class="control align-self-flex-end">
-              <b-button
-                type="is-primary"
-                @click="obtenerVentasMensualesUsuario"
-                :loading="cargando.ventasUsuario"
-              >
+              <b-button type="is-primary" @click="obtenerVentasMensualesUsuario" :loading="cargando.ventasUsuario">
                 Consultar
               </b-button>
             </div>
             <div class="control align-self-flex-end">
-              <b-button
-                type="is-light"
-                @click="limpiarVentasMensualesUsuario"
-                :disabled="!ventasMensualesUsuario.length"
-              >
+              <b-button type="is-light" @click="limpiarVentasMensualesUsuario"
+                :disabled="!ventasMensualesUsuario.length">
                 Limpiar
               </b-button>
             </div>
           </div>
 
           <div v-if="ventasMensualesUsuario.length">
-            <b-table
-              :data="ventasMensualesUsuario"
-              :loading="cargando.ventasUsuario"
-              :striped="true"
-              :hoverable="true"
-            >
+            <b-table :data="ventasMensualesUsuario" :loading="cargando.ventasUsuario" :striped="true" :hoverable="true">
               <b-table-column field="month" label="Mes" v-slot="props">
                 {{ obtenerNombreMes(props.row.month) }}
               </b-table-column>
-              <b-table-column
-                field="totalSales"
-                label="Total Ventas"
-                numeric
-                v-slot="props"
-              >
+              <b-table-column field="totalSales" label="Total Ventas" numeric v-slot="props">
                 ${{ formatNumber(props.row.totalSales) }}
               </b-table-column>
             </b-table>
@@ -105,7 +78,7 @@
         </div>
       </div>
 
- 
+
       <!-- Detalles de Productos Vendidos -->
       <div class="card dashboard-card mb-6">
         <header class="card-header">
@@ -116,48 +89,20 @@
         </header>
         <div class="card-content">
           <b-field label="Buscar por nombre de producto">
-            <b-input
-              v-model="filtroNombreProducto"
-              placeholder="Escriba el nombre del producto"
-              expanded
-            ></b-input>
+            <b-input v-model="filtroNombreProducto" placeholder="Escriba el nombre del producto" expanded></b-input>
           </b-field>
 
-          <b-table
-            :data="productosPaginados"
-            :loading="cargando.productos"
-            :striped="true"
-            :hoverable="true"
-          >
-            <b-table-column
-              field="nombreProducto"
-              label="Nombre Producto"
-              v-slot="props"
-            >
+          <b-table :data="productosPaginados" :loading="cargando.productos" :striped="true" :hoverable="true">
+            <b-table-column field="nombreProducto" label="Nombre Producto" v-slot="props">
               {{ props.row.nombreProducto }}
             </b-table-column>
-            <b-table-column
-              field="quantity"
-              label="Cantidad"
-              numeric
-              v-slot="props"
-            >
+            <b-table-column field="quantity" label="Cantidad" numeric v-slot="props">
               {{ formatNumber(props.row.quantity) }}
             </b-table-column>
-            <b-table-column
-              field="price"
-              label="Precio Venta"
-              numeric
-              v-slot="props"
-            >
+            <b-table-column field="price" label="Precio Venta" numeric v-slot="props">
               ${{ formatNumber(props.row.price) }}
             </b-table-column>
-            <b-table-column
-              field="priceWithouthIVA"
-              label="Precio sin IVA"
-              numeric
-              v-slot="props"
-            >
+            <b-table-column field="priceWithouthIVA" label="Precio sin IVA" numeric v-slot="props">
               ${{ formatNumber(props.row.priceWithouthIVA) }}
             </b-table-column>
             <b-table-column field="iva" label="IVA" numeric v-slot="props">
@@ -165,19 +110,10 @@
             </b-table-column>
           </b-table>
 
-          <b-pagination
-            v-model="productosPaginacion.currentPage"
-            :total="productosPaginacion.total"
-            :per-page="productosPaginacion.perPage"
-            :range-before="3"
-            :range-after="3"
-            order="is-centered"
-            aria-next-label="Siguiente página"
-            aria-previous-label="Página anterior"
-            aria-page-label="Página"
-            aria-current-label="Página actual"
-            @change="cambiarPaginaProductos"
-          >
+          <b-pagination v-model="productosPaginacion.currentPage" :total="productosPaginacion.total"
+            :per-page="productosPaginacion.perPage" :range-before="3" :range-after="3" order="is-centered"
+            aria-next-label="Siguiente página" aria-previous-label="Página anterior" aria-page-label="Página"
+            aria-current-label="Página actual" @change="cambiarPaginaProductos">
           </b-pagination>
         </div>
       </div>
@@ -203,22 +139,14 @@
             <div class="control">
               <b-field label="Mes">
                 <b-select v-model="filtroIVA.month" expanded>
-                  <option
-                    v-for="month in months"
-                    :key="month.value"
-                    :value="month.value"
-                  >
+                  <option v-for="month in months" :key="month.value" :value="month.value">
                     {{ month.label }}
                   </option>
                 </b-select>
               </b-field>
             </div>
             <div class="control align-self-flex-end">
-              <b-button
-                type="is-primary"
-                @click="obtenerIVAMensual"
-                :loading="cargando.iva"
-              >
+              <b-button type="is-primary" @click="obtenerIVAMensual" :loading="cargando.iva">
                 Consultar
               </b-button>
             </div>
@@ -254,14 +182,8 @@
             <div class="control">
               <b-field label="Fecha de Inicio">
                 <div class="date-input-container" ref="ivaStartDateContainer">
-                  <input 
-                    type="text" 
-                    class="input" 
-                    placeholder="dd/mm/aaaa" 
-                    v-model="ivaFechaInicioInput"
-                    @click="toggleIvaStartCalendar"
-                    readonly
-                  >
+                  <input type="text" class="input" placeholder="dd/mm/aaaa" v-model="ivaFechaInicioInput"
+                    @click="toggleIvaStartCalendar" readonly>
                   <span class="icon is-right">
                     <i class="mdi mdi-calendar"></i>
                   </span>
@@ -271,14 +193,8 @@
             <div class="control">
               <b-field label="Fecha de Fin">
                 <div class="date-input-container" ref="ivaEndDateContainer">
-                  <input 
-                    type="text" 
-                    class="input" 
-                    placeholder="dd/mm/aaaa" 
-                    v-model="ivaFechaFinInput"
-                    @click="toggleIvaEndCalendar"
-                    readonly
-                  >
+                  <input type="text" class="input" placeholder="dd/mm/aaaa" v-model="ivaFechaFinInput"
+                    @click="toggleIvaEndCalendar" readonly>
                   <span class="icon is-right">
                     <i class="mdi mdi-calendar"></i>
                   </span>
@@ -286,11 +202,7 @@
               </b-field>
             </div>
             <div class="control align-self-flex-end">
-              <b-button
-                type="is-primary"
-                @click="obtenerIVARango"
-                :loading="cargando.ivaRango"
-              >
+              <b-button type="is-primary" @click="obtenerIVARango" :loading="cargando.ivaRango">
                 Consultar
               </b-button>
             </div>
@@ -312,7 +224,7 @@
           </div>
         </div>
       </div>
-      
+
       <!-- Productos más vendidos -->
       <div class="card dashboard-card">
         <header class="card-header">
@@ -321,11 +233,7 @@
             Productos más vendidos
           </p>
           <div class="card-header-icon">
-            <b-select
-              v-model="limite"
-              @input="obtenerProductosMayoresVentas"
-              size="is-small"
-            >
+            <b-select v-model="limite" @input="obtenerProductosMayoresVentas" size="is-small">
               <option :value="5">Top 5</option>
               <option :value="10">Top 10</option>
               <option :value="15">Top 15</option>
@@ -334,25 +242,11 @@
           </div>
         </header>
         <div class="card-content">
-          <b-table
-            :data="productosMayoresVentas"
-            :loading="cargando.topSold"
-            :striped="true"
-            :hoverable="true"
-          >
-            <b-table-column
-              field="product_name"
-              label="Producto"
-              v-slot="props"
-            >
+          <b-table :data="productosMayoresVentas" :loading="cargando.topSold" :striped="true" :hoverable="true">
+            <b-table-column field="product_name" label="Producto" v-slot="props">
               {{ props.row.product_name }}
             </b-table-column>
-            <b-table-column
-              field="units"
-              label="Unidades"
-              numeric
-              v-slot="props"
-            >
+            <b-table-column field="units" label="Unidades" numeric v-slot="props">
               {{ formatNumber(props.row.units) }}
             </b-table-column>
             <b-table-column field="total" label="Total" numeric v-slot="props">
@@ -361,7 +255,7 @@
           </b-table>
         </div>
       </div>
-     
+
       <div class="columns is-multiline">
         <!-- Totales por marca -->
         <div class="column is-half">
@@ -373,21 +267,11 @@
               </p>
             </header>
             <div class="card-content">
-              <b-table
-                :data="totalesPorMarca"
-                :loading="cargando.byBrand"
-                :striped="true"
-                :hoverable="true"
-              >
+              <b-table :data="totalesPorMarca" :loading="cargando.byBrand" :striped="true" :hoverable="true">
                 <b-table-column field="brandName" label="Marca" v-slot="props">
                   {{ props.row.brandName }}
                 </b-table-column>
-                <b-table-column
-                  field="totalSales"
-                  label="Total ventas"
-                  numeric
-                  v-slot="props"
-                >
+                <b-table-column field="totalSales" label="Total ventas" numeric v-slot="props">
                   ${{ formatNumber(props.row.totalSales) }}
                 </b-table-column>
               </b-table>
@@ -405,25 +289,11 @@
               </p>
             </header>
             <div class="card-content">
-              <b-table
-                :data="totalesPorCategoria"
-                :loading="cargando.byCategory"
-                :striped="true"
-                :hoverable="true"
-              >
-                <b-table-column
-                  field="categoryName"
-                  label="Categoría"
-                  v-slot="props"
-                >
+              <b-table :data="totalesPorCategoria" :loading="cargando.byCategory" :striped="true" :hoverable="true">
+                <b-table-column field="categoryName" label="Categoría" v-slot="props">
                   {{ props.row.categoryName }}
                 </b-table-column>
-                <b-table-column
-                  field="totalSales"
-                  label="Total ventas"
-                  numeric
-                  v-slot="props"
-                >
+                <b-table-column field="totalSales" label="Total ventas" numeric v-slot="props">
                   ${{ formatNumber(props.row.totalSales) }}
                 </b-table-column>
               </b-table>
@@ -441,28 +311,14 @@
               </p>
             </header>
             <div class="card-content">
-              <b-table
-                :data="productosPorMarca"
-                :loading="cargando.topByBrand"
-                :striped="true"
-                :hoverable="true"
-              >
+              <b-table :data="productosPorMarca" :loading="cargando.topByBrand" :striped="true" :hoverable="true">
                 <b-table-column field="brandName" label="Marca" v-slot="props">
                   {{ props.row.brandName }}
                 </b-table-column>
-                <b-table-column
-                  field="productName"
-                  label="Producto"
-                  v-slot="props"
-                >
+                <b-table-column field="productName" label="Producto" v-slot="props">
                   {{ props.row.productName }}
                 </b-table-column>
-                <b-table-column
-                  field="totalUnitsSold"
-                  label="Unidades"
-                  numeric
-                  v-slot="props"
-                >
+                <b-table-column field="totalUnitsSold" label="Unidades" numeric v-slot="props">
                   {{ formatNumber(props.row.totalUnitsSold) }}
                 </b-table-column>
               </b-table>
@@ -480,32 +336,15 @@
               </p>
             </header>
             <div class="card-content">
-              <b-table
-                :data="productosPorCategoria"
-                :loading="cargando.topByCategory"
-                :striped="true"
-                :hoverable="true"
-              >
-                <b-table-column
-                  field="categoryName"
-                  label="Categoría"
-                  v-slot="props"
-                >
+              <b-table :data="productosPorCategoria" :loading="cargando.topByCategory" :striped="true"
+                :hoverable="true">
+                <b-table-column field="categoryName" label="Categoría" v-slot="props">
                   {{ props.row.categoryName }}
                 </b-table-column>
-                <b-table-column
-                  field="productName"
-                  label="Producto"
-                  v-slot="props"
-                >
+                <b-table-column field="productName" label="Producto" v-slot="props">
                   {{ props.row.productName }}
                 </b-table-column>
-                <b-table-column
-                  field="totalUnitsSold"
-                  label="Unidades"
-                  numeric
-                  v-slot="props"
-                >
+                <b-table-column field="totalUnitsSold" label="Unidades" numeric v-slot="props">
                   {{ formatNumber(props.row.totalUnitsSold) }}
                 </b-table-column>
               </b-table>
@@ -514,7 +353,7 @@
         </div>
       </div>
     </div>
-    
+
     <!-- Calendarios flotantes para IVA -->
     <div v-if="showIvaStartCalendar" class="floating-calendar" :style="ivaStartCalendarStyle" ref="ivaStartCalendarRef">
       <div class="calendar-header">
@@ -534,17 +373,12 @@
         <div v-for="day in diasSemana" :key="day">{{ day }}</div>
       </div>
       <div class="days">
-        <div 
-          v-for="day in ivaStartCalendarDays" 
-          :key="day.id"
-          :class="[
-            'day', 
-            { 'other-month': day.otherMonth },
-            { 'selected': isSelectedIvaStartDate(day.date) },
-            { 'today': isToday(day.date) }
-          ]"
-          @click.stop="selectIvaStartDate(day.date)"
-        >
+        <div v-for="day in ivaStartCalendarDays" :key="day.id" :class="[
+          'day',
+          { 'other-month': day.otherMonth },
+          { 'selected': isSelectedIvaStartDate(day.date) },
+          { 'today': isToday(day.date) }
+        ]" @click.stop="selectIvaStartDate(day.date)">
           {{ day.day }}
         </div>
       </div>
@@ -572,17 +406,12 @@
         <div v-for="day in diasSemana" :key="day">{{ day }}</div>
       </div>
       <div class="days">
-        <div 
-          v-for="day in ivaEndCalendarDays" 
-          :key="day.id"
-          :class="[
-            'day', 
-            { 'other-month': day.otherMonth },
-            { 'selected': isSelectedIvaEndDate(day.date) },
-            { 'today': isToday(day.date) }
-          ]"
-          @click.stop="selectIvaEndDate(day.date)"
-        >
+        <div v-for="day in ivaEndCalendarDays" :key="day.id" :class="[
+          'day',
+          { 'other-month': day.otherMonth },
+          { 'selected': isSelectedIvaEndDate(day.date) },
+          { 'today': isToday(day.date) }
+        ]" @click.stop="selectIvaEndDate(day.date)">
           {{ day.day }}
         </div>
       </div>
@@ -591,9 +420,10 @@
         <button class="btn-today" @click.stop="setTodayAsIvaEnd">Hoy</button>
       </div>
     </div>
-    
+
     <!-- Calendarios flotantes para Cotizaciones -->
-    <div v-if="showCotizacionesStartCalendar" class="floating-calendar" :style="cotizacionesStartCalendarStyle" ref="cotizacionesStartCalendarRef">
+    <div v-if="showCotizacionesStartCalendar" class="floating-calendar" :style="cotizacionesStartCalendarStyle"
+      ref="cotizacionesStartCalendarRef">
       <div class="calendar-header">
         <div class="month-year">
           {{ nombreMesCotizacionesStart }} de {{ cotizacionesStartCalendarYear }}
@@ -611,17 +441,12 @@
         <div v-for="day in diasSemana" :key="day">{{ day }}</div>
       </div>
       <div class="days">
-        <div 
-          v-for="day in cotizacionesStartCalendarDays" 
-          :key="day.id"
-          :class="[
-            'day', 
-            { 'other-month': day.otherMonth },
-            { 'selected': isSelectedCotizacionesStartDate(day.date) },
-            { 'today': isToday(day.date) }
-          ]"
-          @click.stop="selectCotizacionesStartDate(day.date)"
-        >
+        <div v-for="day in cotizacionesStartCalendarDays" :key="day.id" :class="[
+          'day',
+          { 'other-month': day.otherMonth },
+          { 'selected': isSelectedCotizacionesStartDate(day.date) },
+          { 'today': isToday(day.date) }
+        ]" @click.stop="selectCotizacionesStartDate(day.date)">
           {{ day.day }}
         </div>
       </div>
@@ -631,7 +456,8 @@
       </div>
     </div>
 
-    <div v-if="showCotizacionesEndCalendar" class="floating-calendar" :style="cotizacionesEndCalendarStyle" ref="cotizacionesEndCalendarRef">
+    <div v-if="showCotizacionesEndCalendar" class="floating-calendar" :style="cotizacionesEndCalendarStyle"
+      ref="cotizacionesEndCalendarRef">
       <div class="calendar-header">
         <div class="month-year">
           {{ nombreMesCotizacionesEnd }} de {{ cotizacionesEndCalendarYear }}
@@ -649,17 +475,12 @@
         <div v-for="day in diasSemana" :key="day">{{ day }}</div>
       </div>
       <div class="days">
-        <div 
-          v-for="day in cotizacionesEndCalendarDays" 
-          :key="day.id"
-          :class="[
-            'day', 
-            { 'other-month': day.otherMonth },
-            { 'selected': isSelectedCotizacionesEndDate(day.date) },
-            { 'today': isToday(day.date) }
-          ]"
-          @click.stop="selectCotizacionesEndDate(day.date)"
-        >
+        <div v-for="day in cotizacionesEndCalendarDays" :key="day.id" :class="[
+          'day',
+          { 'other-month': day.otherMonth },
+          { 'selected': isSelectedCotizacionesEndDate(day.date) },
+          { 'today': isToday(day.date) }
+        ]" @click.stop="selectCotizacionesEndDate(day.date)">
           {{ day.day }}
         </div>
       </div>
@@ -687,7 +508,7 @@ export default {
     const today = new Date();
     const currentYear = today.getFullYear();
     const currentMonth = today.getMonth();
-    
+
     return {
       historialPagos: {
         data: [],
@@ -793,7 +614,7 @@ export default {
       busquedaCliente: "",
       filtroEstado: "",
       cuentasPorPagina: 10,
-      
+
       // Nuevas variables para los calendarios personalizados
       // Calendario IVA
       ivaFechaInicioInput: "",
@@ -812,7 +633,7 @@ export default {
         top: '0px',
         left: '0px'
       },
-      
+
       // Calendario Cotizaciones
       cotizacionesFechaInicioInput: "",
       cotizacionesFechaFinInput: "",
@@ -830,7 +651,7 @@ export default {
         top: '0px',
         left: '0px'
       },
-      
+
       // Variables comunes para los calendarios
       diasSemana: ["L", "M", "X", "J", "V", "S", "D"],
       meses: [
@@ -915,7 +736,7 @@ export default {
       const fin = inicio + this.cuentasPorPagina;
       return this.cuentasAgrupadasFiltradas.slice(inicio, fin);
     },
-    
+
     // Computed properties para los calendarios de IVA
     nombreMesIvaStart() {
       return this.meses[this.ivaStartCalendarMonth];
@@ -929,7 +750,7 @@ export default {
     ivaEndCalendarDays() {
       return this.getCalendarDays(this.ivaEndCalendarYear, this.ivaEndCalendarMonth);
     },
-    
+
     // Computed properties para los calendarios de Cotizaciones
     nombreMesCotizacionesStart() {
       return this.meses[this.cotizacionesStartCalendarMonth];
@@ -965,9 +786,9 @@ export default {
       return isNaN(num)
         ? "0.00"
         : num.toLocaleString("es-MX", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          });
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
     },
 
     formatDate(dateString) {
@@ -983,19 +804,16 @@ export default {
 
     async cargarTodosDatos() {
       await Promise.all([
-        this.obtenerHistorialPagos(),
         this.obtenerProductosVendidosConNombres(),
         this.obtenerProductosMayoresVentas(),
         this.obtenerTotalesPorMarca(),
         this.obtenerTotalesPorCategoria(),
         this.obtenerProductosPorMarca(),
         this.obtenerProductosPorCategoria(),
-        this.obtenerCuentasPorCobrar(),
         this.obtenerIVAMensual(),
         this.obtenerIVARango(),
         this.obtenerVentasMensualesUsuario(),
         this.obtenerUsuarios(),
-        this.obtenerCotizaciones(),
       ]);
     },
 
@@ -1049,24 +867,6 @@ export default {
       }
     },
 
-    async obtenerHistorialPagos() {
-      this.cargando.pagos = true;
-      try {
-        const response = await apiRequest({
-          method: "GET",
-          path: `payments?page=${this.paginaActualPagos}&limit=${this.porPaginaPagos}`,
-        });
-
-        if (response?.data) {
-          this.historialPagos = response.data;
-        }
-      } catch (error) {
-        console.error("Error al obtener historial de pagos:", error);
-        this.mostrarError("Error al cargar el historial de pagos");
-      } finally {
-        this.cargando.pagos = false;
-      }
-    },
 
     async obtenerProductosMayoresVentas() {
       this.cargando.topSold = true;
@@ -1173,27 +973,7 @@ export default {
       }
     },
 
-    async obtenerCuentasPorCobrar() {
-      this.cargando.cuentas = true;
-      try {
-        const response = await apiRequest({
-          method: "GET",
-          path: `accountsholdings?page=${this.paginaActualCuentas}&limit=${this.cuentasPorPagina}`,
-        });
-
-        if (response?.data) {
-          this.cuentasPorCobrar = response.data.data || [];
-          // Actualizar la información de paginación
-          this.cuentasPaginacion.total = response.data.total || 0;
-          this.cuentasPaginacion.totalPages = response.data.totalPages || 0;
-        }
-      } catch (error) {
-        console.error("Error al obtener cuentas por cobrar:", error);
-        this.mostrarError("Error al cargar las cuentas por cobrar");
-      } finally {
-        this.cargando.cuentas = false;
-      }
-    },
+    //
 
     async obtenerIVAMensual() {
       this.cargando.iva = true;
@@ -1216,7 +996,7 @@ export default {
 
     async obtenerIVARango() {
       if (!this.filtroIVARango.startDate || !this.filtroIVARango.endDate) {
-       
+
         return;
       }
 
@@ -1290,7 +1070,7 @@ export default {
       }
     },
 
-    
+
 
     cambiarPaginaProductos(pagina) {
       this.productosPaginacion.currentPage = pagina;
@@ -1320,13 +1100,8 @@ export default {
       this.filtroVentasUsuario.id = null;
       this.filtroVentasUsuario.year = new Date().getFullYear();
     },
-    
-    limpiarCotizaciones() {
-      this.filtroCotizaciones = { startDate: null, endDate: null };
-      this.cotizacionesFechaInicioInput = "";
-      this.cotizacionesFechaFinInput = "";
-      this.cotizaciones = [];
-    },
+
+
 
     mostrarError(mensaje) {
       this.$buefy.toast.open({
@@ -1335,7 +1110,7 @@ export default {
         duration: 5000,
       });
     },
-    
+
     obtenerEstadoCuenta(cuenta) {
       if (parseFloat(cuenta.totalToPay) === 0) {
         return "Pagada";
@@ -1343,7 +1118,7 @@ export default {
         return "Pendiente";
       }
     },
-    
+
     obtenerColorEstado(cuenta) {
       const estado = this.obtenerEstadoCuenta(cuenta);
       switch (estado) {
@@ -1355,25 +1130,25 @@ export default {
           return "is-info";
       }
     },
-    
+
     // Métodos para el calendario personalizado
     getCalendarDays(year, month) {
       const firstDay = new Date(year, month, 1);
       const lastDay = new Date(year, month + 1, 0);
       const daysInMonth = lastDay.getDate();
-      
+
       // Obtener el día de la semana del primer día (0 = domingo, 1 = lunes, ..., 6 = sábado)
       let firstDayOfWeek = firstDay.getDay();
       // Ajustar para que lunes sea 0
       firstDayOfWeek = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
-      
+
       const days = [];
-      
+
       // Días del mes anterior
       const prevMonth = month === 0 ? 11 : month - 1;
       const prevMonthYear = month === 0 ? year - 1 : year;
       const daysInPrevMonth = new Date(prevMonthYear, prevMonth + 1, 0).getDate();
-      
+
       for (let i = 0; i < firstDayOfWeek; i++) {
         const day = daysInPrevMonth - firstDayOfWeek + i + 1;
         days.push({
@@ -1383,7 +1158,7 @@ export default {
           id: `prev-${day}`
         });
       }
-      
+
       // Días del mes actual
       for (let i = 1; i <= daysInMonth; i++) {
         days.push({
@@ -1393,12 +1168,12 @@ export default {
           id: `current-${i}`
         });
       }
-      
+
       // Días del mes siguiente
       const nextMonth = month === 11 ? 0 : month + 1;
       const nextMonthYear = month === 11 ? year + 1 : year;
       const remainingDays = 42 - days.length; // 6 filas x 7 días
-      
+
       for (let i = 1; i <= remainingDays; i++) {
         days.push({
           day: i,
@@ -1407,17 +1182,17 @@ export default {
           id: `next-${i}`
         });
       }
-      
+
       return days;
     },
-    
+
     isToday(date) {
       const today = new Date();
       return date.getDate() === today.getDate() &&
-             date.getMonth() === today.getMonth() &&
-             date.getFullYear() === today.getFullYear();
+        date.getMonth() === today.getMonth() &&
+        date.getFullYear() === today.getFullYear();
     },
-    
+
     formatDateForInput(date) {
       if (!date) return '';
       const day = String(date.getDate()).padStart(2, '0');
@@ -1425,18 +1200,13 @@ export default {
       const year = date.getFullYear();
       return `${day}/${month}/${year}`;
     },
-    
+
     // Métodos para el calendario de IVA
     toggleIvaStartCalendar() {
       if (this.showIvaEndCalendar) {
         this.showIvaEndCalendar = false;
       }
-      if (this.showCotizacionesStartCalendar) {
-        this.showCotizacionesStartCalendar = false;
-      }
-      if (this.showCotizacionesEndCalendar) {
-        this.showCotizacionesEndCalendar = false;
-      }
+
       this.showIvaStartCalendar = !this.showIvaStartCalendar;
       if (this.showIvaStartCalendar) {
         this.$nextTick(() => {
@@ -1444,7 +1214,7 @@ export default {
         });
       }
     },
-    
+
     toggleIvaEndCalendar() {
       if (this.showIvaStartCalendar) {
         this.showIvaStartCalendar = false;
@@ -1462,18 +1232,18 @@ export default {
         });
       }
     },
-    
+
     positionIvaStartCalendar() {
       const inputEl = this.$refs.ivaStartDateContainer;
       if (inputEl && this.$refs.ivaStartCalendarRef) {
         const rect = inputEl.getBoundingClientRect();
         const calendarHeight = this.$refs.ivaStartCalendarRef.offsetHeight;
         const windowHeight = window.innerHeight;
-        
+
         // Verificar si hay suficiente espacio debajo
         const spaceBelow = windowHeight - rect.bottom;
         const showBelow = spaceBelow >= calendarHeight;
-        
+
         this.ivaStartCalendarStyle = {
           top: showBelow ? `${rect.bottom + window.scrollY}px` : `${rect.top + window.scrollY - calendarHeight}px`,
           left: `${rect.left + window.scrollX}px`,
@@ -1481,18 +1251,18 @@ export default {
         };
       }
     },
-    
+
     positionIvaEndCalendar() {
       const inputEl = this.$refs.ivaEndDateContainer;
       if (inputEl && this.$refs.ivaEndCalendarRef) {
         const rect = inputEl.getBoundingClientRect();
         const calendarHeight = this.$refs.ivaEndCalendarRef.offsetHeight;
         const windowHeight = window.innerHeight;
-        
+
         // Verificar si hay suficiente espacio debajo
         const spaceBelow = windowHeight - rect.bottom;
         const showBelow = spaceBelow >= calendarHeight;
-        
+
         this.ivaEndCalendarStyle = {
           top: showBelow ? `${rect.bottom + window.scrollY}px` : `${rect.top + window.scrollY - calendarHeight}px`,
           left: `${rect.left + window.scrollX}px`,
@@ -1500,47 +1270,47 @@ export default {
         };
       }
     },
-    
+
     isSelectedIvaStartDate(date) {
       if (!this.filtroIVARango.startDate) return false;
-      
+
       return date.getDate() === this.filtroIVARango.startDate.getDate() &&
-             date.getMonth() === this.filtroIVARango.startDate.getMonth() &&
-             date.getFullYear() === this.filtroIVARango.startDate.getFullYear();
+        date.getMonth() === this.filtroIVARango.startDate.getMonth() &&
+        date.getFullYear() === this.filtroIVARango.startDate.getFullYear();
     },
-    
+
     isSelectedIvaEndDate(date) {
       if (!this.filtroIVARango.endDate) return false;
-      
+
       return date.getDate() === this.filtroIVARango.endDate.getDate() &&
-             date.getMonth() === this.filtroIVARango.endDate.getMonth() &&
-             date.getFullYear() === this.filtroIVARango.endDate.getFullYear();
+        date.getMonth() === this.filtroIVARango.endDate.getMonth() &&
+        date.getFullYear() === this.filtroIVARango.endDate.getFullYear();
     },
-    
+
     selectIvaStartDate(date) {
       this.filtroIVARango.startDate = new Date(date);
       this.ivaFechaInicioInput = this.formatDateForInput(date);
       this.showIvaStartCalendar = false;
     },
-    
+
     selectIvaEndDate(date) {
       this.filtroIVARango.endDate = new Date(date);
       this.ivaFechaFinInput = this.formatDateForInput(date);
       this.showIvaEndCalendar = false;
     },
-    
+
     clearIvaStartDate() {
       this.filtroIVARango.startDate = null;
       this.ivaFechaInicioInput = "";
       this.showIvaStartCalendar = false;
     },
-    
+
     clearIvaEndDate() {
       this.filtroIVARango.endDate = null;
       this.ivaFechaFinInput = "";
       this.showIvaEndCalendar = false;
     },
-    
+
     setTodayAsIvaStart() {
       const today = new Date();
       this.filtroIVARango.startDate = today;
@@ -1549,7 +1319,7 @@ export default {
       this.ivaStartCalendarYear = today.getFullYear();
       this.showIvaStartCalendar = false;
     },
-    
+
     setTodayAsIvaEnd() {
       const today = new Date();
       this.filtroIVARango.endDate = today;
@@ -1558,30 +1328,11 @@ export default {
       this.ivaEndCalendarYear = today.getFullYear();
       this.showIvaEndCalendar = false;
     },
-    
-    // Métodos para el calendario de Cotizaciones
-    toggleCotizacionesStartCalendar() {
-      if (this.showCotizacionesEndCalendar) {
-        this.showCotizacionesEndCalendar = false;
-      }
-      if (this.showIvaStartCalendar) {
-        this.showIvaStartCalendar = false;
-      }
-      if (this.showIvaEndCalendar) {
-        this.showIvaEndCalendar = false;
-      }
-      this.showCotizacionesStartCalendar = !this.showCotizacionesStartCalendar;
-      if (this.showCotizacionesStartCalendar) {
-        this.$nextTick(() => {
-          this.positionCotizacionesStartCalendar();
-        });
-      }
-    },
-    
+
+
+
     toggleCotizacionesEndCalendar() {
-      if (this.showCotizacionesStartCalendar) {
-        this.showCotizacionesStartCalendar = false;
-      }
+
       if (this.showIvaStartCalendar) {
         this.showIvaStartCalendar = false;
       }
@@ -1595,18 +1346,18 @@ export default {
         });
       }
     },
-    
+
     positionCotizacionesStartCalendar() {
       const inputEl = this.$refs.cotizacionesStartDateContainer;
       if (inputEl && this.$refs.cotizacionesStartCalendarRef) {
         const rect = inputEl.getBoundingClientRect();
         const calendarHeight = this.$refs.cotizacionesStartCalendarRef.offsetHeight;
         const windowHeight = window.innerHeight;
-        
+
         // Verificar si hay suficiente espacio debajo
         const spaceBelow = windowHeight - rect.bottom;
         const showBelow = spaceBelow >= calendarHeight;
-        
+
         this.cotizacionesStartCalendarStyle = {
           top: showBelow ? `${rect.bottom + window.scrollY}px` : `${rect.top + window.scrollY - calendarHeight}px`,
           left: `${rect.left + window.scrollX}px`,
@@ -1614,18 +1365,18 @@ export default {
         };
       }
     },
-    
+
     positionCotizacionesEndCalendar() {
       const inputEl = this.$refs.cotizacionesEndDateContainer;
       if (inputEl && this.$refs.cotizacionesEndCalendarRef) {
         const rect = inputEl.getBoundingClientRect();
         const calendarHeight = this.$refs.cotizacionesEndCalendarRef.offsetHeight;
         const windowHeight = window.innerHeight;
-        
+
         // Verificar si hay suficiente espacio debajo
         const spaceBelow = windowHeight - rect.bottom;
         const showBelow = spaceBelow >= calendarHeight;
-        
+
         this.cotizacionesEndCalendarStyle = {
           top: showBelow ? `${rect.bottom + window.scrollY}px` : `${rect.top + window.scrollY - calendarHeight}px`,
           left: `${rect.left + window.scrollX}px`,
@@ -1633,47 +1384,47 @@ export default {
         };
       }
     },
-    
+
     isSelectedCotizacionesStartDate(date) {
       if (!this.filtroCotizaciones.startDate) return false;
-      
+
       return date.getDate() === this.filtroCotizaciones.startDate.getDate() &&
-             date.getMonth() === this.filtroCotizaciones.startDate.getMonth() &&
-             date.getFullYear() === this.filtroCotizaciones.startDate.getFullYear();
+        date.getMonth() === this.filtroCotizaciones.startDate.getMonth() &&
+        date.getFullYear() === this.filtroCotizaciones.startDate.getFullYear();
     },
-    
+
     isSelectedCotizacionesEndDate(date) {
       if (!this.filtroCotizaciones.endDate) return false;
-      
+
       return date.getDate() === this.filtroCotizaciones.endDate.getDate() &&
-             date.getMonth() === this.filtroCotizaciones.endDate.getMonth() &&
-             date.getFullYear() === this.filtroCotizaciones.endDate.getFullYear();
+        date.getMonth() === this.filtroCotizaciones.endDate.getMonth() &&
+        date.getFullYear() === this.filtroCotizaciones.endDate.getFullYear();
     },
-    
+
     selectCotizacionesStartDate(date) {
       this.filtroCotizaciones.startDate = new Date(date);
       this.cotizacionesFechaInicioInput = this.formatDateForInput(date);
       this.showCotizacionesStartCalendar = false;
     },
-    
+
     selectCotizacionesEndDate(date) {
       this.filtroCotizaciones.endDate = new Date(date);
       this.cotizacionesFechaFinInput = this.formatDateForInput(date);
       this.showCotizacionesEndCalendar = false;
     },
-    
+
     clearCotizacionesStartDate() {
       this.filtroCotizaciones.startDate = null;
       this.cotizacionesFechaInicioInput = "";
       this.showCotizacionesStartCalendar = false;
     },
-    
+
     clearCotizacionesEndDate() {
       this.filtroCotizaciones.endDate = null;
       this.cotizacionesFechaFinInput = "";
       this.showCotizacionesEndCalendar = false;
     },
-    
+
     setTodayAsCotizacionesStart() {
       const today = new Date();
       this.filtroCotizaciones.startDate = today;
@@ -1682,7 +1433,7 @@ export default {
       this.cotizacionesStartCalendarYear = today.getFullYear();
       this.showCotizacionesStartCalendar = false;
     },
-    
+
     setTodayAsCotizacionesEnd() {
       const today = new Date();
       this.filtroCotizaciones.endDate = today;
@@ -1691,10 +1442,10 @@ export default {
       this.cotizacionesEndCalendarYear = today.getFullYear();
       this.showCotizacionesEndCalendar = false;
     },
-    
+
     // Métodos comunes para todos los calendarios
     prevMonth(type) {
-      switch(type) {
+      switch (type) {
         case 'ivaStart':
           if (this.ivaStartCalendarMonth === 0) {
             this.ivaStartCalendarMonth = 11;
@@ -1729,9 +1480,9 @@ export default {
           break;
       }
     },
-    
+
     nextMonth(type) {
-      switch(type) {
+      switch (type) {
         case 'ivaStart':
           if (this.ivaStartCalendarMonth === 11) {
             this.ivaStartCalendarMonth = 0;
@@ -1766,7 +1517,7 @@ export default {
           break;
       }
     },
-    
+
     updateCalendarPositions() {
       if (this.showIvaStartCalendar) {
         this.positionIvaStartCalendar();
@@ -1781,77 +1532,47 @@ export default {
         this.positionCotizacionesEndCalendar();
       }
     },
-    
+
     handleClickOutside(event) {
       // Cerrar calendario IVA inicio si se hace clic fuera
-      if (this.showIvaStartCalendar && 
-          this.$refs.ivaStartCalendarRef && 
-          !this.$refs.ivaStartCalendarRef.contains(event.target) &&
-          this.$refs.ivaStartDateContainer && 
-          !this.$refs.ivaStartDateContainer.contains(event.target)) {
+      if (this.showIvaStartCalendar &&
+        this.$refs.ivaStartCalendarRef &&
+        !this.$refs.ivaStartCalendarRef.contains(event.target) &&
+        this.$refs.ivaStartDateContainer &&
+        !this.$refs.ivaStartDateContainer.contains(event.target)) {
         this.showIvaStartCalendar = false;
       }
-      
+
       // Cerrar calendario IVA fin si se hace clic fuera
-      if (this.showIvaEndCalendar && 
-          this.$refs.ivaEndCalendarRef && 
-          !this.$refs.ivaEndCalendarRef.contains(event.target) &&
-          this.$refs.ivaEndDateContainer && 
-          !this.$refs.ivaEndDateContainer.contains(event.target)) {
+      if (this.showIvaEndCalendar &&
+        this.$refs.ivaEndCalendarRef &&
+        !this.$refs.ivaEndCalendarRef.contains(event.target) &&
+        this.$refs.ivaEndDateContainer &&
+        !this.$refs.ivaEndDateContainer.contains(event.target)) {
         this.showIvaEndCalendar = false;
       }
-      
+
       // Cerrar calendario Cotizaciones inicio si se hace clic fuera
-      if (this.showCotizacionesStartCalendar && 
-          this.$refs.cotizacionesStartCalendarRef && 
-          !this.$refs.cotizacionesStartCalendarRef.contains(event.target) &&
-          this.$refs.cotizacionesStartDateContainer && 
-          !this.$refs.cotizacionesStartDateContainer.contains(event.target)) {
+      if (this.showCotizacionesStartCalendar &&
+        this.$refs.cotizacionesStartCalendarRef &&
+        !this.$refs.cotizacionesStartCalendarRef.contains(event.target) &&
+        this.$refs.cotizacionesStartDateContainer &&
+        !this.$refs.cotizacionesStartDateContainer.contains(event.target)) {
         this.showCotizacionesStartCalendar = false;
       }
-      
+
       // Cerrar calendario Cotizaciones fin si se hace clic fuera
-      if (this.showCotizacionesEndCalendar && 
-          this.$refs.cotizacionesEndCalendarRef && 
-          !this.$refs.cotizacionesEndCalendarRef.contains(event.target) &&
-          this.$refs.cotizacionesEndDateContainer && 
-          !this.$refs.cotizacionesEndDateContainer.contains(event.target)) {
+      if (this.showCotizacionesEndCalendar &&
+        this.$refs.cotizacionesEndCalendarRef &&
+        !this.$refs.cotizacionesEndCalendarRef.contains(event.target) &&
+        this.$refs.cotizacionesEndDateContainer &&
+        !this.$refs.cotizacionesEndDateContainer.contains(event.target)) {
         this.showCotizacionesEndCalendar = false;
       }
     },
   },
 
-  watch: {
-    "cuentasPaginacion.currentPage"() {
-      this.obtenerCuentasPorCobrar();
-    },
-    filtroNombreProducto() {
-      this.productosPaginacion.currentPage = 1;
-      this.obtenerProductosVendidosConNombres();
-    },
-    "filtroFechas.inicio"() {
-      this.paginaActualPagos = 1;
-    },
-    "filtroFechas.fin"() {
-      this.paginaActualPagos = 1;
-    },
-    "productosPaginacion.currentPage"() {
-      this.obtenerProductosVendidosConNombres();
-    },
-    busquedaCliente() {
-      this.paginaActualCuentas = 1;
-    },
-    filtroEstado() {
-      this.paginaActualCuentas = 1;
-    },
-    paginaActualPagos() {
-      this.obtenerHistorialPagos();
-    },
-    porPaginaPagos() {
-      this.paginaActualPagos = 1;
-      this.obtenerHistorialPagos();
-    },
-  },
+
 };
 </script>
 
@@ -2007,7 +1728,8 @@ export default {
   border-top: 1px solid #f0f0f0;
 }
 
-.btn-clear, .btn-today {
+.btn-clear,
+.btn-today {
   background: none;
   border: none;
   cursor: pointer;
@@ -2016,7 +1738,8 @@ export default {
   border-radius: 4px;
 }
 
-.btn-clear:hover, .btn-today:hover {
+.btn-clear:hover,
+.btn-today:hover {
   background-color: #f0f0f0;
 }
 
@@ -2032,7 +1755,7 @@ export default {
   .column {
     padding: 0.5rem;
   }
-  
+
   .floating-calendar {
     width: 280px;
     left: 50% !important;
