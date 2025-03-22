@@ -1,12 +1,33 @@
 <template>
-    <section>
-         <b-button type="is-primary" size="is-medium" class="is-rounded" icon-left="plus" @click="agregarMarca">
-          Agregar marca
-        </b-button>
+    <section class="section">
+      <div class="container">
+        <div class="level">
+          <div class="level-left">
+            <div class="level-item">
+              <h1 class="title">Gestión de Marcas</h1>
+            </div>
+          </div>
+          <div class="level-right">
+            <div class="level-item">
+              <b-button 
+                type="is-primary" 
+                size="is-medium" 
+                class="is-rounded" 
+                icon-left="plus" 
+                @click="agregarMarca">
+                Agregar Marca
+              </b-button>
+            </div>
+          </div>
+        </div>
+    </div>
 
         <b-table
         paginated
         :data="marcas">
+          <b-table-column field="provider" label="Proveedor" sortable searchable v-slot="props">
+                {{ props.row.provider.name }}
+          </b-table-column>
           <b-table-column field="brandName" label="Marca" sortable searchable v-slot="props">
                 {{ props.row.brandName }}
             </b-table-column>
@@ -30,6 +51,13 @@
                 @click="eliminar(props.row)">Eliminar</b-button>
                 </div>
             </b-table-column>
+
+            <template #empty>
+                <div class="has-text-centered p-4">
+                    <b-icon icon="tag-off" size="is-large"></b-icon>
+                    <p class="is-size-5 mt-2">No hay marcas registradas</p>
+                </div>
+            </template>
         </b-table>
 
          <b-modal
@@ -41,7 +69,15 @@
           aria-label="Modal"
           close-button-aria-label="Close"
           aria-modal>
-              <dialogo-marcas :titulo="tituloModal" :nombre="nombreMarca" @close="onCerrarDialogo" @registrar="onRegistrar" v-if="mostrarDialogoMarcas"></dialogo-marcas>
+              <dialogo-marcas 
+              :titulo="tituloModal" 
+              :nombre="nombreMarca" 
+              :provider-id="proveedorId" 
+              :providers="proveedores" 
+              @close="onCerrarDialogo" 
+              @registrar="onRegistrar" 
+              v-if="mostrarDialogoMarcas">
+             </dialogo-marcas>
         </b-modal>
 
         <b-loading :is-full-page="true" v-model="cargando" :can-cancel="false"></b-loading>
@@ -59,13 +95,16 @@ import apiRequest from '../../Servicios/HttpService';
         data:()=>({
             cargando: false,
             marcas: [],
+            proveedores: [],
             mostrarDialogoMarcas: false,
             tituloModal: "",
             nombreMarca: "",
             idMarca: "",
+            proveedorId: null,
         }),
 
         mounted(){
+            this.obtenerProveedores()
             this.obtenerMarcas()
         },
 
@@ -80,10 +119,7 @@ import apiRequest from '../../Servicios/HttpService';
                     hasIcon: true,
                     onConfirm: () => {
                         this.cargando = true
-                        // HttpService.eliminar('marcas.php',{
-                        //     accion: 'eliminar',
-                        //     id: marca.id
-                        // })
+                       
                         apiRequest({
                             method: 'DELETE',
                             path: `brands/${marca.id}`
@@ -111,36 +147,32 @@ import apiRequest from '../../Servicios/HttpService';
                 this.tituloModal = "Editar"
                 this.mostrarDialogoMarcas = true,
                 this.idMarca = marca.id
-                this.nombreMarca = marca.nombreMarca
+                this.nombreMarca = marca.brandName
+                this.proveedorId = marca.provider?.id
             },
 
             onCerrarDialogo(){
                 this.mostrarDialogoMarcas = false
                 this.nombreMarca = ""
+                this.proveedorId = null
             },
 
-            onRegistrar(nombre) {
+            onRegistrar(datos) {
                 this.cargando = true
 
-
-                // HttpService.registrar('marcas.php', {
-                //     accion: accionARealizar,
-                //     marca: {nombreMarca:nombre, id: this.idMarca }
-                // })
-          
-                console.log('')
                 apiRequest({
                     method: `${this.tituloModal == 'Agregar' ? 'POST': 'PATCH'}`,
                     path:  `${this.tituloModal == 'Agregar' ? 'brands': `brands/${this.idMarca}`}`,
                     data: {
-                        brandName: nombre
+                        brandName: datos.nombre,
+                        providerId: datos.providerId
                     }
                 })
                 .then(registrado => {
                     if(registrado === 'existe'){
                         this.$buefy.toast.open({
                           type: 'is-primary',
-                          message: 'La marca' + nombre +' ya existe, selecciona otra.'
+                          message: 'La marca' + datos.nombre +' ya existe, selecciona otra.'
                         })
                         this.cargando = false
                         return
@@ -160,16 +192,16 @@ import apiRequest from '../../Servicios/HttpService';
             },
 
             agregarMarca(){
-                this.tituloModal = "Agregar"
-                this.mostrarDialogoMarcas = true
+                this.tituloModal = "Agregar";
+                this.obtenerProveedores()
+                this.mostrarDialogoMarcas = true;
+                this.nombreMarca = "";
+                this.proveedorId = null;
             },
 
             obtenerMarcas(){
                 this.cargando = true
-                // let payload = {
-                //   accion: 'obtener'
-                // }
-                // HttpService.obtenerConConsultas('marcas.php', payload)
+                
                 apiRequest({
                     method: 'GET',
                     path: 'brands'
@@ -179,6 +211,16 @@ import apiRequest from '../../Servicios/HttpService';
                   this.cargando = false
                 })
             },
+
+            obtenerProveedores() {
+                apiRequest({ method: 'GET', path: 'providers' })
+                    .then(response => this.proveedores = response.data)   
+            },
+
+            getProviderName(providerId) {
+                const proveedor = this.proveedores.find(p => p.id === providerId);
+                return proveedor?.name || 'Sin Proveedor'
+            }
         }
     }
 </script>

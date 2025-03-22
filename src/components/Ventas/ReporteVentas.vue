@@ -1233,7 +1233,7 @@ export default {
 
     async obtenerIVARango() {
       if (!this.filtroIVARango.startDate || !this.filtroIVARango.endDate) {
-        this.mostrarError("Por favor, seleccione ambas fechas");
+    
         return;
       }
 
@@ -1312,7 +1312,7 @@ export default {
         !this.filtroCotizaciones.startDate ||
         !this.filtroCotizaciones.endDate
       ) {
-        this.mostrarError("Por favor, seleccione ambas fechas");
+
         return;
       }
 

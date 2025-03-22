@@ -21,30 +21,30 @@
               Terminar venta
             </b-button>
           </div>
-          <div class="level-item has-text-centered">
+          <!-- <div class="level-item has-text-centered">
             <b-button class="button is-responsive" type="is-info" inverted icon-left="wallet-plus" size="is-large"
               @click=" abrirDialogo('cuenta')">
               Agregar a cuenta
             </b-button>
-          </div>
-          <div class="level-item has-text-centered">
+          </div> -->
+          <!-- <div class="level-item has-text-centered">
             <b-button class="button is-responsive" type="is-dark" inverted icon-left="wallet-travel" size="is-large"
               @click=" abrirDialogo('apartado')">
               Realizar apartado
             </b-button>
-          </div>
+          </div> -->
           <div class="level-item has-text-centered">
             <b-button class="button is-responsive" type="is-danger" inverted icon-left="cancel" size="is-large"
               @click="cancelarVenta">
               Cancelar
             </b-button>
           </div>
-          <div class="level-item has-text-centered">
+          <!-- <div class="level-item has-text-centered">
             <b-button class="button is-responsive" type="is-warning" inverted icon-left="ticket-outline" size="is-large"
               @click="abrirDialogo('cotiza')">
               Cotizar
             </b-button>
-          </div>
+          </div> -->
         </nav>
       </div>
     </div>
@@ -74,6 +74,7 @@ import ComprobanteCompra from './ComprobanteCompra'
 import MensajeInicial from '../Extras/MensajeInicial'
 import AyudanteSesion from '../../Servicios/AyudanteSesion'
 import apiRequest from '@/Servicios/HttpService'
+import { formatLocalDateTime } from '@/helpers/formatDate'
 // import apiRequest from '@/Servicios/HttpService'
 
 
@@ -127,7 +128,7 @@ export default {
         usuario: AyudanteSesion.obtenerDatosSesion().id,
         nombreCliente: (venta.cliente.name) ? venta.cliente.name : 'Anónimo',
         nombreUsuario: AyudanteSesion.obtenerDatosSesion().nombre,
-        fecha: new Date().toJSON().slice(0, 10).replace(/-/g, '/')
+        fecha: formatLocalDateTime()
       }
 
       let tipo = venta.tipo
@@ -245,7 +246,12 @@ export default {
               type: 'is-info',
               message: tipo.toUpperCase() + ' registrado con éxito'
             });
-            this.mostrarComprobante = true;
+            // this.mostrarComprobante = true;
+            apiRequest({
+              method: 'GET',
+              path: `print/viewThermal/${registrado.data.id}`
+            })
+
           }
         }).catch(error => {
           console.log(error);

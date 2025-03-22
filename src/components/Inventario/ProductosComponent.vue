@@ -10,22 +10,23 @@
 
         <div class="" v-if="productos.length > 0">
             <cartas-totales :totales="cartasTotales" class="mb-4" />
-            <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
-                <b-select v-model="perPage" class="is-flex-grow-1 mr-2">
+            <!-- <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
+                <b-select v-model="perPage" class="is-flex-grow-1 mr-2" @change="resetPagination">
                     <option value="5">5 por página</option>
                     <option value="10">10 por página</option>
-                    <option value="15">15 por página</option>
-                    <option value="20">20 por página</option>
                 </b-select>
              
-            </div>
+            </div> -->
             <div class="table-container">
-                <b-table class="box" :data="productos" :paginated="isPaginated" :per-page="perPage"
+                <b-table class="box" :data="productos"  :per-page="perPage"
                     :current-page.sync="currentPage" :pagination-simple="isPaginationSimple"
                     :pagination-position="paginationPosition" :default-sort-direction="defaultSortDirection"
                     :pagination-rounded="isPaginationRounded" :sort-icon="sortIcon" :sort-icon-size="sortIconSize"
                     default-sort="user.first_name" aria-next-label="Next page" aria-previous-label="Previous page"
                     aria-page-label="Page" aria-current-label="Current page">
+                    <b-table-column label="ID" sortable v-slot="props">
+                        {{ props.row.id }}
+                    </b-table-column>
                     <b-table-column field="code" label="Código de barras" sortable searchable v-slot="props">
                         {{ props.row.code }}
                     </b-table-column>
@@ -102,6 +103,16 @@
                         </div>
                     </b-table-column>
                 </b-table>
+                <b-pagination
+                    v-if="totalPages > 1"
+                    :total="totalProductos"
+                    :current.sync="currentPage"
+                    :per-page="perPage"
+                    :rounded="isPaginationRounded"
+                    :simple="isPaginationSimple"
+                    :position="paginationPosition"
+                    @change="obtenerProductos"
+                ></b-pagination>
             </div>
        
         </div>
@@ -131,8 +142,10 @@ export default {
         sortIcon: 'arrow-up',
         sortIconSize: 'is-medium',
         currentPage: 1,
-        perPage: 5,
-        cartasTotales: []
+        perPage: 10,
+        cartasTotales: [],
+        totalProductos: 0,
+        totalPages: 1
     }),
 
     mounted() {
@@ -251,17 +264,20 @@ export default {
             this.cargando = true
             apiRequest({
                 method: "GET",
-                path: 'products'
+                path: `products?page=${this.currentPage}&limit=${this.perPage}`
             })
                 .then(respuesta => {
-                    this.productos = respuesta.data.products
+
+                    this.productos = respuesta.data.data
+                    this.totalProductos = respuesta.data.total
+                    this.totalPages = respuesta.data.totalPages
                      apiRequest({
                         method: "GET",
                         path: 'products/inventory/total-value'})
                         .then(respuesta => {
-                            console.log('respuesta', respuesta)
+                          
                             this.cartasTotales = [
-                                { nombre: "Número Productos", total: this.productos.length, icono: "package-variant-closed", clase: "has-text-danger" },
+                                { nombre: "Número Productos", total: this.totalProductos, icono: "package-variant-closed", clase: "has-text-danger" },
                                 { nombre: "Total Inventario", total: `$ ${respuesta.data.toFixed(2)}`, icono: "chart-bar-stacked", clase: "has-text-primary" },
                         
                                
@@ -283,6 +299,11 @@ export default {
                 })
 
       
+        },
+
+        resetPagination() {
+            this.currentPage = 1;
+            this.obtenerProductos();
         }
     }
 }

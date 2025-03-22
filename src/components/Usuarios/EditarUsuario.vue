@@ -37,7 +37,7 @@ import FormUsuario from './FormUsuario'
                 method: "get", 
                 path: `users/${this.$route.params.id}`
             })
-            this.datosUsuario = usuario
+            this.datosUsuario = usuario.data
             this.cargando = false
         },
 

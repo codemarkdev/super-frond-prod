@@ -1,107 +1,87 @@
 <template>
-  <b-navbar type="is-warning" class="fondo">
-         <template #brand>
-             <b-navbar-item tag="router-link" :to="{ path: '/' }">
-                 <img
-                     src="@/assets/logo.png"
-                 >
-             </b-navbar-item>
-         </template>
-         <template #start>
-             <b-navbar-item tag="router-link" :to="{ path: '/' }">
-             
-                 <span></span>
-                 Inicio
-             </b-navbar-item>
-             <b-navbar-item  tag="router-link" :to="{ path: '/inventario' }">
-                
-                 <span></span>
-                 Inventario
-             </b-navbar-item> 
- 
-             <b-navbar-item  tag="router-link" :to="{ path: '/marcas-y-categorias' }">
-              
-                 <span></span>
-                 Marcas y categorías
-             </b-navbar-item> 
- 
-     
- 
-             <b-navbar-item>
-                
-                 <b-navbar-dropdown label="Reportes" icon="home">
-                 <b-navbar-item tag="router-link" :to="{ path: '/reporte-ventas' }">
-                  
-                     <span></span>
-                     Ventas
-                 </b-navbar-item>
-                 <b-navbar-item  tag="router-link" :to="{ path: '/Pagos' }">
-              
-              <span></span>
-             Hacer Pagos
-          </b-navbar-item>
-                
-                
-                 </b-navbar-dropdown>
-             </b-navbar-item>
- 
-             <b-navbar-item  tag="router-link" :to="{ path: '/usuarios' }">
-              
-                 <span></span>
-                 Usuarios
-             </b-navbar-item>
-             <b-navbar-item  tag="router-link" :to="{ path: '/Empleados' }">
-              
-              <span></span>
-              Empleados
-          </b-navbar-item>
-             <b-navbar-item  tag="router-link" :to="{ path: '/clientes' }">
-               
-                 <span></span>
-                 Clientes
-             </b-navbar-item>
- 
-         </template>
- 
-         <template #end>
-           
- 
-             <b-navbar-item  tag="router-link" :to="{ path: '/perfil' }">
-                 <b-icon
-                     icon="account"
-                     size="is-medium">
-                 </b-icon>
-                 <span> </span>
-                 {{ usuario }}
-             </b-navbar-item>
-             <b-navbar-item >
-                 <div class="buttons">
-                     <a class="button is-light" @click="salir">
-                         Salir
-                     </a>
-                 </div>
-             </b-navbar-item>
-         </template>
-     </b-navbar>
- </template>
- <script>
-     import AyudanteSesion from '../Servicios/AyudanteSesion'
- 
-     export default {
-         name: "EncabezadoComponent",
- 
-         data:()=>({
-             usuario: ""
-         }),
- 
-         mounted(){
-             this.usuario = AyudanteSesion.obtenerDatosSesion().usuario
-         },
- 
-         methods: {
-             salir(){
-                 AyudanteSesion.cerrarSesion()
-             }
-         }
-     }
- </script>
+    <b-navbar type="is-warning" class="fondo">
+        <template #brand>
+            <b-navbar-item tag="router-link" :to="{ path: '/' }">
+                <img src="@/assets/logo.png" />
+            </b-navbar-item>
+        </template>
+
+        <template #start>
+      
+            <b-navbar-item 
+                v-for="view in viewsWithoutChildren" 
+                :key="view.label" 
+                tag="router-link" 
+                :to="{ path: view.href }"
+            >
+                {{ view.label }}
+            </b-navbar-item>
+
+            <b-navbar-dropdown 
+                v-for="view in viewsWithChildren" 
+                :key="view.label + '-dropdown'" 
+                :label="view.label"
+            >
+                <b-navbar-item 
+                    v-for="child in view.children" 
+                    :key="child.label" 
+                    tag="router-link" 
+                    :to="{ path: child.href }"
+                >
+                    {{ child.label }}
+                </b-navbar-item>
+            </b-navbar-dropdown>
+        </template>
+
+        <template #end>
+            <b-navbar-item tag="router-link" :to="{ path: '/perfil' }">
+                <b-icon icon="account" size="is-medium"></b-icon>
+                <span> </span>
+                {{ usuario }}
+            </b-navbar-item>
+            <b-navbar-item>
+                <div class="buttons">
+                    <a class="button is-light" @click="salir">
+                        Salir
+                    </a>
+                </div>
+            </b-navbar-item>
+        </template>
+    </b-navbar>
+</template>
+
+<script>
+import AyudanteSesion from '../Servicios/AyudanteSesion'
+import rolesConfig from '../config/RolesConfig'
+
+export default {
+    name: "EncabezadoComponent",
+    data() {
+        return {
+            usuario: "",
+            rol: "",
+            views: []
+        };
+    },
+    computed: {
+        viewsWithoutChildren() {
+            return this.views.filter(view => !view.children || view.children.length === 0);
+        },
+        viewsWithChildren() {
+            return this.views.filter(view => view.children && view.children.length > 0);
+        }
+    },
+    mounted() {
+        const sesion = AyudanteSesion.obtenerDatosSesion();
+        this.usuario = sesion.usuario;
+        this.rol = sesion.rol;
+        const roleConfig = rolesConfig[this.rol];
+        this.views = roleConfig.views; 
+    },
+    methods: {
+        salir() {
+            AyudanteSesion.cerrarSesion();
+        }
+    }
+}
+</script>

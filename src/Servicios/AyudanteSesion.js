@@ -8,7 +8,9 @@ const AyudanteSesion = {
     return {
       id: datosUsuario.id,
       usuario: datosUsuario.username,
-      nombre: datosUsuario.name
+      nombre: datosUsuario.name,
+      //rol: datosUsuario.isAdmin ? 'Admin' : 'Cassier'
+       rol: 'Admin'
     }
   },
 
