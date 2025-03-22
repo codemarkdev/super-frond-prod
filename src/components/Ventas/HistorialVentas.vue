@@ -1,5 +1,4 @@
-```vue type="vue" project="Historial Ventas" file="HistorialVentas.vue"
-[v0-no-op-code-block-prefix]<template>
+<template>
   <div class="historial-ventas">
     <header class="header">
       <h1 class="title is-2">Historial General</h1>
@@ -266,15 +265,6 @@
           :empty="mensajeTablaVacia">
           <b-table-column field="date" label="Fecha" v-slot="props">
             {{ formatearFecha(props.row.date) }}
-          </b-table-column>
-          <b-table-column field="products" label="Productos" v-slot="props">
-            <div v-if="props.row.products && props.row.products.length">
-              <div v-for="(producto, index) in props.row.products" :key="index" class="producto-item">
-                {{ producto.productName || 'Producto ' + producto.productId }}
-                <span class="cantidad">({{ producto.quantity }})</span>
-              </div>
-            </div>
-            <span v-else>Sin productos</span>
           </b-table-column>
           <b-table-column field="totalWithIVA" label="Total con IVA" numeric v-slot="props">
             ${{ formatNumber(props.row.totalWithIVA) }}
@@ -1127,41 +1117,7 @@ export default {
         });
 
         if (response.status === 200) {
-          // Guardar las ventas obtenidas
           this.ventasPorFecha = response.data;
-
-          // Si hay ventas, obtener los nombres de los productos
-          if (this.ventasPorFecha.length > 0) {
-            // Para cada venta, obtener los nombres de sus productos
-            await Promise.all(
-              this.ventasPorFecha.map(async (venta) => {
-                if (venta.products && venta.products.length > 0) {
-                  // Para cada producto en la venta, obtener su nombre
-                  await Promise.all(
-                    venta.products.map(async (producto) => {
-                      try {
-                        // Obtener el nombre del producto
-                        const productoResponse = await apiRequest({
-                          method: "GET",
-                          path: `sold-products/${producto.productId}/product`,
-                        });
-
-                        if (productoResponse.status === 200 && productoResponse.data.length > 0) {
-                          // Asignar el nombre del producto
-                          producto.productName = productoResponse.data[0]?.product_name || `Producto ${producto.productId}`;
-                        } else {
-                          producto.productName = `Producto ${producto.productId}`;
-                        }
-                      } catch (error) {
-                        console.error(`Error al obtener nombre del producto ${producto.productId}:`, error);
-                        producto.productName = `Producto ${producto.productId}`;
-                      }
-                    })
-                  );
-                }
-              })
-            );
-          }
 
           if (this.ventasPorFecha.length === 0) {
             this.mensajeTablaVacia =
@@ -1587,18 +1543,6 @@ export default {
 .summary-value {
   font-size: 1.25rem;
   font-weight: bold;
-}
-
-/* Estilos para los productos en la tabla */
-.producto-item {
-  margin-bottom: 4px;
-  font-size: 0.9rem;
-}
-
-.producto-item .cantidad {
-  color: #666;
-  font-size: 0.85rem;
-  margin-left: 4px;
 }
 
 @media screen and (max-width: 768px) {
