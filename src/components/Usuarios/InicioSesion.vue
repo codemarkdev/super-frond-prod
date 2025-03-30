@@ -8,48 +8,30 @@
           </div>
 
           <template v-if="mostrarRegistroInicial">
-            <h1 class="title is-3 has-text-centered is-family-sans-serif animate__animated animate__fadeInDown">Registro Inicial</h1>
-            <p class="subtitle is-6 has-text-centered animate__animated animate__fadeInUp">Crea el primer usuario administrador</p>
+            <h1 class="title is-3 has-text-centered is-family-sans-serif animate__animated animate__fadeInDown">Registro
+              Inicial</h1>
+            <p class="subtitle is-6 has-text-centered animate__animated animate__fadeInUp">Crea el primer usuario
+              administrador</p>
 
             <form @submit.prevent="registrarUsuarioInicial">
               <b-field label="Nombre de usuario" class="input-container animate__animated animate__fadeInLeft">
-                <b-input
-                  v-model="nuevoUsuario.username"
-                  type="text"
-                  placeholder="Ej. admin"
-                  required
-                  expanded>
+                <b-input v-model="nuevoUsuario.username" type="text" placeholder="Ej. admin" required expanded>
                 </b-input>
               </b-field>
 
               <b-field label="Nombre completo" class="input-container animate__animated animate__fadeInLeft">
-                <input
-                  v-model="nuevoUsuario.name"
-                  type="text"
-                  placeholder="Ej. Juan Pérez"
-                  required
-                  class="input"
+                <input v-model="nuevoUsuario.name" type="text" placeholder="Ej. Juan Pérez" required class="input"
                   autocomplete="name">
               </b-field>
 
               <b-field label="Teléfono" class="input-container animate__animated animate__fadeInRight">
-                <b-input
-                  v-model="nuevoUsuario.phone"
-                  type="tel"
-                  placeholder="Ej. 22577777"
-                  required
-                  expanded>
+                <b-input v-model="nuevoUsuario.phone" type="tel" placeholder="Ej. 22577777" required expanded>
                 </b-input>
               </b-field>
 
               <b-field label="Contraseña" class="input-container animate__animated animate__fadeInRight">
-                <b-input
-                  v-model="nuevoUsuario.password"
-                  type="password"
-                  placeholder="Contraseña"
-                  required
-                  password-reveal
-                  expanded>
+                <b-input v-model="nuevoUsuario.password" type="password" placeholder="Contraseña" required
+                  password-reveal expanded>
                 </b-input>
               </b-field>
 
@@ -58,13 +40,8 @@
               </div>
 
               <div v-else class="buttons-container animate__animated animate__fadeInUp">
-                <b-button 
-                  native-type="submit"
-                  type="is-primary" 
-                  size="is-medium" 
-                  icon-left="user-plus" 
-                  class="login-button"
-                  :loading="loading">
+                <b-button native-type="submit" type="is-primary" size="is-medium" icon-left="user-plus"
+                  class="login-button" :loading="loading">
                   Registrar Usuario
                 </b-button>
               </div>
@@ -72,27 +49,19 @@
           </template>
 
           <template v-else>
-            <h1 class="title is-3 has-text-centered is-family-sans-serif animate__animated animate__fadeInDown">Bienvenido</h1>
-            <p class="subtitle is-6 has-text-centered animate__animated animate__fadeInUp">Ingresa tus datos para continuar</p>
+            <h1 class="title is-3 has-text-centered is-family-sans-serif animate__animated animate__fadeInDown">
+              Bienvenido</h1>
+            <p class="subtitle is-6 has-text-centered animate__animated animate__fadeInUp">Ingresa tus datos para
+              continuar</p>
 
             <form @submit.prevent="iniciarSesion">
               <b-field label="Nombre de usuario" class="input-container animate__animated animate__fadeInLeft">
-                <b-input
-                  v-model="usuario.username"
-                  type="text"
-                  placeholder="Ej. Juan"
-                  required
-                  expanded>
+                <b-input v-model="usuario.username" type="text" placeholder="Ej. Juan" required expanded>
                 </b-input>
               </b-field>
 
               <b-field label="Contraseña" class="input-container animate__animated animate__fadeInRight">
-                <b-input
-                  v-model="usuario.password"
-                  type="password"
-                  placeholder="Contraseña"
-                  required
-                  password-reveal
+                <b-input v-model="usuario.password" type="password" placeholder="Contraseña" required password-reveal
                   expanded>
                 </b-input>
               </b-field>
@@ -102,12 +71,7 @@
               </div>
 
               <div v-else class="buttons-container animate__animated animate__fadeInUp">
-                <b-button 
-                  native-type="submit"
-                  type="is-primary" 
-                  size="is-medium" 
-                  icon-left="check" 
-                  class="login-button"
+                <b-button native-type="submit" type="is-primary" size="is-medium" icon-left="check" class="login-button"
                   :loading="loading">
                   Ingresar
                 </b-button>
@@ -121,6 +85,7 @@
 </template>
 
 <script>
+import { formatLocalDateTime } from '@/helpers/formatDate';
 import AyudanteSesion from '@/Servicios/AyudanteSesion'
 import apiRequest from '@/Servicios/HttpService';
 
@@ -214,17 +179,47 @@ export default {
       }
 
       this.loading = true;
-    
+
       try {
         const response = await apiRequest({
-          method: 'POST', 
+          method: 'POST',
           path: "users/login",
-          data: this.usuario, 
+          data: this.usuario,
         })
 
         if (response.status === 201) {
           AyudanteSesion.establecerSesion(response.data);
           
+          const today = formatLocalDateTime()
+          const respCash = await apiRequest({
+            method: 'get',
+            path: `cash-register/details/${response.data.id}/${today}`
+
+          })
+
+          
+          if (respCash.data.length == 0 || respCash.data.state == 'open') {
+            const { status } = await apiRequest({
+              method: 'POST',
+              path: `cash-register/open/${response.data.id}`,
+              data: {
+                initialCash: 0,
+                state: "open"
+              }
+            });
+            if (status === 201) {
+              this.$buefy.toast.open({
+                message: 'Caja abierta exitosamente',
+                type: 'is-success',
+                duration: 5000
+              });
+
+
+            }
+            else {
+              throw new Error('Error al abrir la caja');
+            }
+          }
           this.animateLogin = 'animate__animated animate__fadeOut';
           this.$buefy.toast.open({
             type: 'is-success',
@@ -249,7 +244,7 @@ export default {
         }
       } catch (error) {
         console.error("Error en la autenticación:", error);
-        
+
         this.animateLogin = 'animate__animated animate__shakeX';
         setTimeout(() => {
           this.animateLogin = 'animate__animated animate__fadeIn';
@@ -342,4 +337,3 @@ export default {
   }
 }
 </style>
-

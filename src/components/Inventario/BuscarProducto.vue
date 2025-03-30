@@ -1,9 +1,9 @@
 <template>
-	<b-field label="Buscar producto por nombre o código de barras">
+	<b-field label="Buscar producto por nombre o código de barras" >
 		<b-autocomplete 
 		v-model="producto" id="producto"
 			placeholder="Escribe el nombre o el código de barras del producto" :keep-first="true"
-			:data="productosFiltrados" field="name" @input="buscarProductos" @select="seleccionarProducto"
+			:data="productosFiltrados" field="name" @input="buscarProductos"  @select="seleccionarProducto"
 			size="is-large">
 		</b-autocomplete>
 		
@@ -43,7 +43,8 @@ export default {
 				path: `products/search/${this.producto}`
 			})
 				.then(productos => {
-					this.productosEncontrados = productos.status === 200 ? productos.data : []
+					const productActive = productos.data.filter((item) => item.isDeleted === false)
+					this.productosEncontrados = productos.status === 200 ? productActive : []
 				})
 		},
 
@@ -76,4 +77,6 @@ export default {
 
 }
 </script>
+
+
 

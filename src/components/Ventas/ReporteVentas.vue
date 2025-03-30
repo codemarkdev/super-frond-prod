@@ -1,10 +1,12 @@
 <template>
-  <div class="dashboard">
+  <div class="">
+
     <div class="dashboard-content">
       <!-- Historial de Ventas -->
       <HistorialVentas class="mb-6" />
+
       <!-- Lista de Usuarios -->
-      <div class="card dashboard-card mb-6">
+      <div class="card dashboard-card mb-6" v-if="isAdmin">
         <header class="card-header">
           <p class="card-header-title">
             <b-icon icon="account-multiple" type="is-info"></b-icon>
@@ -29,7 +31,7 @@
         </div>
       </div>
       <!-- Nueva tarjeta: Ventas Mensuales por Usuario -->
-      <div class="card dashboard-card mb-6">
+      <div class="card dashboard-card mb-6" v-if="isAdmin">
         <header class="card-header">
           <p class="card-header-title">
             <b-icon icon="chart-bar" type="is-primary"></b-icon>
@@ -37,7 +39,7 @@
           </p>
         </header>
         <div class="card-content">
-          <div class="field is-grouped mb-4">
+          <div class="is-flex is-align-items-end" :style="{ gap: '1rem' }">
             <div class="control">
               <b-field label="ID de Usuario">
                 <b-input v-model="filtroVentasUsuario.id" type="number" min="1" placeholder="ID del usuario"></b-input>
@@ -46,7 +48,7 @@
             <div class="control">
               <b-field label="Año">
                 <b-select v-model="filtroVentasUsuario.year" expanded>
-                  <option v-for="year in years" :key="year" :value="year">
+                  <option v-for="year in availableYears" :key="year" :value="year">
                     {{ year }}
                   </option>
                 </b-select>
@@ -80,7 +82,7 @@
 
 
       <!-- Detalles de Productos Vendidos -->
-      <div class="card dashboard-card mb-6">
+      <div class="card dashboard-card mb-6" v-if="isAdmin">
         <header class="card-header">
           <p class="card-header-title">
             <b-icon icon="package" type="is-info"></b-icon>
@@ -118,7 +120,7 @@
         </div>
       </div>
       <!-- IVA Mensual -->
-      <div class="card dashboard-card mb-6">
+      <div class="card dashboard-card mb-6" v-if="isAdmin">
         <header class="card-header">
           <p class="card-header-title">
             <b-icon icon="calculator" type="is-info"></b-icon>
@@ -126,11 +128,11 @@
           </p>
         </header>
         <div class="card-content">
-          <div class="field is-grouped mb-4">
+          <div class="is-flex is-align-items-end mb-5" :style="{ gap: '1rem' }">
             <div class="control">
               <b-field label="Año">
                 <b-select v-model="filtroIVA.year" expanded>
-                  <option v-for="year in years" :key="year" :value="year">
+                  <option v-for="year in availableYears" :key="year" :value="year">
                     {{ year }}
                   </option>
                 </b-select>
@@ -170,7 +172,7 @@
       </div>
 
       <!-- IVA por Rango de Fechas -->
-      <div class="card dashboard-card mb-6">
+      <div class="card dashboard-card mb-6" v-if="isAdmin">
         <header class="card-header">
           <p class="card-header-title">
             <b-icon icon="calendar-range" type="is-info"></b-icon>
@@ -178,7 +180,7 @@
           </p>
         </header>
         <div class="card-content">
-          <div class="field is-grouped mb-4">
+          <div class="is-flex is-align-items-end mb-5" :style="{ gap: '1rem' }">
             <div class="control">
               <b-field label="Fecha de Inicio">
                 <div class="date-input-container" ref="ivaStartDateContainer">
@@ -226,7 +228,7 @@
       </div>
 
       <!-- Productos más vendidos -->
-      <div class="card dashboard-card">
+      <div class="card dashboard-card" v-if="isAdmin">
         <header class="card-header">
           <p class="card-header-title">
             <b-icon icon="trophy" type="is-warning"></b-icon>
@@ -256,7 +258,7 @@
         </div>
       </div>
 
-      <div class="columns is-multiline">
+      <div class="columns is-multiline" v-if="isAdmin">
         <!-- Totales por marca -->
         <div class="column is-half">
           <div class="card dashboard-card">
@@ -496,6 +498,8 @@
 import apiRequest from "@/Servicios/HttpService";
 import HistorialVentas from "../Ventas/HistorialVentas";
 import '@/components/stilos/detalles.css';
+import { generateYearRange } from "@/helpers/yearHelper";
+import AyudanteSesion from "@/Servicios/AyudanteSesion";
 
 export default {
   name: "InicioComponent",
@@ -510,6 +514,7 @@ export default {
     const currentMonth = today.getMonth();
 
     return {
+      isAdmin: false,
       historialPagos: {
         data: [],
         total: 0,
@@ -599,7 +604,7 @@ export default {
         { value: 11, label: "Noviembre" },
         { value: 12, label: "Diciembre" },
       ],
-      years: [2023, 2024, 2025, 2026, 2027],
+      availableYears: generateYearRange(2000, currentYear),
       ventasMensualesUsuario: [],
       filtroVentasUsuario: {
         id: 1,
@@ -771,6 +776,7 @@ export default {
     document.addEventListener('click', this.handleClickOutside);
     window.addEventListener('resize', this.updateCalendarPositions);
     window.addEventListener('scroll', this.updateCalendarPositions);
+    this.validRol()
   },
 
   beforeDestroy() {
@@ -815,6 +821,10 @@ export default {
         this.obtenerVentasMensualesUsuario(),
         this.obtenerUsuarios(),
       ]);
+    },
+    validRol (){
+      const {rol} = AyudanteSesion.obtenerDatosSesion();
+      this.isAdmin = rol === 'Admin';
     },
 
     async obtenerProductosVendidosConNombres() {

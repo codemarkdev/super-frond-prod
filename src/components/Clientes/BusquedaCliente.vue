@@ -54,7 +54,8 @@
 				path: `customers/search/${this.cliente}`
 				})
 				.then(clientes =>{ 
-					this.clientesEncontrados = clientes.status === 200 ? clientes.data : []
+					const customerActive = clientes.data.filter((c) => c.isActive === true)
+					this.clientesEncontrados = clientes.status === 200 ? customerActive : []
 				})
 			},
 		},

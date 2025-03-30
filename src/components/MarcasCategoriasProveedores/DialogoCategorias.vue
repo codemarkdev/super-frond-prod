@@ -2,7 +2,7 @@
 	<form @submit.prevent="registrar">
 		<div class="modal-card" style="width: 600px">
 			<header class="modal-card-head">
-				<p class="modal-card-title">{{ titulo }} marca</p>
+				<p class="modal-card-title">{{ titulo }} Categorías</p>
 				<button
 					type="button"
 					class="delete"
@@ -12,12 +12,12 @@
 
 			<section class="modal-card-body">
 				<b-field 
-					label="Nombre de la marca"
+					label="Nombre de la categoría"
 					:type="{'is-danger': errors.length > 0}"
 					:message="errors">
 					<b-input
 						type="text"
-						placeholder="Ej. Nike"
+						placeholder="Bebidas "
 						v-model="nombreMarca"
 						required
 						:maxlength="100"
@@ -86,7 +86,7 @@ export default {
 			this.errors = []
 			
 			if (!this.nombreMarca.trim()) {
-				this.errors.push('El nombre de la marca es requerido')
+				this.errors.push('El nombre de la categoría es requerido')
 			} else if (this.nombreMarca.length < 2) {
 				this.errors.push('El nombre debe tener al menos 2 caracteres')
 			} else if (this.nombreMarca.length > 100) {

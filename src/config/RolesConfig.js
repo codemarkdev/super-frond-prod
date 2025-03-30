@@ -10,6 +10,11 @@ const rolesConfig = {
                 createView("Ventas", "/reporte-ventas"),
                 // createView("Pagos", "/Pagos")
             ]),
+            createView("Ordenes", "/Details", [
+                createView("Detalles de orden", "/Details")
+           
+            ]),
+         
             createView("Usuarios", "/usuarios"),
             createView("Empleados", "/empleados"),
             createView("Clientes", "/clientes")
@@ -36,8 +41,12 @@ const rolesConfig = {
             createView("Proveedores, Marcas y Categorías", "/proveedores-marcas-y-categorias"),
             createView("Ordenes", "/Details", [
                 createView("Detalles de orden", "/Details"),
-                createView("Orden", "/DetallesPedido"),
             ]),
+            createView("Reportes", "/reportes", [
+                createView("Ventas", "/reporte-ventas"),
+                // createView("Pagos", "/Pagos")
+            ]),
+         
         ],
         access: [
             '/agregar-producto',

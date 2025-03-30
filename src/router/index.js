@@ -17,7 +17,6 @@ import CambiarPassword from '@/components/Usuarios/CambiarPassword'
 import Empleados from '@/components/Empleados/Empleados.vue'
 import CierreCaja from '@/components/Caja/CierreCaja.vue'
 import PerfilComponent from '@/components/Usuarios/PerfilComponent.vue'
-import DetallesPedido from '@/components/OrdenesDetalles/DetallesPedido.vue'
 import Details from '@/components/OrdenesDetalles/OrderDatails.vue'
 import AyudanteSesion from '../Servicios/AyudanteSesion';
 import rolesConfig from '../config/RolesConfig';
@@ -60,12 +59,7 @@ const routes = [
     component: ProveedoresMarcasCategorias,
     meta: { requiresAuth: true }
   },
-  {
-    path: '/DetallesPedido',
-    name: 'Detalles de ordenes',
-    component: DetallesPedido,
-    meta: { requiresAuth: true }
-  },
+  
   {
     path: '/Details',
     name: 'OrderDetails',

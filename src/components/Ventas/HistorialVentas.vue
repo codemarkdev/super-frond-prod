@@ -1,6 +1,12 @@
 <template>
+
+
   <div class="historial-ventas">
-    <header class="header">
+
+
+    <!-- Resumen de Ingresos -->
+ <div v-if="isAdmin">
+  <header class="header">
       <h1 class="title is-2">Historial General</h1>
       <p class="subtitle is-5">
         <b-icon icon="calendar-today"></b-icon>
@@ -13,9 +19,7 @@
         }}
       </p>
     </header>
-
-    <!-- Resumen de Ingresos -->
-    <div class="columns is-multiline">
+  <div class="columns is-multiline">
       <!-- Ingreso del Día -->
       <div class="column is-3">
         <div class="card">
@@ -189,7 +193,7 @@
       </div>
 
       <!-- Total de Proveedores -->
-      <div class="column is-3">
+      <div class="column is-3" >
         <div class="card">
           <div class="card-content">
             <div class="level is-mobile">
@@ -211,6 +215,7 @@
         </div>
       </div>
     </div>
+ </div>
 
     <!-- Filtro de Ventas por Fecha -->
     <div class="card mb-5">
@@ -323,7 +328,7 @@
     </div>
 
     <!-- Ventas Mensuales por Año -->
-    <div class="card mb-5">
+    <div class="card mb-5" v-if="isAdmin">
       <div class="ventas-mensuales-header">
         <div class="ventas-mensuales-title">
           <b-icon icon="chart-bar"></b-icon>
@@ -474,6 +479,7 @@
 </template>
 
 <script>
+import AyudanteSesion from "@/Servicios/AyudanteSesion";
 import apiRequest from "@/Servicios/HttpService";
 
 export default {
@@ -485,6 +491,7 @@ export default {
     const currentMonth = today.getMonth();
 
     return {
+      isAdmin: false,
       ingresoHoy: 0,
       ingresoSemanal: 0,
       ingresoMensual: 0,
@@ -609,6 +616,7 @@ export default {
     document.addEventListener('click', this.handleClickOutside);
     window.addEventListener('resize', this.updateCalendarPositions);
     window.addEventListener('scroll', this.updateCalendarPositions);
+    this.validRol()
   },
 
   beforeDestroy() {
@@ -618,53 +626,47 @@ export default {
   },
 
   methods: {
-    // Método para descargar PDF
+    
+    validRol (){
+      const {rol} = AyudanteSesion.obtenerDatosSesion();
+      this.isAdmin = rol === 'Admin';
+    },
     async descargarPDF(venta) {
       if (!venta || !venta.id) {
         this.mostrarError("ID de venta no válido");
         return;
       }
 
-      this.cargando.pdf = venta.id; // Establecer el ID de la venta que está cargando
+      this.cargando.pdf = venta.id;
 
       try {
-        const response = await apiRequest({
-          method: "GET",
-          path: `print/download-pdf/${venta.id}`,
-          responseType: 'blob', // Importante para recibir el archivo como blob
-        });
-
-        if (response.status === 200) {
-          // Crear un objeto URL para el blob
-          const blob = new Blob([response.data], { type: 'application/pdf' });
-          const url = window.URL.createObjectURL(blob);
-          
-          // Crear un enlace temporal y hacer clic en él para descargar
-          const link = document.createElement('a');
-          link.href = url;
-          link.setAttribute('download', `venta-${venta.id}.pdf`);
-          document.body.appendChild(link);
-          link.click();
-          
-          // Limpiar
-          window.URL.revokeObjectURL(url);
+        // Crear un enlace temporal y hacer clic en él para descargar
+        const link = document.createElement('a');
+        link.href = `${process.env.VUE_APP_API}print/download-pdf/${venta.id}`;
+        link.setAttribute('download', `venta-${venta.id}.pdf`);
+        link.setAttribute('target', '_blank');
+        document.body.appendChild(link);
+        link.click();
+        
+        // Limpiar
+        setTimeout(() => {
           document.body.removeChild(link);
-          
-          this.$buefy.toast.open({
-            message: "PDF descargado correctamente",
-            type: "is-success",
-            duration: 3000,
-          });
-        }
+        }, 100);
+        
+        this.$buefy.toast.open({
+          message: "PDF descargado correctamente",
+          type: "is-success",
+          duration: 3000,
+        });
       } catch (error) {
         console.error("Error al descargar el PDF:", error);
         this.mostrarError("Error al descargar el PDF. Por favor, intente nuevamente.");
       } finally {
-        this.cargando.pdf = null; // Restablecer el estado de carga
+        this.cargando.pdf = null;
       }
     },
 
-    // Método para descargar PDF térmico
+    // Método para descargar PDF térmico - ACTUALIZADO
     async descargarPDFThermal(venta) {
       if (!venta || !venta.id) {
         this.mostrarError("ID de venta no válido");
@@ -674,31 +676,24 @@ export default {
       this.cargando.pdfThermal = venta.id;
 
       try {
-        const response = await apiRequest({
-          method: "GET",
-          path: `print/download-pdf-thermal/${venta.id}`,
-          responseType: 'blob',
-        });
-
-        if (response.status === 200) {
-          const blob = new Blob([response.data], { type: 'application/pdf' });
-          const url = window.URL.createObjectURL(blob);
-          
-          const link = document.createElement('a');
-          link.href = url;
-          link.setAttribute('download', `venta-termica-${venta.id}.pdf`);
-          document.body.appendChild(link);
-          link.click();
-          
-          window.URL.revokeObjectURL(url);
+        // Crear un enlace temporal y hacer clic en él para descargar
+        const link = document.createElement('a');
+        link.href = `${process.env.VUE_APP_API}print/download-pdf-thermal/${venta.id}`;
+        link.setAttribute('download', `venta-termica-${venta.id}.pdf`);
+        link.setAttribute('target', '_blank');
+        document.body.appendChild(link);
+        link.click();
+        
+        // Limpiar
+        setTimeout(() => {
           document.body.removeChild(link);
-          
-          this.$buefy.toast.open({
-            message: "PDF térmico descargado correctamente",
-            type: "is-success",
-            duration: 3000,
-          });
-        }
+        }, 100);
+        
+        this.$buefy.toast.open({
+          message: "PDF térmico descargado correctamente",
+          type: "is-success",
+          duration: 3000,
+        });
       } catch (error) {
         console.error("Error al descargar el PDF térmico:", error);
         this.mostrarError("Error al descargar el PDF térmico. Por favor, intente nuevamente.");
@@ -716,10 +711,17 @@ export default {
 
       // Usar la variable de entorno para construir la URL correctamente
       const url = `${process.env.VUE_APP_API}print/view/${venta.id}`;
-      window.open(url, '_blank');
+      
+      // Abrir en nueva pestaña y forzar recarga para evitar caché
+      const newWindow = window.open(url + '?t=' + new Date().getTime(), '_blank');
+      
+      // Verificar si la ventana se abrió correctamente
+      if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+        this.mostrarError("El navegador bloqueó la apertura de la ventana. Por favor, permita ventanas emergentes.");
+      }
     },
 
-    // Método para ver PDF térmico en nueva pestaña
+    // Método para ver PDF térmico
     verPDFThermal(venta) {
       if (!venta || !venta.id) {
         this.mostrarError("ID de venta no válido");
@@ -728,7 +730,14 @@ export default {
 
       // Usar la variable de entorno para construir la URL correctamente
       const url = `${process.env.VUE_APP_API}print/viewThermal/${venta.id}`;
-      window.open(url, '_blank');
+      
+      // Abrir en nueva pestaña y forzar recarga para evitar caché
+      const newWindow = window.open(url + '?t=' + new Date().getTime(), '_blank');
+      
+      // Verificar si la ventana se abrió correctamente
+      if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+        this.mostrarError("El navegador bloqueó la apertura de la ventana. Por favor, permita ventanas emergentes.");
+      }
     },
 
     async obtenerVentasMensuales(year) {

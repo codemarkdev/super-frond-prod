@@ -1,5 +1,8 @@
 <template>
     <section class="section">
+      <b-switch v-if="isAdmin" v-model="isActive" @input="handleSwitchChange" :disabled="!isAdmin">
+            {{ isActive ? 'Proveedores activos' : 'Proveedores inactivos' }}
+        </b-switch>
       <div class="container">
         <div class="level">
           <div class="level-left">
@@ -42,22 +45,22 @@
           <b-table-column field="acciones" label="Acciones" centered v-slot="props">
             <div class="buttons is-centered">
               <b-button 
-                type="is-info" 
-                icon-left="pen" 
-                size="is-small"
-                @click="editar(props.row)"
-                tooltip="Editar proveedor">
-                Editar
-              </b-button>
-              
-              <b-button 
-                type="is-danger" 
+              v-if="isActive"
+                class="btn-link"
                 icon-left="delete" 
                 size="is-small"
-                @click="eliminar(props.row)"
-                tooltip="Eliminar proveedor">
+                @click="eliminar(props.row)">
                 Eliminar
               </b-button>
+              <b-button 
+                class="btn-primary"
+                icon-left="pen" 
+                size="is-small"
+                @click="!isActive ? activarProvider(props.row) : editar(props.row)">
+                       {{ !isActive
+                        ? 'Activar' : 'Editar'}}
+              </b-button>
+              
             </div>
           </b-table-column>
   
@@ -111,12 +114,15 @@
   <script>
   import apiRequest from '@/Servicios/HttpService'
   import DialogoProveedores from './DialogoProveedores'
+import AyudanteSesion from '@/Servicios/AyudanteSesion';
   
   export default {
     name: "ProveedoresComponent",
     components: { DialogoProveedores },
     
-    data: () => ({     
+    data: () => ({ 
+      isAdmin: false,    
+      isActive: true,
       proveedores: [],
       cargando: false,
       mostrarDialogoProveedores: false,
@@ -126,9 +132,59 @@
   
     mounted() {
       this.obtenerProveedores()
+      this.isRole()
     },
   
     methods: {
+      async handleSwitchChange() {
+            this.obtenerProveedores();
+        },
+
+
+        isRole (){
+         const {rol} = AyudanteSesion.obtenerDatosSesion()
+         this.isAdmin = rol === 'Admin'
+
+        },
+
+        
+
+
+      activarProvider(provider) {
+            this.$buefy.dialog.confirm({
+                title: 'Activar proveedor',
+                message: `¿Seguro que quieres reactivar el proveedor <b>${provider.name}</b>?`,
+                confirmText: 'Sí, activar',
+                cancelText: 'Cancelar',
+                type: 'is-success',
+                hasIcon: true,
+                onConfirm: () => {
+                    this.cargando = true
+                    apiRequest({
+                        method: 'POST',
+                        path: `providers/activate/${provider.id}` 
+                    })
+                        .then(resultado => {
+                            if (resultado) {
+                                this.$buefy.toast.open({
+                                    type: 'is-success',
+                                    message: 'Proveedor reactivado correctamente'
+                                })
+                                this.obtenerProveedores() 
+                            }
+                        })
+                        .catch(() => {
+                            this.$buefy.toast.open({
+                                type: 'is-danger',
+                                message: 'Error al reactivar el proveedor'
+                            })
+                        })
+                        .finally(() => {
+                            this.cargando = false
+                        })
+                }
+            })
+        },
       async eliminar(proveedor) {
         this.$buefy.dialog.confirm({
           title: 'Eliminar proveedor',
@@ -243,9 +299,10 @@
       async obtenerProveedores() {
         try {
           this.cargando = true
+            const endpoint = this.isActive ? 'providers' : 'providers/findDelete'
           const response = await apiRequest({
             method: 'GET',
-            path: 'providers'
+            path: endpoint
           })
   
           if (response.status === 200 && Array.isArray(response.data)) {

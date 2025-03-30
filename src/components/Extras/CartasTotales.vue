@@ -1,5 +1,5 @@
 <template>
-	<div class="tile is-ancestor">
+	<div class="tile is-ancestor" >
 		<div class="tile is-parent">
 			<div class="card tile is-child " v-for="(item,index) in totales" :key="index">
 				<div class="card-content">

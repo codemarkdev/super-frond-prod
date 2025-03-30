@@ -1,5 +1,4 @@
 <template>
-  <!-- El template completo se mantiene igual que en la versión anterior -->
   <div class="detalles-pedido">
     <div class="page-header">
       <i class="fas fa-clipboard-list header-icon"></i>
@@ -197,36 +196,35 @@
       
       <div v-show="isPedidosOpen" class="section-content">
         <!-- Buscador -->
-        
-<div class="search-container">
-  <i class="fas fa-search search-icon"></i>
-  <input 
-    type="text" 
-    v-model="searchPedidoQuery" 
-    placeholder="Buscar por número de factura..." 
-    class="search-input"
-  />
-  
-  <div class="filter-container">
-    <label class="filter-label">
-      <i class="fas fa-calendar-alt"></i> Filtrar por fecha:
-    </label>
-    <input 
-      type="date" 
-      v-model="fechaFiltro" 
-      class="date-filter"
-      aria-label="Filtrar por fecha"
-    />
-    <button 
-      v-if="fechaFiltro" 
-      @click="limpiarFiltros" 
-      class="btn-clear-filter" 
-      aria-label="Limpiar filtro de fecha"
-    >
-      <i class="fas fa-times"></i>
-    </button>
-  </div>
-</div>
+        <div class="search-container">
+          <i class="fas fa-search search-icon"></i>
+          <input 
+            type="text" 
+            v-model="searchPedidoQuery" 
+            placeholder="Buscar por número de factura..." 
+            class="search-input"
+          />
+          
+          <div class="filter-container">
+            <label class="filter-label">
+              <i class="fas fa-calendar-alt"></i> Filtrar por fecha:
+            </label>
+            <input 
+              type="date" 
+              v-model="fechaFiltro" 
+              class="date-filter"
+              aria-label="Filtrar por fecha"
+            />
+            <button 
+              v-if="fechaFiltro" 
+              @click="limpiarFiltros" 
+              class="btn-clear-filter" 
+              aria-label="Limpiar filtro de fecha"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
         
         <!-- Estados de carga y error -->
         <div v-if="loadingPedidos" class="message loading">
@@ -618,7 +616,6 @@
 import apiRequest from '@/Servicios/HttpService';
 
 // Importar los estilos desde el archivo CSS externo
-
 import '@/components/stilos/detalles.css';
 
 export default {
@@ -646,7 +643,8 @@ export default {
       nuevoPedido: {
         providerId: '',
         orderDate: this.obtenerFechaActual(),
-        invoiceNumber: ''
+        invoiceNumber: '',
+        isActive: true // Aseguramos que isActive esté incluido y sea true por defecto
       },
       enviandoPedido: false,
       pedidoError: null,
@@ -669,7 +667,8 @@ export default {
       pedidoEditando: {
         id: null,
         orderDate: '',
-        invoiceNumber: ''
+        invoiceNumber: '',
+        isActive: true // Aseguramos que isActive esté incluido y sea true por defecto
       },
       actualizandoPedido: false,
       editError: null,
@@ -686,7 +685,7 @@ export default {
       deleteError: null,
 
       // Nuevo: para controlar qué tarjetas están expandidas
-      expandedCards: {},
+      expandedCards: {}
     };
   },
   
@@ -973,7 +972,8 @@ export default {
       this.nuevoPedido = {
         providerId: '',
         orderDate: this.obtenerFechaActual(),
-        invoiceNumber: ''
+        invoiceNumber: '',
+        isActive: true
       };
       this.pedidoError = null;
       this.pedidoExitoso = false;
@@ -985,10 +985,12 @@ export default {
       this.pedidoExitoso = false;
       
       try {
-        // Convertir providerId a número
+        // Convertir providerId a número y asegurar que isActive sea true
         const pedidoData = {
-          ...this.nuevoPedido,
-          providerId: parseInt(this.nuevoPedido.providerId)
+          providerId: parseInt(this.nuevoPedido.providerId),
+          orderDate: this.nuevoPedido.orderDate,
+          invoiceNumber: this.nuevoPedido.invoiceNumber,
+          isActive: true
         };
         
         const response = await apiRequest({
@@ -1005,7 +1007,8 @@ export default {
           this.nuevoPedido = {
             providerId: '',
             orderDate: this.obtenerFechaActual(),
-            invoiceNumber: ''
+            invoiceNumber: '',
+            isActive: true
           };
           
           // Recargar la lista de pedidos
@@ -1026,7 +1029,8 @@ export default {
         id: pedido.id,
         orderDate: pedido.orderDate,
         invoiceNumber: pedido.invoiceNumber,
-        providerId: pedido.provider?.id || pedido.providerId
+        providerId: pedido.provider?.id || pedido.providerId,
+        isActive: true
       };
       this.showEditModal = true;
       this.editError = null;
@@ -1037,7 +1041,8 @@ export default {
       this.pedidoEditando = {
         id: null,
         orderDate: '',
-        invoiceNumber: ''
+        invoiceNumber: '',
+        isActive: true
       };
       this.editError = null;
     },
@@ -1051,7 +1056,8 @@ export default {
         const datosActualizados = {
           orderDate: this.pedidoEditando.orderDate,
           invoiceNumber: this.pedidoEditando.invoiceNumber,
-          providerId: this.pedidoEditando.providerId
+          providerId: this.pedidoEditando.providerId,
+          isActive: true
         };
         
         const response = await apiRequest({

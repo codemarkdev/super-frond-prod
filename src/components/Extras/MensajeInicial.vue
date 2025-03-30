@@ -16,3 +16,11 @@
         props: ["titulo", "subtitulo"]
     }
 </script>
+
+
+<style scoped>
+.hero {
+    color: var(--primary-light);
+    background-color: var(--primary-dark);
+}
+</style>

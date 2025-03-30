@@ -1,10 +1,10 @@
 <template>
-    <b-navbar type="is-warning" class="fondo">
-        <template #brand>
-            <b-navbar-item tag="router-link" :to="{ path: '/' }">
+    <b-navbar type="is-ligth" class="fondo">
+        <!-- <template #brand>
+            <b-navbar-item  :to="{ path: '/' }">
                 <img src="@/assets/logo.png" />
             </b-navbar-item>
-        </template>
+        </template> -->
 
         <template #start>
       
@@ -40,9 +40,9 @@
                 {{ usuario }}
             </b-navbar-item>
             <b-navbar-item>
-                <div class="buttons">
-                    <a class="button is-light" @click="salir">
-                        Salir
+                <div class="">
+                    <a class="button " @click="salir">
+                        Cerrar sesión
                     </a>
                 </div>
             </b-navbar-item>
@@ -85,3 +85,36 @@ export default {
     }
 }
 </script>
+
+
+<style scoped>
+.fondo {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 3; 
+    background-color: white; 
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); 
+    padding: 0.5rem 1rem; 
+}
+
+body {
+    padding-top: 4rem; 
+}
+
+
+
+ .button {
+    border: none;
+    color: var(--primary-light);
+    background-color: var(--primary-dark);
+ }
+ .button:hover {
+    border: none;
+    color: var(--accent);
+    background-color: var(--primary-dark);
+ }
+
+</style>
+

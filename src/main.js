@@ -4,6 +4,8 @@ import Buefy from 'buefy'
 import 'buefy/dist/buefy.css'
 import '@mdi/font/css/materialdesignicons.css'
 import router from './router'
+import '../src/main.css';
+
 
 Vue.use(Buefy)
 

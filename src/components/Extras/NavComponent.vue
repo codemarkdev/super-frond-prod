@@ -6,7 +6,7 @@
             </div>
          </div>
 
-        <div class="level-right">
+        <div class="level-right" v-if="isActive">
             <p class="level-item">
                 <b-button
                 class="is-rounded"
@@ -23,6 +23,6 @@
 <script>
 	export default{
 		name: "NavComponent",
-		props: ["titulo", "link", "texto"]
+		props: ["titulo", "link", "texto", 'isActive']
 	}
 </script>

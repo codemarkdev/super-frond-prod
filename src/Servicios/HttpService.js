@@ -1,10 +1,10 @@
 import axios from "axios";
 
-const apiRequest = async ({ method, path, data = {} }) => {
+const apiRequest = async ({ method, path, data = {} , responseType = 'json' }) => {
   try {
     const headers = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
+      'Content-Type': responseType === 'json' ? 'application/json' : 'application/pdf',
+      'Accept': responseType === 'json' ? 'application/json' : 'application/pdf',
     };
 
     const response = await axios({
@@ -12,6 +12,7 @@ const apiRequest = async ({ method, path, data = {} }) => {
       url: `${process.env.VUE_APP_API}${path}`,
       data,
       headers,
+      responseType: responseType === 'json' ? 'json' : 'blob' 
     });
 
     return response;
