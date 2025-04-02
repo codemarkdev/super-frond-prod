@@ -55,11 +55,17 @@
             </b-table-column>
 
             <b-table-column field="cashInHand" label="Efectivo" numeric sortable v-slot="props">
-              {{ formatCurrency(props.row.cashInHand) }}
+              <template v-if="props.row.state == 'closed'">
+                {{ formatCurrency(props.row.cashInHand) }}
+              </template>
+              <template v-else>-</template>
             </b-table-column>
 
             <b-table-column field="totalSales" label="Ventas" numeric sortable v-slot="props">
-              {{ formatCurrency(props.row.totalSales) }}
+              <template v-if="props.row.state == 'closed'">
+                {{ formatCurrency(props.row.totalSales) }}
+              </template>
+              <template v-else>-</template>
             </b-table-column>
 
             <!-- <b-table-column field="totalPayments" label="Pagos" numeric sortable v-slot="props">
@@ -67,14 +73,20 @@
               </b-table-column> -->
 
             <b-table-column field="expectedCash" label="Esperado" numeric sortable v-slot="props">
-              {{ formatCurrency(props.row.expectedCash) }}
+              <template v-if="props.row.state == 'closed'">
+                {{ formatCurrency(props.row.expectedCash) }}
+              </template>
+              <template v-else>-</template>
             </b-table-column>
 
             <b-table-column field="discrepancy" label="Discrepancia" numeric sortable v-slot="props">
-              <span
-                :class="{ 'has-text-danger': props.row.discrepancy > 0, 'has-text-success': props.row.discrepancy < 0 }">
-                {{ formatCurrency(props.row.discrepancy) }}
-              </span>
+              <template v-if="props.row.state == 'closed'">
+                <span
+                  :class="{ 'has-text-danger': props.row.discrepancy > 0, 'has-text-success': props.row.discrepancy < 0 }">
+                  {{ formatCurrency(props.row.discrepancy) }}
+                </span>
+              </template>
+              <template v-else>-</template>
             </b-table-column>
           </b-table>
         </div>
@@ -241,3 +253,4 @@ export default {
   overflow-y: auto;
 }
 </style>
+

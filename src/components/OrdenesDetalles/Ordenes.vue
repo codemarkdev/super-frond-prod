@@ -1,5 +1,4 @@
-```vue type="vue" project="Inventory Management" file="src/components/OrdenesDetalles/Ordenes.vue"
-[v0-no-op-code-block-prefix]<template>
+<template>
   <div class="ordenes-component">
     <div class="section">
       <div class="section-header">
@@ -179,7 +178,12 @@
                   v-model="ordenEditando.invoiceNumber" 
                   placeholder="Ej: INV-12345"
                   required
+                  :disabled="tieneProductosRegistrados"
                 >
+                <p v-if="tieneProductosRegistrados" class="help is-warning">
+                  <i class="fas fa-exclamation-triangle mr-1"></i>
+                  No se puede editar el número de factura porque ya tiene productos registrados.
+                </p>
               </div>
             </div>
 
@@ -518,7 +522,8 @@ export default {
         invoiceNumber: '',
         orderDate: '',
         isActive: true,
-        provider: null
+        provider: null,
+        orderDetails: []
       },
       actualizando: false,
       
@@ -562,6 +567,13 @@ export default {
     paginaFin() {
       const fin = this.paginaActual * this.elementosPorPagina;
       return fin > this.ordenesFiltradas.length ? this.ordenesFiltradas.length : fin;
+    },
+    
+    // Verificar si la orden tiene productos registrados
+    tieneProductosRegistrados() {
+      return this.ordenEditando && 
+             this.ordenEditando.orderDetails && 
+             this.ordenEditando.orderDetails.length > 0;
     }
   },
   
@@ -806,14 +818,33 @@ export default {
     },
     
     // Abrir modal de edición
-    abrirModalEditar(orden) {
-      this.ordenEditando = {
+    async abrirModalEditar(orden) {
+      // Hacer una copia profunda de la orden para editar
+      this.ordenEditando = JSON.parse(JSON.stringify({
         id: orden.id,
         invoiceNumber: orden.invoiceNumber,
         orderDate: orden.orderDate,
         isActive: orden.isActive,
-        provider: orden.provider
-      };
+        provider: orden.provider,
+        orderDetails: orden.orderDetails || []
+      }));
+      
+      // Si no tenemos los detalles de la orden, los obtenemos
+      if (!orden.orderDetails || !Array.isArray(orden.orderDetails)) {
+        try {
+          const response = await apiRequest({
+            method: 'GET',
+            path: `orders/${orden.id}`
+          });
+          
+          if (response.status === 200 && response.data) {
+            this.ordenEditando.orderDetails = response.data.orderDetails || [];
+          }
+        } catch (error) {
+          console.error("Error al obtener detalles de la orden:", error);
+          this.ordenEditando.orderDetails = [];
+        }
+      }
       
       this.modalEditarActivo = true;
     },
@@ -826,7 +857,8 @@ export default {
         invoiceNumber: '',
         orderDate: '',
         isActive: true,
-        provider: null
+        provider: null,
+        orderDetails: []
       };
     },
     
@@ -837,36 +869,23 @@ export default {
       this.actualizando = true;
       
       try {
+        // Si tiene productos registrados, no permitimos cambiar el número de factura
+        const datosActualizacion = {
+          orderDate: this.ordenEditando.orderDate
+        };
+        
+        // Solo incluimos el invoiceNumber si no tiene productos registrados
+        if (!this.tieneProductosRegistrados) {
+          datosActualizacion.invoiceNumber = this.ordenEditando.invoiceNumber;
+        }
+        
         const response = await apiRequest({
           method: 'PATCH',
           path: `orders/${this.ordenEditando.id}`,
-          data: {
-            orderDate: this.ordenEditando.orderDate,
-            invoiceNumber: this.ordenEditando.invoiceNumber
-          }
+          data: datosActualizacion
         });
         
         if (response.status === 200) {
-          // Actualizar la orden en la lista local
-          const index = this.ordenes.findIndex(o => o.id === this.ordenEditando.id);
-          if (index !== -1) {
-            this.ordenes[index] = {
-              ...this.ordenes[index],
-              orderDate: this.ordenEditando.orderDate,
-              invoiceNumber: this.ordenEditando.invoiceNumber
-            };
-          }
-          
-          // Actualizar también en las órdenes filtradas
-          const indexFiltrado = this.ordenesFiltradas.findIndex(o => o.id === this.ordenEditando.id);
-          if (indexFiltrado !== -1) {
-            this.ordenesFiltradas[indexFiltrado] = {
-              ...this.ordenesFiltradas[indexFiltrado],
-              orderDate: this.ordenEditando.orderDate,
-              invoiceNumber: this.ordenEditando.invoiceNumber
-            };
-          }
-          
           // Mostrar mensaje de éxito
           this.$buefy.toast.open({
             message: 'Orden actualizada correctamente',
@@ -875,6 +894,9 @@ export default {
           
           // Cerrar el modal
           this.cerrarModalEditar();
+          
+          // Recargar los datos para asegurar que todo esté actualizado
+          await this.cargarOrdenes();
         } else {
           throw new Error(`Error ${response.status}: No se pudo actualizar la orden`);
         }
@@ -1045,8 +1067,7 @@ export default {
         // Siempre mostrar el modal, incluso si no hay datos
         this.modalResumenActivo = true;
       }
-    }
-,
+    },
     
     // Cerrar modal de resumen financiero
     cerrarModalResumen() {

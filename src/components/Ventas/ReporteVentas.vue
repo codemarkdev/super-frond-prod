@@ -5,8 +5,9 @@
       <!-- Historial de Ventas -->
       <HistorialVentas class="mb-6" />
 
-      <!-- Lista de Usuarios -->
-      <div class="card dashboard-card mb-6" v-if="isAdmin">
+
+ <!-- Lista de Usuarios -->
+ <div class="card dashboard-card mb-6" v-if="isAdmin">
         <header class="card-header">
           <p class="card-header-title">
             <b-icon icon="account-multiple" type="is-info"></b-icon>
@@ -30,6 +31,88 @@
           </b-table>
         </div>
       </div>
+
+      <!-- Nueva sección: Ingresos Diarios del Usuario -->
+      <div class="card dashboard-card mb-6" v-if="isAdmin">
+        <header class="card-header">
+          <p class="card-header-title">
+            <b-icon icon="cash-register" type="is-info"></b-icon>
+            Ingresos Diarios del Usuario
+          </p>
+        </header>
+        <div class="card-content">
+          <div class="is-flex is-align-items-end" :style="{ gap: '1rem' }">
+            <div class="control">
+              <b-field label="ID de Usuario">
+                <b-input v-model="filtroIngresosDiarios.id" type="number" min="1" placeholder="ID del usuario"></b-input>
+              </b-field>
+            </div>
+            <div class="control align-self-flex-end">
+              <b-button type="is-primary" @click="obtenerIngresosDiariosUsuario" :loading="cargando.ingresosDiarios">
+                Consultar
+              </b-button>
+            </div>
+            <div class="control align-self-flex-end">
+              <b-button type="is-light" @click="limpiarIngresosDiariosUsuario"
+                :disabled="!ingresosDiarios.totalIncome">
+                Limpiar
+              </b-button>
+            </div>
+          </div>
+
+          <div class="columns mt-4">
+            <div class="column">
+              <div class="box has-text-centered">
+                <p class="heading">Ingresos de Hoy</p>
+                <p class="title">${{ formatNumber(ingresosDiarios.totalIncome) }}</p>
+                <p class="subtitle is-6">{{ obtenerFechaActual() }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nueva sección: Ingresos Semanales del Usuario -->
+      <div class="card dashboard-card mb-6" v-if="isAdmin">
+        <header class="card-header">
+          <p class="card-header-title">
+            <b-icon icon="calendar-week" type="is-success"></b-icon>
+            Ingresos Semanales del Usuario
+          </p>
+        </header>
+        <div class="card-content">
+          <div class="is-flex is-align-items-end" :style="{ gap: '1rem' }">
+            <div class="control">
+              <b-field label="ID de Usuario">
+                <b-input v-model="filtroIngresosSemanales.id" type="number" min="1" placeholder="ID del usuario"></b-input>
+              </b-field>
+            </div>
+            <div class="control align-self-flex-end">
+              <b-button type="is-primary" @click="obtenerIngresosSemanalesUsuario" :loading="cargando.ingresosSemanales">
+                Consultar
+              </b-button>
+            </div>
+            <div class="control align-self-flex-end">
+              <b-button type="is-light" @click="limpiarIngresosSemanalesUsuario"
+                :disabled="!ingresosSemanales.totalIncome">
+                Limpiar
+              </b-button>
+            </div>
+          </div>
+
+          <div class="columns mt-4">
+            <div class="column">
+              <div class="box has-text-centered">
+                <p class="heading">Ingresos de la Semana</p>
+                <p class="title">${{ formatNumber(ingresosSemanales.totalIncome) }}</p>
+                <p class="subtitle is-6">{{ obtenerRangoSemanaActual() }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+     
       <!-- Nueva tarjeta: Ventas Mensuales por Usuario -->
       <div class="card dashboard-card mb-6" v-if="isAdmin">
         <header class="card-header">
@@ -555,6 +638,8 @@ export default {
         ventasUsuario: false,
         usuarios: false,
         cotizaciones: false,
+        ingresosDiarios: false,
+        ingresosSemanales: false, // Nuevo estado de carga para ingresos semanales
       },
       filtroNombreProducto: "",
       paginaActual: 1,
@@ -620,7 +705,23 @@ export default {
       filtroEstado: "",
       cuentasPorPagina: 10,
 
-      // Nuevas variables para los calendarios personalizados
+      // Variables para ingresos diarios
+      ingresosDiarios: {
+        totalIncome: "0.00"
+      },
+      filtroIngresosDiarios: {
+        id: 1
+      },
+
+      // Nuevas variables para ingresos semanales
+      ingresosSemanales: {
+        totalIncome: "0.00"
+      },
+      filtroIngresosSemanales: {
+        id: 1
+      },
+
+      // Variables para los calendarios personalizados
       // Calendario IVA
       ivaFechaInicioInput: "",
       ivaFechaFinInput: "",
@@ -808,6 +909,33 @@ export default {
       });
     },
 
+    obtenerFechaActual() {
+      return new Date().toLocaleDateString("es-MX", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+      });
+    },
+
+    obtenerRangoSemanaActual() {
+      const today = new Date();
+      const firstDayOfWeek = new Date(today);
+      const day = today.getDay();
+      const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Ajustar cuando el día es domingo
+      firstDayOfWeek.setDate(diff);
+      
+      const lastDayOfWeek = new Date(firstDayOfWeek);
+      lastDayOfWeek.setDate(lastDayOfWeek.getDate() + 6);
+      
+      const formatOptions = { day: 'numeric', month: 'long' };
+      const firstDayFormatted = firstDayOfWeek.toLocaleDateString('es-MX', formatOptions);
+      const lastDayFormatted = lastDayOfWeek.toLocaleDateString('es-MX', formatOptions);
+      const yearFormatted = today.toLocaleDateString('es-MX', { year: 'numeric' });
+      
+      return `${firstDayFormatted} al ${lastDayFormatted} de ${yearFormatted}`;
+    },
+
     async cargarTodosDatos() {
       await Promise.all([
         this.obtenerProductosVendidosConNombres(),
@@ -820,6 +948,8 @@ export default {
         this.obtenerIVARango(),
         this.obtenerVentasMensualesUsuario(),
         this.obtenerUsuarios(),
+        this.obtenerIngresosDiariosUsuario(),
+        this.obtenerIngresosSemanalesUsuario(), // Agregamos la carga de ingresos semanales
       ]);
     },
     validRol (){
@@ -983,7 +1113,67 @@ export default {
       }
     },
 
-    //
+    // Método para obtener ingresos diarios del usuario
+    async obtenerIngresosDiariosUsuario() {
+      if (!this.filtroIngresosDiarios.id) {
+        this.mostrarError("Por favor, ingrese un ID de usuario válido");
+        return;
+      }
+
+      this.cargando.ingresosDiarios = true;
+      try {
+        const response = await apiRequest({
+          method: "GET",
+          path: `users/${this.filtroIngresosDiarios.id}/today-income`,
+        });
+
+        if (response?.data) {
+          this.ingresosDiarios.totalIncome = response.data.totalIncome || 0;
+        }
+      } catch (error) {
+        console.error("Error al obtener ingresos diarios del usuario:", error);
+        this.mostrarError("Error al cargar los ingresos diarios del usuario");
+      } finally {
+        this.cargando.ingresosDiarios = false;
+      }
+    },
+
+    // Método para obtener ingresos semanales del usuario
+    async obtenerIngresosSemanalesUsuario() {
+      if (!this.filtroIngresosSemanales.id) {
+        this.mostrarError("Por favor, ingrese un ID de usuario válido");
+        return;
+      }
+
+      this.cargando.ingresosSemanales = true;
+      try {
+        const response = await apiRequest({
+          method: "GET",
+          path: `users/${this.filtroIngresosSemanales.id}/weekly-income`,
+        });
+
+        if (response?.data) {
+          this.ingresosSemanales.totalIncome = response.data.totalIncome || 0;
+        }
+      } catch (error) {
+        console.error("Error al obtener ingresos semanales del usuario:", error);
+        this.mostrarError("Error al cargar los ingresos semanales del usuario");
+      } finally {
+        this.cargando.ingresosSemanales = false;
+      }
+    },
+
+    // Método para limpiar los ingresos diarios
+    limpiarIngresosDiariosUsuario() {
+      this.ingresosDiarios.totalIncome = "0.00";
+      this.filtroIngresosDiarios.id = null;
+    },
+
+    // Método para limpiar los ingresos semanales
+    limpiarIngresosSemanalesUsuario() {
+      this.ingresosSemanales.totalIncome = "0.00";
+      this.filtroIngresosSemanales.id = null;
+    },
 
     async obtenerIVAMensual() {
       this.cargando.iva = true;
@@ -1080,8 +1270,6 @@ export default {
       }
     },
 
-
-
     cambiarPaginaProductos(pagina) {
       this.productosPaginacion.currentPage = pagina;
       this.obtenerProductosVendidosConNombres();
@@ -1110,8 +1298,6 @@ export default {
       this.filtroVentasUsuario.id = null;
       this.filtroVentasUsuario.year = new Date().getFullYear();
     },
-
-
 
     mostrarError(mensaje) {
       this.$buefy.toast.open({
@@ -1339,10 +1525,7 @@ export default {
       this.showIvaEndCalendar = false;
     },
 
-
-
     toggleCotizacionesEndCalendar() {
-
       if (this.showIvaStartCalendar) {
         this.showIvaStartCalendar = false;
       }
@@ -1581,8 +1764,6 @@ export default {
       }
     },
   },
-
-
 };
 </script>
 

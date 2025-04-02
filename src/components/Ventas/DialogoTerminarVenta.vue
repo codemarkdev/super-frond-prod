@@ -9,12 +9,12 @@
 					@click="$emit('close', 'venta')"/>
 			</header>
 			<section class="modal-card-body">
-				<p class="is-size-1 has-text-weight-bold">Total ${{ totalVenta }}</p>
+				<p class="is-size-1 has-text-weight-bold">Total ${{ totalFormateado }}</p>
 				<busqueda-cliente @seleccionado="onSeleccionado" />
 				<b-field label="El cliente paga con" >
 					<b-input step="any" ref="pagado" icon="currency-usd" type="number" placeholder="Monto pagado" v-model="pagado" @input="calcularCambio" @keyup.enter.native="terminarVenta" size="is-medium"></b-input>
 				</b-field>
-				<p class="is-size-1 has-text-weight-bold">Cambio ${{ cambio }}</p>
+				<p class="is-size-1 has-text-weight-bold">Cambio ${{ cambioFormateado }}</p>
 			</section>
 			<footer class="modal-card-foot">
 				<b-button
@@ -46,6 +46,18 @@
 			cliente: {}
 		}),
 
+		computed: {
+			totalFormateado() {
+				// Formatear el total con 2 decimales fijos para la visualización
+				const total = parseFloat(this.totalVenta);
+				return isNaN(total) ? "0.00" : total.toFixed(2);
+			},
+			cambioFormateado() {
+				// Formatear el cambio con 2 decimales fijos para la visualización
+				return this.cambio.toFixed(2);
+			}
+		},
+
 		mounted(){
 			this.$refs.pagado.focus()
 		},
@@ -56,11 +68,22 @@
 			},
 
 			calcularCambio(){
-				this.cambio = parseFloat(this.pagado-this.totalVenta)
+				if (this.pagado === "") {
+					this.cambio = 0;
+					return;
+				}
+				
+				// Convertir a números
+				const pagadoNum = parseFloat(this.pagado);
+				const totalNum = parseFloat(this.totalVenta);
+				
+				// Usar Math.round para evitar problemas de precisión de punto flotante
+				// Multiplicamos por 100, redondeamos, y luego dividimos por 100
+				this.cambio = Math.round((pagadoNum - totalNum) * 100) / 100;
 			},
 
 			terminarVenta(){
-				if(this.pagado === "" || this.pagado < this.totalVenta) {
+				if(this.pagado === "" || parseFloat(this.pagado) < parseFloat(this.totalVenta)) {
 					this.$buefy.toast.open({
                          type: 'is-danger',
                          message: 'Debes colocar el total pagado.'
@@ -68,11 +91,16 @@
                     return
 				}
 
+				// Ensure cliente object exists with at least an empty structure
+				const clienteData = Object.keys(this.cliente).length > 0 
+					? this.cliente 
+					: { id: null, name: '' };
+
 				let payload = {
 					tipo: 'venta',
 					pagado: this.pagado,
 					cambio: this.cambio,
-					cliente: this.cliente
+					cliente: clienteData
 				}
 
 				this.$emit("terminar", payload)
@@ -80,3 +108,4 @@
 		}
 	}
 </script>
+

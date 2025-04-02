@@ -215,7 +215,7 @@ export default {
         })),
         cliente: venta.cliente.id,
         usuario: AyudanteSesion.obtenerDatosSesion().id,
-        nombreCliente: (venta.cliente.name) ? venta.cliente.name : 'Anónimo',
+        nombreCliente: venta.cliente.name || '',
         nombreUsuario: AyudanteSesion.obtenerDatosSesion().nombre,
         fecha: formatLocalDateTime()
       }
@@ -379,7 +379,8 @@ export default {
       })
     },
 
-
+ 
+    
     abrirDialogo(opcion) {
       this.mostrarDialogo = true
       switch (opcion) {
