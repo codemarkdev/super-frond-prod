@@ -3,35 +3,107 @@
         <div class="container">
             <div class="card">
                 <div class="card-content">
-                   
-                        <h1 class="title has-text-centered">
-                            <span class="icon-text">
-                                <span class="icon">
-                                    <i class="mdi mdi-cash-register"></i>
-                                </span>
-                                <span>{{ cajaAbierta ? 'Cerrar' : 'Abrir' }} Caja </span>
+                    <h1 class="title has-text-centered">
+                        <span class="icon-text">
+                            <span class="icon">
+                                <i class="mdi mdi-cash-register"></i>
                             </span>
-                        </h1>
-                        <user-info :cargando="cargando" :userData="userData" />
-                        <date-info :fecha="fecha" :hora="hora" />
-                        <cash-input :cajaAbierta="cajaAbierta" @inputData="updateData" />
-                        <action-btn :cajaAbierta="cajaAbierta" :isValidAmount="isValidAmount" :cargando="cargando"
-                            :actionCash="handleCashAction" :isButtonDisabled="isButtonDisabled" />
-                        <div class="notification is-info is-light mt-4">
-                            <p class="has-text-centered">
-                                <span class="icon">
-                                    <i class="mdi mdi-information"></i>
-                                </span>
-                                Asegúrese de contar correctamente el efectivo antes de cerrar la caja.
+                            <span>Cerrar Caja</span>
+                        </span>
+                    </h1>
+                    <user-info :cargando="cargando" :userData="userData" />
+                    <date-info :fecha="fecha" :hora="hora" />
+                    
+                    <!-- Resumen de ventas del turno actual (solo visible cuando la caja está abierta) -->
+                    <div class="card mt-4 mb-4" v-if="cajaAbierta">
+                        <header class="card-header">
+                            <p class="card-header-title">
+                                Resumen del Turno Actual
                             </p>
+                        </header>
+                        <div class="card-content">
+                            <div class="content">
+                                <div class="columns is-multiline">
+                                    <div class="column is-full">
+                                        <div class="box p-3">
+                                            <div class="columns is-mobile">
+                                                <div class="column is-8">
+                                                    <p>
+                                                        <span class="icon">
+                                                            <i class="mdi mdi-cart"></i>
+                                                        </span>
+                                                        <span>Ventas de {{ userData.name }} en este turno:</span>
+                                                    </p>
+                                                </div>
+                                                <div class="column is-4 has-text-right">
+                                                    <p class="has-text-weight-bold">{{ formatNumber(totalVentasHoy) }}</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="is-divider" style="margin: 0.5rem 0;"></div>
+                                            
+                                            <div class="columns is-mobile">
+                                                <div class="column is-8">
+                                                    <p class="has-text-weight-bold">
+                                                        <span class="icon">
+                                                            <i class="mdi mdi-cash-register"></i>
+                                                        </span>
+                                                        <span>EFECTIVO ESPERADO EN CAJA:</span>
+                                                    </p>
+                                                </div>
+                                                <div class="column is-4 has-text-right">
+                                                    <p class="has-text-weight-bold is-size-5">{{ formatNumber(totalVentasHoy) }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="notification is-info is-light mt-2">
+                                    <p class="has-text-centered">
+                                        <span class="icon">
+                                            <i class="mdi mdi-information"></i>
+                                        </span>
+                                        Este es el primer cierre del día. El efectivo esperado corresponde a las ventas realizadas por {{ userData.name }} en su turno.
+                                        <br>
+                                        <strong>Debe ingresar exactamente {{ formatNumber(totalVentasHoy) }} para evitar discrepancias.</strong>
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                        
+                    </div>
+                    
+                    <cash-input :cajaAbierta="cajaAbierta" @inputData="updateData" />
+                    <action-btn :cajaAbierta="cajaAbierta" :isValidAmount="isValidAmount" :cargando="cargando"
+                        :actionCash="handleCashAction" :isButtonDisabled="isButtonDisabled" />
+                    <div class="notification is-info is-light mt-4">
+                        <p class="has-text-centered">
+                            <span class="icon">
+                                <i class="mdi mdi-information"></i>
+                            </span>
+                            Asegúrese de contar correctamente el efectivo antes de cerrar la caja.
+                        </p>
                     </div>
                 </div>
             </div>
-            <confir-modal :cashInHand="cashInHand" :cargando="cargando"
-                            :showConfirmModal.sync="showConfirmModal" @confirmar-cierre="confirmarCierreCaja" />
-                        <cierre-info v-if="cierreInfo" :cierreInfo="cierreInfo" />
+        </div>
+        <confir-modal 
+            :cashInHand="cashInHand" 
+            :cargando="cargando"
+            :showConfirmModal.sync="showConfirmModal" 
+            :ventasTurno="totalVentasHoy"
+            :efectivoEsperado="totalVentasHoy"
+            @confirmar-cierre="confirmarCierreCaja" 
+        />
+        <cierre-info 
+            v-if="cierreInfo" 
+            :cierreInfo.sync="cierreInfo" 
+            :userData="userData"
+            :hayTurnoPrevio="false"
+            :esTurnoPrevioMismoUsuario="false"
+            :turnoPrevioInfo="{}"
+            :ventasTurno="totalVentasHoy"
+        />
     </section>
 </template>
 
@@ -56,7 +128,7 @@ export default {
     data() {
         return {
             cargando: false,
-            cajaAbierta: false,
+            cajaAbierta: true, // Always set to true since we only want to close the register
             cashInHand: null,
             disableBtn: false,
             userData: {
@@ -94,13 +166,18 @@ export default {
     },
 
     methods: {
+        formatNumber(value) {
+            if (value === null || value === undefined) return '-';
+            return Number(value).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+        },
+        
         mostrarError(mensaje) {
-        this.$buefy.toast.open({
-          message: mensaje,
-          type: 'is-danger',
-          duration: 5000
-        });
-      },
+            this.$buefy.toast.open({
+                message: mensaje,
+                type: 'is-danger',
+                duration: 5000
+            });
+        },
 
         formatDateToYYYYMMDD() {
             const d = new Date();
@@ -110,7 +187,7 @@ export default {
             return `${year}-${month}-${day}`;
         },
 
-      async validCashRegister() {
+        async validCashRegister() {
             const sesion = AyudanteSesion.obtenerDatosSesion();
             if (!sesion) {
                 throw new Error('ID de usuario no encontrado');
@@ -123,12 +200,11 @@ export default {
             console.log(data)
 
             if (status == 200) {
-                data.length > 0 && data?.[0]?.state == 'open' ? this.cajaAbierta = true : this.cajaAbierta = false
+                // Always set cajaAbierta to true since we only want to close the register
+                this.cajaAbierta = true;
                 const hasClosedState = data.some(item => item.state === 'closed');
-                hasClosedState ? this.disableBtn = true : this.disableBtn = false
-
+                hasClosedState ? this.disableBtn = true : this.disableBtn = false;
             }
-
         },
         updateData(newData) {
             this.cashInHand = newData;
@@ -141,7 +217,14 @@ export default {
             const now = new Date();
             return now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
         },
+        actualizarFecha() {
+            this.fecha = this.getFormattedDate();
+            this.hora = this.getFormattedTime();
+        },
         handleCashAction() {
+            // Prevent multiple clicks
+            if (this.cargando || this.showConfirmModal) return;
+            
             if (this.cajaAbierta) {
                 this.showConfirmModal = true;
             } else {
@@ -161,6 +244,7 @@ export default {
                 })
                 if (status === 200) {
                     this.userData = {
+                        id: sesion.id,
                         name: data.name ?? '-',
                         username: data.username ?? '-',
                         phone: data.phone || '-'
@@ -170,11 +254,13 @@ export default {
                 }
             } catch (error) {
                 this.mostrarError('Error al cargar datos del usuario');
-                this.userData = { name: '-', username: '-', phone: '-' };
+                this.userData = { id: '', name: '-', username: '-', phone: '-' };
             } finally {
                 this.cargando = false;
             }
         },
+        /* 
+        // Commented out since we don't need the open register functionality
         async abrirCaja() {
             if (!this.isValidAmount) {
                 this.mostrarError('Por favor ingrese un monto válido');
@@ -225,8 +311,12 @@ export default {
                 this.cashInHand = null;
             }
         },
+        */
 
         async confirmarCierre() {
+            // Prevent multiple submissions
+            if (this.cargando) return;
+            
             this.cargando = true
             try {
                 const { id: userId } = AyudanteSesion.obtenerDatosSesion()
@@ -239,6 +329,7 @@ export default {
                     path: `cash-register/close/${userId}`,
                     data: {
                         cashInHand: Number(this.cashInHand), 
+                        expectedCash: Number(this.totalVentasHoy), // Add this line to include the expected cash
                         state: "closed",
                         totalPayments: 0
                     }
@@ -271,16 +362,34 @@ export default {
             }
         },
         confirmarCierreCaja() {
+            // Prevent multiple submissions
+            if (this.cargando) return;
             this.confirmarCierre();
         },
         async obtenerTotalVentasHoy() {
             try {
-                const { data } = await apiRequest({
+                const sesion = AyudanteSesion.obtenerDatosSesion();
+                if (!sesion) return;
+                
+                const userId = sesion.id;
+                
+                // Usar el endpoint para obtener las ventas específicas del usuario actual
+                const response = await apiRequest({
                     method: 'GET',
-                    path: 'sales/today-income'
-                });
-                this.totalVentasHoy = data ?? 0
-
+                    path: `users/${userId}/today-income`
+                }).catch(() => ({ data: null }));
+                
+                if (response && response.data !== null && response.data !== undefined) {
+                    // Si tenemos datos específicos del usuario
+                    this.totalVentasHoy = Number(response.data.totalIncome || 0);
+                } else {
+                    // Intentar con el endpoint general
+                    const generalResponse = await apiRequest({
+                        method: 'GET',
+                        path: 'sales/today-income'
+                    });
+                    this.totalVentasHoy = generalResponse.data ?? 0;
+                }
             } catch (error) {
                 console.error('Error al obtener el total de ventas de hoy:', error);
                 if (error.response?.status === 404) {
@@ -291,8 +400,9 @@ export default {
                 this.totalVentasHoy = 0;
             }
         },
-
-    
+        obtenerTotalCuentasPorPagar() {
+            // Keeping this empty method as it was in your original code
+        }
     }
 }
 </script>
@@ -367,8 +477,26 @@ export default {
     margin-top: 0.75rem;
 }
 
+.mt-4 {
+    margin-top: 1rem;
+}
+
+.mb-4 {
+    margin-bottom: 1rem;
+}
+
 .mt-6 {
     margin-top: 1.5rem;
+}
+
+.p-3 {
+    padding: 0.75rem;
+}
+
+.is-divider {
+    height: 1px;
+    background-color: #dbdbdb;
+    margin: 1rem 0;
 }
 
 .is-loading {
@@ -389,3 +517,4 @@ export default {
     margin-bottom: 0.5rem;
 }
 </style>
+

@@ -10,7 +10,7 @@
 			</b-table-column>
 
 			<b-table-column field="precio" label="Precio" v-slot="props">
-				${{ props.row.precio }}
+				${{ formatPrice(props.row.precio) }}
 			</b-table-column>
 
 			<b-table-column field="cantidad" label="Cantidad" v-slot="props">
@@ -21,7 +21,7 @@
 			</b-table-column>
 
 			<b-table-column field="subtotal" label="Subtotal" v-slot="props">
-				<b>${{ props.row.precio * props.row.cantidad }}</b>
+				<b>${{ formatPrice(calcularSubtotal(props.row)) }}</b>
 			</b-table-column>
 
 			<b-table-column field="quitar" label="Quitar" v-slot="props">
@@ -49,7 +49,20 @@
 
 			aumentar(producto){
 				this.$emit("aumentar", producto)
-			}
+			},
+            
+            // Método para calcular el subtotal con precisión
+            calcularSubtotal(producto) {
+                return parseFloat((producto.precio * producto.cantidad).toFixed(2));
+            },
+            
+            // Método para formatear precios y evitar problemas de precisión
+            formatPrice(value) {
+                // Asegurarse de que value sea un número
+                const num = typeof value === 'string' ? parseFloat(value) : value;
+                // Usar toFixed(2) para obtener 2 decimales exactos
+                return parseFloat(num).toFixed(2);
+            }
 		}
 	}
 </script>
