@@ -113,8 +113,8 @@
                         </div>
                         <div class="field">
                             <label class="label">Precio de Compra</label>
-                            <div class="control">
-                                <input class="input" type="number" v-model="ordenEditada.purchasePrice" step="0.01" min="0">
+                            <div  class="control">
+                                <input readonly class="input" type="number" v-model="ordenEditada.purchasePrice" step="0.01" min="0">
                             </div>
                         </div>
                     </div>

@@ -25,13 +25,13 @@
         <li :class="{ 'is-active': activeTab === 'ordenes' }">
           <a @click="cambiarTab('ordenes')">
             <span class="icon is-small"><i class="fas fa-list-alt"></i></span>
-            <span>Órdenes Registradas</span>
+            <span>Listado de Órdenes</span>
           </a>
         </li>
         <li :class="{ 'is-active': activeTab === 'ordenesLista' }">
           <a @click="cambiarTab('ordenesLista')">
             <span class="icon is-small"><i class="fas fa-clipboard-list"></i></span>
-            <span>Lista de Órdenes</span>
+            <span>Órdenes Registradas</span>
           </a>
         </li>
         <li :class="{ 'is-active': activeTab === 'buscar' }">
@@ -47,11 +47,11 @@
             <span>Órdenes Eliminadas</span>
           </a>
         </li>
-        <!-- Solo mostrar la pestaña de Pedidos Eliminados si el usuario es admin -->
+        <!-- Solo mostrar la pestaña de PListado de Órdenes eliminados si el usuario es admin -->
         <li v-if="esAdmin" :class="{ 'is-active': activeTab === 'pedidosEliminados' }">
           <a @click="cambiarTab('pedidosEliminados')">
             <span class="icon is-small"><i class="fas fa-trash-restore"></i></span>
-            <span>Pedidos Eliminados</span>
+            <span>Listado de Órdenes eliminados</span>
           </a>
         </li>
       </ul>
@@ -139,11 +139,15 @@
                         <div v-if="producto.esExistente" class="form-row">
                           <div class="form-group product-id-group">
                             <label :for="`productId_${index}`">
-                              <i class="fas fa-hashtag label-icon"></i> ID del producto:
+                              <i class="fas fa-hashtag label-icon"></i> Producto:
                             </label>
                             <div class="input-wrapper product-id-wrapper">
-                              <input type="number" :id="`productId_${index}`" v-model="producto.productId"
-                                class="form-control" placeholder="Ej: 1" required />
+                              <select :id="`productId_${index}`" v-model="producto.productId" class="form-control" required>
+                                <option value="" disabled>Seleccione un producto</option>
+                                <option v-for="prod in productosDisponibles" :key="prod.id" :value="prod.id">
+                                  {{ prod.name }} ({{ prod.code }})
+                                </option>
+                              </select>
                               <button type="button" @click="buscarProducto(index)" class="btn btn-search"
                                 :disabled="!producto.productId || producto.cargando">
                                 <i class="fas" :class="producto.cargando ? 'fa-spinner fa-spin' : 'fa-search'"></i>
@@ -517,11 +521,16 @@ export default {
       exitoso: false,
       categorias: [],
       marcas: [],
+      productosDisponibles: [], // Añadido para almacenar la lista de productos
       cargandoCategorias: false,
       cargandoMarcas: false,
+      cargandoProductos: false, // Añadido para controlar el estado de carga de productos
       esAdmin: false,
       ordenesDisponibles: [],
-      cargandoOrdenes: false
+      cargandoOrdenes: false,
+      paginaActual: 1,
+      totalPaginas: 1,
+      limite: 100 // Usar un límite alto para obtener más productos de una vez
     };
   },
 
@@ -543,6 +552,7 @@ export default {
   created() {
     this.cargarCategorias();
     this.cargarMarcas();
+    this.cargarProductos(); // Añadido para cargar la lista de productos al inicio
     this.verificarAdmin();
 
     // 👇 También lo cargamos aquí por si el tab inicial es 'activos'
@@ -553,6 +563,75 @@ export default {
   },
 
   methods: {
+    // Método actualizado para usar la estructura correcta de la API
+    async cargarProductos() {
+      this.cargandoProductos = true;
+      try {
+        // Usar los parámetros de paginación correctos
+        const response = await apiRequest({
+          method: 'GET',
+          path: `products?page=${this.paginaActual}&limit=${this.limite}`
+        });
+
+        if (response.status === 200) {
+          // Extraer los datos según la estructura de respuesta proporcionada
+          if (response.data && response.data.data && Array.isArray(response.data.data)) {
+            this.productosDisponibles = response.data.data;
+            this.totalPaginas = response.data.totalPages || 1;
+            
+            // Si hay más páginas y necesitamos cargar más productos
+            if (this.totalPaginas > 1 && this.paginaActual < this.totalPaginas) {
+              this.cargarMasProductos();
+            }
+          } else {
+            console.warn('Estructura de respuesta inesperada:', response.data);
+            this.productosDisponibles = [];
+          }
+        } else {
+          console.error('Error al cargar productos:', response.status);
+          this.productosDisponibles = [];
+        }
+      } catch (err) {
+        console.error('Error al cargar productos:', err);
+        this.$buefy.toast.open({
+          message: `Error al cargar productos: ${err.message || 'Error desconocido'}`,
+          type: 'is-danger'
+        });
+        this.productosDisponibles = [];
+      } finally {
+        this.cargandoProductos = false;
+      }
+    },
+
+    // Método para cargar más productos si hay paginación
+    async cargarMasProductos() {
+      if (this.paginaActual >= this.totalPaginas) return;
+      
+      this.paginaActual++;
+      this.cargandoProductos = true;
+      
+      try {
+        const response = await apiRequest({
+          method: 'GET',
+          path: `products?page=${this.paginaActual}&limit=${this.limite}`
+        });
+
+        if (response.status === 200 && response.data && response.data.data) {
+          // Añadir los nuevos productos a la lista existente
+          this.productosDisponibles = [...this.productosDisponibles, ...response.data.data];
+          
+          // Verificar si hay más páginas para cargar
+          if (this.paginaActual < response.data.totalPages) {
+            this.cargarMasProductos(); // Cargar la siguiente página recursivamente
+          }
+        }
+      } catch (err) {
+        console.error('Error al cargar más productos:', err);
+      } finally {
+        this.cargandoProductos = false;
+      }
+    },
+
     // ✅ Este método recarga las órdenes solo cuando se entra al tab de 'activos'
     cambiarTab(tab) {
       if ((tab === 'eliminados' || tab === 'pedidosEliminados') && !this.esAdmin) {
@@ -568,6 +647,11 @@ export default {
       if (tab === 'activos') {
         this.ordenActual.invoiceNumber = '';
         this.cargarOrdenesDisponibles();
+        
+        // Asegurarse de que tenemos productos cargados cuando entramos a este tab
+        if (this.productosDisponibles.length === 0 && !this.cargandoProductos) {
+          this.cargarProductos();
+        }
       }
     },
 
@@ -671,6 +755,11 @@ export default {
     },
 
     agregarProductoALista() {
+      // Asegurarse de que tenemos productos cargados cuando agregamos un nuevo producto
+      if (this.productosDisponibles.length === 0 && !this.cargandoProductos) {
+        this.cargarProductos();
+      }
+      
       this.ordenActual.products.push({
         esExistente: true,
         productId: null,
