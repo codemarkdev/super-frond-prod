@@ -62,7 +62,7 @@ export default {
 	computed: {
 		productosFiltrados() {
 			if (this.productosEncontrados.length === 0) {
-                return [{ name: "No existen productos con ese nombre", noResults: true }]
+                return
             }
 			return this.productosEncontrados.filter(opcion => {
 				return (
