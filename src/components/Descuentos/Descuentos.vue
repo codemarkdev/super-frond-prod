@@ -85,11 +85,11 @@
           </b-table-column>
 
           <b-table-column field="product" label="Producto" v-slot="props">
-            {{ props.row.product ? props.row.product.name : 'Todos' }}
+            {{ props.row.productId ? props.row.productId: 'Todos' }}
           </b-table-column>
 
           <b-table-column field="category" label="Categoría" v-slot="props">
-            {{ props.row.category ? props.row.category.categoryName : 'Todas' }}
+            {{ props.row.categoryId ? props.row.categoryId : 'Todas' }}
           </b-table-column>
 
           <b-table-column field="startDate" label="Fecha Inicio" v-slot="props">

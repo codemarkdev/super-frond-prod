@@ -43,8 +43,13 @@ export default {
 				path: `products/search/${this.producto}`
 			})
 				.then(productos => {
-					const productActive = productos.data.filter((item) => item.isDeleted === false)
-					this.productosEncontrados = productos.status === 200 ? productActive : []
+					if (Array.isArray(productos.data)) {
+						const productActive = productos.data.filter((item) => item.isDeleted === false);
+						this.productosEncontrados = productos.status === 200 ? productActive : [];
+					} else {
+						console.error("Unexpected response format: productos.data is not an array");
+						this.productosEncontrados = [];
+					}
 				})
 		},
 

@@ -627,10 +627,10 @@
         }
       } else {
         console.error('Error al cargar órdenes disponibles:', response.status);
-        this.$buefy.toast.open({
-          message: `Error al cargar órdenes disponibles: ${response.status}`,
-          type: 'is-danger'
-        });
+        // this.$buefy.toast.open({
+        //   message: `Error al cargar órdenes disponibles: ${response.status}`,
+        //   type: 'is-danger'
+        // });
       }
     } catch (err) {
       console.error('Error al cargar órdenes disponibles:', err);

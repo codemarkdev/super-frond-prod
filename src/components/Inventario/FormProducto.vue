@@ -159,14 +159,14 @@ export default {
         },
 
         setSelectedValues() {
-            if (this.marcas.length > 0) {
+            if (this.marcas.length > 0 && this.producto.brand) {
                 const selectedMarca = this.marcas.find(marca => marca.id === this.producto.brand.id);
                 if (selectedMarca) {
                     this.producto.brandId = selectedMarca.id;
                 }
             }
 
-            if (this.categorias.length > 0) {
+            if (this.categorias.length > 0 && this.producto.category) {
                 const selectedCategoria = this.categorias.find(categoria => categoria.id === this.producto.category.id);
                 if (selectedCategoria) {
                     this.producto.categoryId = selectedCategoria.id;
