@@ -6,6 +6,9 @@
 			:data="productosFiltrados" field="name" @input="buscarProductos"  @select="seleccionarProducto"
 			size="is-large">
 		</b-autocomplete>
+		<p v-if="producto && productosFiltrados.length === 0" class="has-text-danger">
+            No se encontraron productos.
+        </p>
 		
 	</b-field>
 </template>
