@@ -76,7 +76,8 @@ export default {
 					||
 					opcion?.code
 						.toString()
-						.indexOf(this.producto) >= 0
+						.toLowerCase()
+						.indexOf(this.producto.toLowerCase()) >= 0
 				)
 			})
 		}
