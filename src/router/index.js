@@ -21,118 +21,120 @@ import Details from '@/components/OrdenesDetalles/OrderDatails.vue'
 import AyudanteSesion from '../Servicios/AyudanteSesion';
 import rolesConfig from '../config/RolesConfig';
 
+
 Vue.use(VueRouter)
 
 const routes = [
   {
     path: '/login',
     name: 'Login',
-    component: InicioSesion
+    component: InicioSesion,
+    meta: {title: 'Iniciar-Sesion'}
   },
   {
     path: '/',
     name: 'RealizarVenta',
     component: RealizarVenta,
-    meta: { requiresAuth: true }
+    meta: { title:'Realizar-Venta' , requiresAuth: true }
   },
   {
     path: '/inventario',
     name: 'ProductosComponent',
     component: ProductosComponent,
-    meta: { requiresAuth: true }
+    meta: { title:'Inventario', requiresAuth: true }
   },  
   {
     path: '/agregar-producto',
     name: 'AgregarProducto',
     component: AgregarProducto,
-    meta: { requiresAuth: true }
+    meta: { title: 'Agregar-Producto',requiresAuth: true }
   },  
   {
     path: '/editar-producto/:id',
     name: 'EditarProducto',
     component: EditarProducto,
-    meta: { requiresAuth: true }
+    meta: { title: 'Editar-Producto', requiresAuth: true }
   },
   {
     path: '/proveedores-marcas-y-categorias',
     name: 'MarcasCategoriasProveedores',
     component: ProveedoresMarcasCategorias,
-    meta: { requiresAuth: true }
+    meta: { title: 'Proveedores, Marcas y Categorias', requiresAuth: true }
   },
   
   {
     path: '/Details',
     name: 'OrderDetails',
     component: Details,
-    meta: { requiresAuth: true }
+    meta: { title: 'Detalles de Orden', requiresAuth: true }
   },
   {
     path: '/realizar-venta',
     name: 'RealizarVenta',
     component: RealizarVenta,
-    meta: { requiresAuth: true }
+    meta: { title: 'Inicio', requiresAuth: true }
   },  
   {
     path: '/reporte-ventas',
     name: 'ReporteVentas',
     component: ReporteVentas,
-    meta: { requiresAuth: true }
+    meta: { title: 'Reporte de Ventas', requiresAuth: true }
   },    
  
   {
     path: '/clientes',
     name: 'ClientesComponent',
     component: ClientesComponent,
-    meta: { requiresAuth: true }
+    meta: { title: 'Clientes', requiresAuth: true }
   }, 
   {
     path: '/agregar-cliente',
     name: 'AgregarCliente',
     component: AgregarCliente,
-    meta: { requiresAuth: true }
+    meta: { title: 'Agregar Cliente', requiresAuth: true }
   },
   {
     path: '/editar-cliente/:id',
     name: 'EditarCliente',
     component: EditarCliente,
-    meta: { requiresAuth: true }
+    meta: { title: 'Editar Cliente', requiresAuth: true }
   },  
   {
     path: '/usuarios',
     name: 'UsuariosComponent',
     component: UsuariosComponent,
-    meta: { requiresAuth: true }
+    meta: { title: 'Usuarios', requiresAuth: true }
   },  
   {
     path: '/agregar-usuario',
     name: 'AgregarUsuario',
     component: AgregarUsuario,
-    meta: { requiresAuth: true }
+    meta: { title: 'Agregar Usuario', requiresAuth: true }
   },
   {
     path: '/editar-usuario/:id',
     name: 'EditarUsuario',
     component: EditarUsuario,
-    meta: { requiresAuth: true }
+    meta: { title: 'Editar Usuario', requiresAuth: true }
   },  
   {
     path: '/cambiar-password/:id',
     name: 'CambiarPassword',
     component: CambiarPassword,
-    meta: { requiresAuth: true }
+    meta: { title: 'Cambiar Password', requiresAuth: true }
   },  
 
   {
     path: '/empleados',
     name: 'Empleados',
     component: Empleados,
-    meta: { requiresAuth: true }
+    meta: { title: 'Empleados', requiresAuth: true }
   },
   {
     path: '/perfil',
     name: 'CierreCaja',
     component: CierreCaja,
-    meta: { requiresAuth: true }
+    meta: { title: 'Cerrar Caja', requiresAuth: true }
   },  
   {
     path: '/perfil-old',
@@ -144,7 +146,7 @@ const routes = [
     path: '/cambiar-password',
     name: 'CambiarPassword',
     component: CambiarPassword,
-    meta: { requiresAuth: true }
+    meta: { title: 'Cambiar Contraseña', requiresAuth: true }
   },
 
 ]
@@ -155,6 +157,7 @@ const router = new VueRouter({
 });
 
 router.beforeEach((to, from, next) => {
+  document.title = to.meta.title || 'Super Campos';
   const sesion = AyudanteSesion.obtenerDatosSesion();
   if (!sesion || !sesion.rol) {
     if (to.path !== '/login') {
