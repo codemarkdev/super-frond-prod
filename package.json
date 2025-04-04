@@ -7,7 +7,7 @@
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "pm2-start": "pm2 serve dist 4000 --spa --name super-campos-frontend",
-     "pm2-start-prod": "npm run build && npm run pm2-start"
+    "pm2-start-prod": "npm run build && npm run pm2-start"
   },
   "dependencies": {
     "@mdi/font": "^6.7.96",
