@@ -10,50 +10,64 @@
       :subtitulo="'Agrega algunos productos a la lista para venderlos'" v-if="productos.length < 1" />
     <div v-if="productos.length > 0">
       <tabla-productos :listaProductos="productos" @quitar="onQuitar" @aumentar="onAumentar" />
-      
+
       <!-- Sección de descuentos disponibles -->
       <div class="box mt-3" v-if="descuentosDisponibles.length > 0">
         <h4 class="title is-5 mb-3">Descuentos Disponibles</h4>
         <div class="columns is-multiline">
-          <div class="column is-12" v-for="(descuento, index) in descuentosDisponibles" :key="index">
-            <div class="card mb-2">
-              <div class="card-content p-3">
-                <div class="level mb-0">
-                  <div class="level-left">
-                    <div class="level-item">
-                      <div>
-                        <p class="is-size-6 has-text-weight-bold">{{ descuento.discount.name }}</p>
-                        <p class="is-size-7">
-                          <b-tag :type="descuento.discount.type === 'PERCENTAGE' ? 'is-info' : 'is-success'" size="is-small">
-                            {{ descuento.discount.type === 'PERCENTAGE' ? 'Porcentaje' : 'Monto Fijo' }}
-                          </b-tag>
-                          <span class="ml-1">
-                            {{ descuento.discount.type === 'PERCENTAGE' ? 
-                              `${descuento.discount.value}%` : 
-                              `$${descuento.discount.value}` }}
-                          </span>
-                        </p>
-                        <p class="is-size-7 has-text-grey">
-                          Ahorro: ${{ descuento.discountAmount.toFixed(2) }}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="level-right">
-                    <div class="level-item">
-                      <b-checkbox v-model="descuento.aplicado" 
-                                  @input="actualizarTotalConDescuentos">
-                        Aplicar
-                      </b-checkbox>
-                    </div>
-                  </div>
-                </div>
-              </div>
+         <!-- filepath: c:\Users\adona\Documents\Super\Pos\src\components\Ventas\RealizarVenta.vue -->
+<!-- filepath: c:\Users\adona\Documents\Super\Pos\src\components\Ventas\RealizarVenta.vue -->
+<div class="column is-12" 
+     v-for="(descuento, index) in descuentosDisponibles" 
+     :key="index">
+  <div class="card mb-2">
+    <div class="card-content p-3">
+      <div class="level mb-0">
+        <div class="level-left">
+          <div class="level-item">
+            <div>
+              <p class="is-size-6 has-text-weight-bold">{{ descuento.discount.name }}</p>
+              <p class="is-size-7">
+                <b-tag 
+                  :type="descuento.discount.type === 'PERCENTAGE' ? 'is-info' : 
+                         descuento.discount.type === 'FIXED_AMOUNT' ? 'is-success' : 
+                         descuento.discount.type === 'BUY_X_GET_Y' ? 'is-warning' : 
+                         descuento.discount.type === 'BUNDLE' ? 'is-primary' : 
+                         descuento.discount.type === 'SEASONAL' ? 'is-link' : 'is-dark'"
+                  size="is-small">
+                  {{ descuento.discount.type === 'PERCENTAGE' ? `${descuento.discount.value}%` :
+                     descuento.discount.type === 'FIXED_AMOUNT' ? `$${descuento.discount.value}` :
+                     descuento.discount.type === 'BUY_X_GET_Y' ? `${descuento.discount.name}` :
+                     descuento.discount.type === 'BUNDLE' ? `Paquete ${descuento.discount.value}` :
+                     descuento.discount.type === 'SEASONAL' ? `Descuento ${descuento.discount.value}` : 'N/A' }}
+                </b-tag>
+              </p>
+              <p class="is-size-7 has-text-grey">
+                Ahorro: ${{ descuento.discountAmount.toFixed(2) }}
+              </p>
+              <p v-if="descuento.finalPrice <= 0" class="is-size-7 has-text-danger">
+                Este descuento no puede aplicarse (precio final inválido).
+              </p>
             </div>
           </div>
         </div>
+        <div class="level-right">
+          <div class="level-item">
+            <b-checkbox 
+              v-model="descuento.aplicado" 
+              @input="actualizarTotalConDescuentos"
+              :disabled="descuento.finalPrice <= 0">
+              Aplicar
+            </b-checkbox>
+          </div>
+        </div>
       </div>
-      
+    </div>
+  </div>
+</div>
+        </div>
+      </div>
+
       <div class="notification is-primary-bg mt-3">
         <div v-if="descuentoTotal > 0" class="has-text-centered mb-2">
           <p class="is-size-5">Subtotal: ${{ subtotal.toFixed(2) }}</p>
@@ -69,7 +83,7 @@
               Terminar venta
             </b-button>
           </div>
-         
+
           <!-- <div class="level-item has-text-centered">
             <b-button class="button is-responsive" type="is-info" inverted icon-left="wallet-plus" size="is-large"
               @click=" abrirDialogo('cuenta')">
@@ -96,12 +110,10 @@
           </div> -->
         </nav>
       </div>
-      
+
       <!-- Botón para buscar descuentos -->
       <div class="has-text-centered mt-3" v-if="productos.length > 0 && descuentosDisponibles.length === 0">
-        <b-button type="is-info" 
-                  @click="buscarDescuentosDisponibles" 
-                  :loading="cargandoDescuentos">
+        <b-button type="is-info" @click="buscarDescuentosDisponibles" :loading="cargandoDescuentos">
           Buscar descuentos disponibles
         </b-button>
       </div>
@@ -118,11 +130,8 @@
       <dialogo-cotizar :totalVenta="total" @close="onCerrar" @terminar="onTerminar"
         v-if="mostrarRegistrarCotizacion"></dialogo-cotizar>
     </b-modal>
-    
-    <visorPDF ref="visorPDF" 
-               :urlBase="apiBaseUrl + 'print/viewThermal'"
-               titulo="Comprobante de Venta"
-               />
+
+    <visorPDF ref="visorPDF" :urlBase="apiBaseUrl + 'print/viewThermal'" titulo="Comprobante de Venta" />
     <comprobante-compra :venta="this.ventaRealizada" :tipo="tipoVenta" @impreso="onImpreso" v-if="mostrarComprobante" />
   </section>
 </template>
@@ -187,10 +196,10 @@ export default {
     onTerminar(venta) {
       console.log('venta', venta)
       console.log('user', AyudanteSesion.obtenerDatosSesion())
-      
+
       // Obtener los descuentos aplicados por producto
       const descuentosPorProducto = {};
-      
+
       this.descuentosDisponibles
         .filter(d => d.aplicado)
         .forEach(d => {
@@ -202,7 +211,7 @@ export default {
             quantity: this.productos.find(p => p.id === d.productId)?.cantidad || 1
           });
         });
-      
+
       this.ventaRealizada = {
         total: this.total,
         products: this.productos.map(producto => ({
@@ -259,8 +268,8 @@ export default {
           quantity: product.cantidad,
           ...(includePriceType && { priceType: product.priceType }),
           // Incluir appliedDiscounts si existen para este producto
-          ...(product.appliedDiscounts && product.appliedDiscounts.length > 0 && { 
-            appliedDiscounts: product.appliedDiscounts 
+          ...(product.appliedDiscounts && product.appliedDiscounts.length > 0 && {
+            appliedDiscounts: product.appliedDiscounts
           })
         }));
       };
@@ -329,16 +338,16 @@ export default {
             if (this.tipoVenta === 'cuenta') {
               handlePayment(registrado.data.id);
             }
-            
+
             // Mostrar notificación de éxito
             this.$buefy.toast.open({
               type: 'is-info',
               message: tipo.toUpperCase() + ' registrado con éxito'
             });
-            
+
             // Mostrar el PDF de la venta
             this.mostrarPDFVenta(registrado.data.id);
-            
+
             // Limpiar el estado
             this.productos = [];
             this.total = 0;
@@ -379,8 +388,8 @@ export default {
       })
     },
 
- 
-    
+
+
     abrirDialogo(opcion) {
       this.mostrarDialogo = true
       switch (opcion) {
@@ -412,12 +421,12 @@ export default {
     onQuitar(id) {
       let indice = this.productos.findIndex(producto => producto.id === id)
       this.productos.splice(indice, 1)
-      
+
       // Actualizar descuentos disponibles al quitar un producto
       this.descuentosDisponibles = this.descuentosDisponibles.filter(
         descuento => descuento.productId !== id
       );
-      
+
       this.actualizarTotalConDescuentos();
     },
 
@@ -429,7 +438,7 @@ export default {
       if (producto.vendidoMayoreo) {
         this.verificarMayoreo(producto.cantidadMayoreo, producto.id, producto.precioMayoreo)
       }
-      
+
       // Actualizar descuentos si cambia la cantidad
       this.actualizarDescuentosPorCantidad(producto.id);
       this.actualizarTotalConDescuentos();
@@ -530,7 +539,7 @@ export default {
       producto.cantidad++
       this.productos = lista
     },
-    
+
     // Método optimizado para mostrar el PDF de la venta
     mostrarPDFVenta(ventaId) {
       if (!ventaId) {
@@ -540,21 +549,21 @@ export default {
         });
         return;
       }
-      
+
       // Mostrar notificación de que se está generando el PDF
       this.$buefy.toast.open({
         message: 'Generando comprobante...',
         type: 'is-info',
         duration: 2000
       });
-      
+
       // Esperar un breve momento para que el backend tenga tiempo de generar el PDF
       setTimeout(() => {
         // Abrir el visor de PDF con el ID de la venta
         this.$refs.visorPDF.abrir(ventaId);
       }, 500);
     },
-    
+
     // Método para calcular el total sin descuentos
     calcularTotal() {
       let total = 0
@@ -563,32 +572,32 @@ export default {
       })
       return total
     },
-    
-    // Método para buscar descuentos disponibles para los productos en la venta
+
+
     async buscarDescuentosDisponibles() {
       if (this.productos.length === 0) return;
-      
+
       this.cargandoDescuentos = true;
       this.descuentosDisponibles = [];
-      
+
       try {
         // Para cada producto en la venta, buscar descuentos aplicables
         for (const producto of this.productos) {
           // Construir la URL con los parámetros para el cálculo de descuentos
           const url = `discounts/product/${producto.id}/calculate?quantity=${producto.cantidad}&unitPrice=${producto.precio}`;
-          
+
           const response = await apiRequest({
             method: 'GET',
             path: url
           });
-          
+
           if (response && response.data) {
             // Normalizar la respuesta para asegurar que siempre sea un array
             let resultados = response.data;
             if (!Array.isArray(resultados)) {
               resultados = [resultados];
             }
-            
+
             // Filtrar solo descuentos válidos y añadir información adicional
             const descuentosValidos = resultados
               .filter(d => d.valid)
@@ -598,12 +607,12 @@ export default {
                 productoNombre: producto.nombre,
                 aplicado: false // Por defecto, el descuento no está aplicado
               }));
-            
+
             // Añadir a la lista de descuentos disponibles
             this.descuentosDisponibles = [...this.descuentosDisponibles, ...descuentosValidos];
           }
         }
-        
+
         if (this.descuentosDisponibles.length === 0) {
           this.$buefy.toast.open({
             message: 'No se encontraron descuentos aplicables para los productos seleccionados',
@@ -625,49 +634,124 @@ export default {
         this.cargandoDescuentos = false;
       }
     },
-    
-    // Método para actualizar los descuentos cuando cambia la cantidad de un producto
+
     async actualizarDescuentosPorCantidad(productoId) {
       // Obtener el producto actualizado
       const producto = this.productos.find(p => p.id === productoId);
       if (!producto) return;
-      
+
       // Filtrar los descuentos existentes para este producto
       const descuentosExistentes = this.descuentosDisponibles.filter(
         d => d.productId === productoId
       );
-      
+
       // Si no hay descuentos para este producto, no hacer nada
       if (descuentosExistentes.length === 0) return;
-      
+
       try {
         // Construir la URL con los parámetros actualizados
         const url = `discounts/product/${producto.id}/calculate?quantity=${producto.cantidad}&unitPrice=${producto.precio}`;
-        
+
         const response = await apiRequest({
           method: 'GET',
           path: url
         });
-        
+
         if (response && response.data) {
           // Normalizar la respuesta
           let resultados = response.data;
           if (!Array.isArray(resultados)) {
             resultados = [resultados];
           }
-          
-          // Filtrar solo descuentos válidos
-          const descuentosValidos = resultados.filter(d => d.valid);
-          
+
+          // Filtrar solo descuentos válidos y aplicar lógica según el tipo y cantidad mínima
+          const descuentosValidos = resultados.filter(d => {
+            const descuento = d.discount;
+
+            // Validar si el descuento está activo y dentro del rango de fechas
+            const ahora = new Date();
+            const inicio = new Date(descuento.startDate);
+            const fin = new Date(descuento.endDate);
+
+            if (!descuento.isActive || ahora < inicio || ahora > fin) {
+              return false;
+            }
+
+
+            if (producto.cantidad < descuento.minQuantity) {
+              return false;
+            }
+            switch (descuento.type) {
+  case 'FIXED_AMOUNT':
+    d.discountAmount = descuento.value;
+    d.finalPrice = producto.precio - descuento.value;
+
+    // Validar que el precio final no sea negativo o igual a 0
+    if (d.finalPrice <= 0) {
+      d.discountAmount = 0;
+      d.finalPrice = producto.precio; // Restaurar el precio original
+      return false; // No aplicar el descuento
+    }
+    break;
+
+  case 'PERCENTAGE':
+    d.discountAmount = (producto.precio * descuento.value) / 100;
+    d.finalPrice = producto.precio - d.discountAmount;
+
+    // Validar que el precio final no sea negativo o igual a 0
+    if (d.finalPrice <= 0) {
+      d.discountAmount = 0;
+      d.finalPrice = producto.precio; // Restaurar el precio original
+      return false; // No aplicar el descuento
+    }
+    break;
+
+  case 'BUNDLE':
+    if (producto.cantidad >= descuento.minQuantity) {
+      const bundles = Math.floor(producto.cantidad / descuento.value);
+      d.discountAmount = bundles * producto.precio;
+      d.finalPrice = producto.precio * (producto.cantidad - bundles);
+
+      // Validar que el precio final no sea negativo o igual a 0
+      if (d.finalPrice <= 0) {
+        d.discountAmount = 0;
+        d.finalPrice = producto.precio * producto.cantidad; // Restaurar el precio original
+        return false; // No aplicar el descuento
+      }
+    }
+    break;
+
+  case 'BUY_X_GET_Y':
+    if (producto.cantidad >= descuento.minQuantity) {
+      const gratis = Math.floor(producto.cantidad / (descuento.value + 1));
+      d.discountAmount = gratis * producto.precio;
+      d.finalPrice = producto.precio * (producto.cantidad - gratis);
+
+      // Validar que el precio final no sea negativo o igual a 0
+      if (d.finalPrice <= 0) {
+        d.discountAmount = 0;
+        d.finalPrice = producto.precio * producto.cantidad; // Restaurar el precio original
+        return false; // No aplicar el descuento
+      }
+    }
+    break;
+
+  default:
+    return false;
+}
+
+           
+          });
+
           // Actualizar los descuentos existentes
           const descuentosActualizados = this.descuentosDisponibles.map(d => {
             if (d.productId !== productoId) return d;
-            
+
             // Buscar el descuento actualizado correspondiente
             const descuentoActualizado = descuentosValidos.find(
               nuevo => nuevo.discount.id === d.discount.id
             );
-            
+
             if (descuentoActualizado) {
               return {
                 ...descuentoActualizado,
@@ -684,7 +768,7 @@ export default {
               };
             }
           });
-          
+
           // Filtrar descuentos que ya no son válidos
           this.descuentosDisponibles = descuentosActualizados.filter(
             d => d.valid || d.productId !== productoId
@@ -694,22 +778,23 @@ export default {
         console.error('Error al actualizar descuentos:', error);
       }
     },
-    
+
+
     // Método para actualizar el total con los descuentos aplicados
     actualizarTotalConDescuentos() {
       // Calcular el subtotal (sin descuentos)
       this.subtotal = this.calcularTotal();
-      
+
       // Calcular el total de descuentos aplicados
       this.descuentoTotal = 0;
-      
+
       // Sumar todos los descuentos aplicados
       this.descuentosDisponibles.forEach(descuento => {
         if (descuento.aplicado) {
           this.descuentoTotal += descuento.discountAmount;
         }
       });
-      
+
       // Calcular el total final (subtotal - descuentos)
       this.total = this.subtotal - this.descuentoTotal;
     }
@@ -733,14 +818,13 @@ export default {
     font-size: 0.8rem;
     padding: 0.5em 0.75em;
   }
-  
+
   .level-item .button .icon {
     margin-right: 0.25em;
   }
-  
+
   p[style="font-size:5em"] {
     font-size: 3em !important;
   }
 }
 </style>
-
