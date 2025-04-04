@@ -1,4 +1,3 @@
-
 <template>
   <section>
     <div class="level mb-5">
@@ -8,7 +7,7 @@
         </div>
       </div>
     </div>
-  
+
     <!-- Tabs de navegación -->
     <div class="tabs is-boxed mb-4">
       <ul>
@@ -38,7 +37,7 @@
         </li>
       </ul>
     </div>
-  
+
     <!-- Tab: Lista de Descuentos -->
     <div v-if="activeTab === 'lista'" class="card">
       <header class="card-header">
@@ -48,82 +47,75 @@
         </p>
       </header>
       <div class="card-content">
-        <mensaje-inicial 
-          v-if="!descuentos.length && !cargando.lista" 
-          :titulo="'No hay descuentos registrados'" 
-          :subtitulo="'Crea un nuevo descuento usando la pestaña Nuevo Descuento'" 
-        />
-  
-        <b-table
-          v-else
-          :data="descuentos"
-          :loading="cargando.lista"
-          :striped="true"
-          :hoverable="true"
-          :paginated="true"
-          :per-page="10"
-          :pagination-simple="false"
-          :pagination-position="'bottom'"
-          :pagination-rounded="true"
-        >
+        <mensaje-inicial v-if="!descuentos.length && !cargando.lista" :titulo="'No hay descuentos registrados'"
+          :subtitulo="'Crea un nuevo descuento usando la pestaña Nuevo Descuento'" />
+
+        <b-table v-else :data="descuentos" :loading="cargando.lista" :striped="true" :hoverable="true" :paginated="true"
+          :per-page="10" :pagination-simple="false" :pagination-position="'bottom'" :pagination-rounded="true">
           <b-table-column field="name" label="Nombre" v-slot="props">
             {{ props.row.name }}
           </b-table-column>
-  
+
           <b-table-column field="type" label="Tipo" v-slot="props">
-            <b-tag :type="props.row.type === 'PERCENTAGE' ? 'is-info' : 'is-success'">
-              {{ props.row.type === 'PERCENTAGE' ? 'Porcentaje' : '' }}
-            </b-tag>
+            <b-tag
+                :type="props.row.type === 'PERCENTAGE' ? 'is-info' : props.row.type === 'FIXED_AMOUNT' ? 'is-success' : 'is-warning'">
+                {{ props.row.type === 'PERCENTAGE' ? 'Porcentaje' :
+                  props.row.type === 'FIXED_AMOUNT' ? 'Monto Fijo' :
+                    props.row.type === 'BUY_X_GET_Y' ? 'Promoción' :
+                      props.row.type === 'BUNDLE' ? 'Paquete' :
+                        props.row.type === 'SEASONAL' ? 'Temporal' : 'Otro' }}
+              </b-tag>
           </b-table-column>
-  
-          <b-table-column field="value" label="Valor" v-slot="props">
-            {{ props.row.type === 'PERCENTAGE' ? `${props.row.value}%` : `$${props.row.value}` }}
+
+          <b-table-column field="type" label="Tipo y Valor" v-slot="props">
+            <div>
+            
+              <span class="ml-2">
+                {{ props.row.type === 'PERCENTAGE' ? `${props.row.value}%` :
+                  props.row.type === 'FIXED_AMOUNT' ? `$${props.row.value}` :
+                    props.row.type === 'BUY_X_GET_Y' ? `${props.row.name} ` :
+                      props.row.type === 'BUNDLE' ? `Paquete ${props.row.value}` :
+                        props.row.type === 'SEASONAL' ? `Descuento ${props.row.value}` : 'N/A' }}
+              </span>
+            </div>
           </b-table-column>
-  
+
           <b-table-column field="minQuantity" label="Cantidad Mínima" v-slot="props">
             {{ props.row.minQuantity }}
           </b-table-column>
-  
+
           <b-table-column field="product" label="Producto" v-slot="props">
             {{ props.row.product ? props.row.product.name : 'Todos' }}
           </b-table-column>
-  
+
           <b-table-column field="category" label="Categoría" v-slot="props">
             {{ props.row.category ? props.row.category.categoryName : 'Todas' }}
           </b-table-column>
-  
+
           <b-table-column field="startDate" label="Fecha Inicio" v-slot="props">
             {{ formatDate(props.row.startDate) }}
           </b-table-column>
-  
+
           <b-table-column field="endDate" label="Fecha Fin" v-slot="props">
             {{ formatDate(props.row.endDate) }}
           </b-table-column>
-  
+
           <b-table-column field="isActive" label="Estado" v-slot="props">
             <b-tag :type="props.row.isActive ? 'is-success' : 'is-danger'">
               {{ props.row.isActive ? 'Activo' : 'Inactivo' }}
             </b-tag>
           </b-table-column>
-  
+
           <b-table-column field="acciones" label="Acciones" centered v-slot="props">
             <div class="buttons is-centered">
-          
+
               <b-tooltip label="Editar" position="is-top">
-                <b-button 
-                  class="is-info" 
-                  @click="editarDescuento(props.row)"
-                  size="is-small"
-                >
+                <b-button class="is-info" @click="editarDescuento(props.row)" size="is-small">
                   <b-icon icon="pencil" />
                 </b-button>
               </b-tooltip>
               <b-tooltip label="Eliminar" position="is-top">
-                <b-button 
-                  class="is-danger" 
-                  @click="eliminarDescuento(props.row.id)"
-                  size="is-small"
-                >
+                <b-button class="is-danger" @click="eliminarDescuento(props.row.id)" size="is-small">
                   <b-icon icon="delete" />
                 </b-button>
               </b-tooltip>
@@ -132,7 +124,7 @@
         </b-table>
       </div>
     </div>
-  
+
     <!-- Tab: Nuevo Descuento -->
     <div v-if="activeTab === 'nuevo'" class="card">
       <header class="card-header">
@@ -146,159 +138,115 @@
           <div class="columns is-multiline">
             <!-- Nombre del descuento -->
             <div class="column is-6">
-              <b-field label="Nombre del descuento" 
-                :type="{ 'is-danger': errores.name }" 
-                :message="errores.name"
-              >
+              <b-field label="Nombre del descuento" :type="{ 'is-danger': errores.name }" :message="errores.name">
                 <b-input v-model="nuevoDescuento.name" placeholder="Ej: Descuento de Verano" required></b-input>
               </b-field>
             </div>
-  
+
             <!-- Tipo de descuento -->
             <div class="column is-6">
-              <b-field label="Tipo de descuento" 
-                :type="{ 'is-danger': errores.type }" 
-                :message="errores.type"
-              >
+              <b-field label="Tipo de descuento" :type="{ 'is-danger': errores.type }" :message="errores.type">
                 <b-select v-model="nuevoDescuento.type" placeholder="Seleccione tipo" expanded required>
-                  <option value="PERCENTAGE">Porcentaje (%)</option>
-              
+                  <option value="PERCENTAGE">Descuento porcentual</option>
+                  <option value="FIXED_AMOUNT">Descuento por monto fijo</option>
+                  <option value="BUY_X_GET_Y">Promoción</option>
+                  <option value="BUNDLE">Descuento por paquete</option>
+                  <option value="SEASONAL">Descuento temporal</option>
                 </b-select>
               </b-field>
             </div>
-  
+
             <!-- Valor del descuento -->
             <div class="column is-6">
-              <b-field :label="nuevoDescuento.type === 'PERCENTAGE' ? 'Porcentaje de descuento' : 'Monto de descuento'" 
-                :type="{ 'is-danger': errores.value }" 
-                :message="errores.value"
-              >
-                <b-input 
-                  v-model.number="nuevoDescuento.value" 
-                  type="number" 
-                  :placeholder="nuevoDescuento.type === 'PERCENTAGE' ? 'Ej: 15' : 'Ej: 100'" 
-                  :min="0" 
-                  :max="nuevoDescuento.type === 'PERCENTAGE' ? 100 : null"
-                  step="0.01"
-                  required
-                ></b-input>
+              <b-field :label="nuevoDescuento.type === 'PERCENTAGE'
+                ? 'Porcentaje de descuento'
+                : nuevoDescuento.type === 'FIXED_AMOUNT'
+                  ? 'Monto de descuento'
+                  : nuevoDescuento.type === 'BUY_X_GET_Y'
+                    ? 'Promoción'
+                    : 'Otro tipo de descuento'">
+                <b-input v-model.number="nuevoDescuento.value" type="number"
+                  :placeholder="nuevoDescuento.type === 'PERCENTAGE' ? 'Ej: 15' : 'Ej: 100'" :min="0"
+                  :max="nuevoDescuento.type === 'PERCENTAGE' ? 100 : null" step="0.01" required></b-input>
               </b-field>
             </div>
-  
+
             <!-- Cantidad mínima -->
             <div class="column is-6">
-              <b-field label="Cantidad mínima" 
-                :type="{ 'is-danger': errores.minQuantity }" 
-                :message="errores.minQuantity"
-              >
-                <b-input 
-                  v-model.number="nuevoDescuento.minQuantity" 
-                  type="number" 
-                  placeholder="Ej: 2" 
-                  min="1"
-                  required
-                ></b-input>
+              <b-field label="Cantidad mínima" :type="{ 'is-danger': errores.minQuantity }"
+                :message="errores.minQuantity">
+                <b-input v-model.number="nuevoDescuento.minQuantity" type="number" placeholder="Ej: 2" min="1"
+                  required></b-input>
               </b-field>
             </div>
-  
+
             <!-- ID del Producto  - MODIFICADO PARA INGRESAR DIRECTAMENTE EL ID -->
+
+            <!-- filepath: c:\Users\adona\Documents\Super\Pos\src\components\Descuentos\Descuentos.vue -->
+            <!-- filepath: c:\Users\adona\Documents\Super\Pos\src\components\Descuentos\Descuentos.vue -->
             <div class="column is-6">
-              <b-field label="ID del Producto " 
-                       :type="{ 'is-danger': errores.productId }" 
-                       :message="errores.productId">
-                <b-input 
-                  v-model.number="nuevoDescuento.productId" 
-                  type="number" 
-                  placeholder="Ej: 123" 
-                  min="1"
-                  @blur="validarProductId"
-                ></b-input>
+              <b-field label="Producto" :type="{ 'is-danger': errores.productId }" :message="errores.productId">
+                <b-autocomplete v-model="productoSeleccionado" :data="productos" placeholder="Seleccione un producto"
+                  field="name" :loading="cargando.productos" @select="productoSeleccionadoHandler"
+                  @input="buscarProductos" :open-on-focus="true" :keep-first="true" icon="magnify" required>
+                  <template #empty>No se encontraron productos</template>
+                </b-autocomplete>
               </b-field>
             </div>
-  
             <!-- Categoría  -->
-            <div class="column is-6">
+            <!-- <div class="column is-6">
               <b-field label="Categoría ">
                 <b-select v-model="nuevoDescuento.categoryId" placeholder="Seleccione una categoría" expanded>
-               
+
                   <option v-for="categoria in categorias" :key="categoria.id" :value="categoria.id">
                     {{ categoria.categoryName }}
                   </option>
                 </b-select>
               </b-field>
-            </div>
-  
+            </div> -->
+
             <!-- Fecha de inicio -->
             <div class="column is-6">
-              <b-field label="Fecha de inicio" 
-                :type="{ 'is-danger': errores.startDate }" 
-                :message="errores.startDate"
-              >
+              <b-field label="Fecha de inicio" :type="{ 'is-danger': errores.startDate }" :message="errores.startDate">
                 <div class="date-input-container" ref="startDateContainer">
-                  <input 
-                    type="text" 
-                    class="input" 
-                    placeholder="dd/mm/aaaa" 
-                    v-model="fechaInicioInput" 
-                    @click="toggleStartCalendar" 
-                    readonly
-                  >
+                  <input type="text" class="input" placeholder="dd/mm/aaaa" v-model="fechaInicioInput"
+                    @click="toggleStartCalendar" readonly>
                   <span class="icon is-right">
                     <i class="mdi mdi-calendar"></i>
                   </span>
                 </div>
               </b-field>
             </div>
-  
+
             <!-- Fecha de fin -->
             <div class="column is-6">
-              <b-field label="Fecha de fin" 
-                :type="{ 'is-danger': errores.endDate }" 
-                :message="errores.endDate"
-              >
+              <b-field label="Fecha de fin" :type="{ 'is-danger': errores.endDate }" :message="errores.endDate">
                 <div class="date-input-container" ref="endDateContainer">
-                  <input 
-                    type="text" 
-                    class="input" 
-                    placeholder="dd/mm/aaaa" 
-                    v-model="fechaFinInput" 
-                    @click="toggleEndCalendar" 
-                    readonly
-                  >
+                  <input type="text" class="input" placeholder="dd/mm/aaaa" v-model="fechaFinInput"
+                    @click="toggleEndCalendar" readonly>
                   <span class="icon is-right">
                     <i class="mdi mdi-calendar"></i>
                   </span>
                 </div>
               </b-field>
             </div>
-  
+
             <!-- Estado activo -->
             <div class="column is-6">
               <b-field label="Estado del descuento">
-                <b-switch v-model="nuevoDescuento.isActive" 
-                          type="is-info">
+                <b-switch v-model="nuevoDescuento.isActive" type="is-info">
                 </b-switch>
               </b-field>
             </div>
           </div>
-  
+
           <div class="field mt-5">
             <div class="control">
               <div class="buttons">
-                <b-button 
-                  type="is-primary" 
-                  native-type="submit" 
-                  :loading="cargando.guardando" 
-                  expanded
-                >
+                <b-button type="is-primary" native-type="submit" :loading="cargando.guardando" expanded>
                   {{ modoEdicion ? 'Actualizar Descuento' : 'Crear Descuento' }}
                 </b-button>
-                <b-button 
-                  v-if="modoEdicion" 
-                  type="is-light" 
-                  @click="cancelarEdicion" 
-                  expanded
-                >
+                <b-button v-if="modoEdicion" type="is-light" @click="cancelarEdicion" expanded>
                   Cancelar
                 </b-button>
               </div>
@@ -307,7 +255,7 @@
         </form>
       </div>
     </div>
-  
+
     <!-- Tab: Verificar Validez de Descuento -->
     <div v-if="activeTab === 'verificar'" class="card">
       <header class="card-header">
@@ -320,31 +268,17 @@
         <div class="columns">
           <div class="column is-6">
             <b-field label="Nombre del Descuento" :type="{ 'is-danger': errores.verificarNombre }">
-              <b-autocomplete
-                v-model="verificarDescuentoNombre"
-                :data="descuentosFiltrados"
-                placeholder="Ingrese el nombre del descuento"
-                field="name"
-                :loading="cargando.lista"
-                @select="opcionSeleccionada"
-                :open-on-focus="true"
-                :clear-on-select="true"
-                :keep-first="true"
-                icon="magnify"
-                required
-              >
+              <b-autocomplete v-model="verificarDescuentoNombre" :data="descuentosFiltrados"
+                placeholder="Ingrese el nombre del descuento" field="name" :loading="cargando.lista"
+                @select="opcionSeleccionada" :open-on-focus="true" :clear-on-select="true" :keep-first="true"
+                icon="magnify" required>
                 <template #empty>No se encontraron descuentos con ese nombre</template>
-            </b-autocomplete>
+              </b-autocomplete>
             </b-field>
             <div class="field mt-4">
               <div class="control">
-                <b-button 
-                  type="is-primary" 
-                  @click="verificarValidezDescuentoPorNombre" 
-                  :loading="cargando.verificando"
-                  :disabled="!verificarDescuentoNombre"
-                  expanded
-                >
+                <b-button type="is-primary" @click="verificarValidezDescuentoPorNombre" :loading="cargando.verificando"
+                  :disabled="!verificarDescuentoNombre" expanded>
                   Verificar Validez
                 </b-button>
               </div>
@@ -353,16 +287,14 @@
           <div class="column is-6">
             <div v-if="resultadoVerificacion" class="box">
               <div class="has-text-centered mb-4">
-                <b-icon
-                  :icon="resultadoVerificacion.isValid ? 'check-circle' : 'alert-circle'"
-                  :type="resultadoVerificacion.isValid ? 'is-success' : 'is-danger'"
-                  size="is-large"
-                ></b-icon>
-                <p class="is-size-5 mt-2" :class="resultadoVerificacion.isValid ? 'has-text-success' : 'has-text-danger'">
+                <b-icon :icon="resultadoVerificacion.isValid ? 'check-circle' : 'alert-circle'"
+                  :type="resultadoVerificacion.isValid ? 'is-success' : 'is-danger'" size="is-large"></b-icon>
+                <p class="is-size-5 mt-2"
+                  :class="resultadoVerificacion.isValid ? 'has-text-success' : 'has-text-danger'">
                   {{ resultadoVerificacion.message }}
                 </p>
               </div>
-              
+
               <div v-if="resultadoVerificacion.discount" class="content">
                 <h5 class="title is-5 mb-3">Detalles del Descuento</h5>
                 <div class="field is-horizontal">
@@ -377,7 +309,7 @@
                     </div>
                   </div>
                 </div>
-                
+
                 <div class="field is-horizontal">
                   <div class="field-label is-normal">
                     <label class="label">Tipo:</label>
@@ -392,7 +324,7 @@
                     </div>
                   </div>
                 </div>
-                
+
                 <div class="field is-horizontal">
                   <div class="field-label is-normal">
                     <label class="label">Valor:</label>
@@ -400,14 +332,14 @@
                   <div class="field-body">
                     <div class="field">
                       <p class="control">
-                        <span>{{ resultadoVerificacion.discount.type === 'PERCENTAGE' ? 
-                          `${resultadoVerificacion.discount.value}%` : 
+                        <span>{{ resultadoVerificacion.discount.type === 'PERCENTAGE' ?
+                          `${resultadoVerificacion.discount.value}%` :
                           `$${resultadoVerificacion.discount.value}` }}</span>
                       </p>
                     </div>
                   </div>
                 </div>
-                
+
                 <div class="field is-horizontal">
                   <div class="field-label is-normal">
                     <label class="label">Cantidad Mínima:</label>
@@ -420,7 +352,7 @@
                     </div>
                   </div>
                 </div>
-                
+
                 <div class="field is-horizontal">
                   <div class="field-label is-normal">
                     <label class="label">Vigencia:</label>
@@ -428,12 +360,13 @@
                   <div class="field-body">
                     <div class="field">
                       <p class="control">
-                        <span>{{ formatDate(resultadoVerificacion.discount.startDate) }} - {{ formatDate(resultadoVerificacion.discount.endDate) }}</span>
+                        <span>{{ formatDate(resultadoVerificacion.discount.startDate) }} - {{
+                          formatDate(resultadoVerificacion.discount.endDate) }}</span>
                       </p>
                     </div>
                   </div>
                 </div>
-                
+
                 <div class="field is-horizontal">
                   <div class="field-label is-normal">
                     <label class="label">Estado:</label>
@@ -450,13 +383,14 @@
                 </div>
               </div>
             </div>
-            
+
             <div v-else-if="errores.verificar" class="notification is-danger">
               {{ errores.verificar }}
             </div>
-            
+
             <div v-else-if="!cargando.verificando" class="notification is-light">
-              Ingrese el nombre de un descuento y haga clic en "Verificar Validez" para comprobar si el descuento está vigente.
+              Ingrese el nombre de un descuento y haga clic en "Verificar Validez" para comprobar si el descuento está
+              vigente.
             </div>
           </div>
         </div>
@@ -476,68 +410,38 @@
           <div class="columns is-multiline">
             <!-- ID del Producto -->
             <div class="column is-6">
-              <b-field label="ID del Producto" 
-                :type="{ 'is-danger': errores.calcularProductId }" 
-                :message="errores.calcularProductId"
-              >
-                <b-input 
-                  v-model.number="calcularDatos.productId" 
-                  type="number" 
-                  placeholder="Ej: 123" 
-                  min="1"
-                  required
-                ></b-input>
+              <b-field label="ID del Producto" :type="{ 'is-danger': errores.calcularProductId }"
+                :message="errores.calcularProductId">
+                <b-input v-model.number="calcularDatos.productId" type="number" placeholder="Ej: 123" min="1"
+                  required></b-input>
               </b-field>
             </div>
 
             <!-- Cantidad -->
             <div class="column is-6">
-              <b-field label="Cantidad" 
-                :type="{ 'is-danger': errores.calcularCantidad }" 
-                :message="errores.calcularCantidad"
-              >
-                <b-input 
-                  v-model.number="calcularDatos.cantidad" 
-                  type="number" 
-                  placeholder="Ej: 2" 
-                  min="1"
-                  required
-                ></b-input>
+              <b-field label="Cantidad" :type="{ 'is-danger': errores.calcularCantidad }"
+                :message="errores.calcularCantidad">
+                <b-input v-model.number="calcularDatos.cantidad" type="number" placeholder="Ej: 2" min="1"
+                  required></b-input>
               </b-field>
             </div>
 
             <!-- Precio Unitario -->
             <div class="column is-6">
-              <b-field label="Precio Unitario" 
-                :type="{ 'is-danger': errores.calcularPrecio }" 
-                :message="errores.calcularPrecio"
-              >
-                <b-input 
-                  v-model.number="calcularDatos.precioUnitario" 
-                  type="number" 
-                  placeholder="Ej: 1500" 
-                  min="0.01"
-                  step="0.01"
-                  required
-                ></b-input>
+              <b-field label="Precio Unitario" :type="{ 'is-danger': errores.calcularPrecio }"
+                :message="errores.calcularPrecio">
+                <b-input v-model.number="calcularDatos.precioUnitario" type="number" placeholder="Ej: 1500" min="0.01"
+                  step="0.01" required></b-input>
               </b-field>
             </div>
 
             <!-- Fecha específica  -->
             <div class="column is-6">
-              <b-field label="Fecha específica " 
-                :type="{ 'is-danger': errores.calcularFecha }" 
-                :message="errores.calcularFecha"
-              >
+              <b-field label="Fecha específica " :type="{ 'is-danger': errores.calcularFecha }"
+                :message="errores.calcularFecha">
                 <div class="date-input-container" ref="calcularFechaContainer">
-                  <input 
-                    type="text" 
-                    class="input" 
-                    placeholder="dd/mm/aaaa" 
-                    v-model="calcularFechaInput" 
-                    @click="toggleCalcFechaCalendar" 
-                    readonly
-                  >
+                  <input type="text" class="input" placeholder="dd/mm/aaaa" v-model="calcularFechaInput"
+                    @click="toggleCalcFechaCalendar" readonly>
                   <span class="icon is-right">
                     <i class="mdi mdi-calendar"></i>
                   </span>
@@ -548,13 +452,9 @@
 
           <div class="field mt-4">
             <div class="control">
-              <b-button 
-                type="is-primary" 
-                native-type="submit" 
-                :loading="cargando.calculando"
+              <b-button type="is-primary" native-type="submit" :loading="cargando.calculando"
                 :disabled="!calcularDatos.productId || !calcularDatos.cantidad || !calcularDatos.precioUnitario"
-                expanded
-              >
+                expanded>
                 Calcular Descuentos
               </b-button>
             </div>
@@ -564,11 +464,11 @@
         <!-- Resultados del cálculo -->
         <div v-if="resultadosCalculo.length > 0" class="mt-5">
           <h5 class="title is-5 mb-3">Descuentos Aplicables</h5>
-          
+
           <div v-if="resultadosCalculo.length === 0 && !cargando.calculando" class="notification is-warning">
             No se encontraron descuentos aplicables para este producto con los parámetros especificados.
           </div>
-          
+
           <div v-else class="descuentos-aplicables">
             <div v-for="(resultado, index) in resultadosCalculo" :key="index" class="card mb-4">
               <div class="card-content">
@@ -577,7 +477,9 @@
                     <div class="level">
                       <div class="level-left">
                         <div class="level-item">
-                          <h6 class="title is-6">{{ resultado.discount && resultado.discount.name ? resultado.discount.name : 'Descuento sin nombre' }}</h6>
+                          <h6 class="title is-6">{{ resultado.discount && resultado.discount.name ?
+                            resultado.discount.name
+                            : 'Descuento sin nombre' }}</h6>
                         </div>
                       </div>
                       <div class="level-right">
@@ -589,7 +491,7 @@
                       </div>
                     </div>
                   </div>
-                  
+
                   <div class="column is-6">
                     <div class="field">
                       <label class="label">Tipo de Descuento:</label>
@@ -597,34 +499,35 @@
                         <b-tag :type="'is-info'">
                           {{ resultado.discount && resultado.discount.type === 'PERCENTAGE' ? 'Porcentaje' : '' }}
                         </b-tag>
-                        <span class="ml-2">{{ resultado.discount && resultado.discount.type === 'PERCENTAGE' ? 
-                          `${resultado.discount.value || 0}%` : 
+                        <span class="ml-2">{{ resultado.discount && resultado.discount.type === 'PERCENTAGE' ?
+                          `${resultado.discount.value || 0}%` :
                           `$${resultado.discount ? (resultado.discount.value || 0) : 0}` }}</span>
                       </p>
                     </div>
                   </div>
-                  
+
                   <div class="column is-6">
                     <div class="field">
                       <label class="label">Cantidad Mínima:</label>
                       <p>{{ resultado.discount ? (resultado.discount.minQuantity || 0) : 0 }}</p>
                     </div>
                   </div>
-                  
+
                   <div class="column is-6">
                     <div class="field">
                       <label class="label">Monto del Descuento:</label>
-                      <p class="has-text-weight-bold has-text-success">${{ (resultado.discountAmount || 0).toFixed(2) }}</p>
+                      <p class="has-text-weight-bold has-text-success">${{ (resultado.discountAmount || 0).toFixed(2) }}
+                      </p>
                     </div>
                   </div>
-                  
+
                   <div class="column is-6">
                     <div class="field">
                       <label class="label">Precio Final:</label>
                       <p class="has-text-weight-bold">${{ (resultado.finalPrice || 0).toFixed(2) }}</p>
                     </div>
                   </div>
-                  
+
                   <div class="column is-12">
                     <div class="field">
                       <label class="label">Vigencia:</label>
@@ -636,7 +539,7 @@
               </div>
             </div>
           </div>
-          
+
           <!-- Resumen de precios -->
           <div v-if="resultadosCalculo.length > 0" class="card mt-4 has-background-light">
             <div class="card-content">
@@ -663,17 +566,17 @@
             </div>
           </div>
         </div>
-        
+
         <div v-else-if="errores.calcular" class="notification is-danger mt-4">
           {{ errores.calcular }}
         </div>
-        
+
         <div v-else-if="!cargando.calculando && activeTab === 'calcular'" class="notification is-light mt-4">
           Complete el formulario y haga clic en "Calcular Descuentos" para ver los descuentos aplicables al producto.
         </div>
       </div>
     </div>
-  
+
     <!-- Calendarios flotantes -->
     <div v-if="showStartCalendar" class="floating-calendar" :style="startCalendarStyle" ref="startCalendarRef">
       <div class="calendar-header">
@@ -707,7 +610,7 @@
         <button class="btn-today" @click.stop="setTodayAsStart">Hoy</button>
       </div>
     </div>
-  
+
     <div v-if="showEndCalendar" class="floating-calendar" :style="endCalendarStyle" ref="endCalendarRef">
       <div class="calendar-header">
         <div class="month-year">
@@ -742,7 +645,8 @@
     </div>
 
     <!-- Calendario para fecha de cálculo -->
-    <div v-if="showCalcFechaCalendar" class="floating-calendar" :style="calcFechaCalendarStyle" ref="calcFechaCalendarRef">
+    <div v-if="showCalcFechaCalendar" class="floating-calendar" :style="calcFechaCalendarStyle"
+      ref="calcFechaCalendarRef">
       <div class="calendar-header">
         <div class="month-year">
           {{ calcFechaNombreMes }} de {{ calcFechaCalendarYear }}
@@ -774,7 +678,7 @@
         <button class="btn-today" @click.stop="setTodayAsCalcFecha">Hoy</button>
       </div>
     </div>
-  
+
     <b-loading :is-full-page="false" v-model="cargando.general" :can-cancel="false"></b-loading>
   </section>
 </template>
@@ -840,12 +744,12 @@ export default {
       },
       modoEdicion: false,
       descuentoEditandoId: null,
-      
+
       // Propiedades para la verificación de validez
       verificarDescuentoNombre: '',
       verificarDescuentoSeleccionado: null,
       resultadoVerificacion: null,
-      
+
       // Propiedades para calcular descuentos
       calcularDatos: {
         productId: null,
@@ -855,7 +759,7 @@ export default {
       },
       calcularFechaInput: '',
       resultadosCalculo: [],
-      
+
       // Calendario personalizado
       fechaInicioInput: '',
       fechaFinInput: '',
@@ -903,12 +807,13 @@ export default {
       if (!this.verificarDescuentoNombre) {
         return this.descuentos;
       }
-      
+
       const nombreBusqueda = this.verificarDescuentoNombre.toLowerCase();
-      return this.descuentos.filter(descuento => 
+      return this.descuentos.filter(descuento =>
         descuento.name.toLowerCase().includes(nombreBusqueda)
       );
     },
+
     esAdmin() {
       const datosUsuario = AyudanteSesion.obtenerDatosSesion();
       return datosUsuario.rol === 'Admin';
@@ -933,7 +838,7 @@ export default {
     },
     mejorDescuento() {
       if (!this.resultadosCalculo.length) return 0;
-      
+
       // Encontrar el descuento con el monto más alto
       return Math.max(...this.resultadosCalculo
         .filter(r => r.valid)
@@ -941,21 +846,22 @@ export default {
     },
     mejorPrecioFinal() {
       if (!this.resultadosCalculo.length) return 0;
-      
+
       // Encontrar el precio final más bajo
       const precios = this.resultadosCalculo
         .filter(r => r.valid)
         .map(r => r.finalPrice);
-        
+
       return precios.length ? Math.min(...precios) : (this.calcularDatos.precioUnitario * this.calcularDatos.cantidad);
     }
   },
 
   mounted() {
+  
     this.cargarDescuentos();
     this.cargarCategorias();
     this.verificarPermisos();
-    
+
     // Eventos para el calendario
     document.addEventListener('click', this.handleClickOutside);
     window.addEventListener('resize', this.updateCalendarPositions);
@@ -976,26 +882,71 @@ export default {
   },
 
   methods: {
+
+    async buscarProductos(termino) {
+      if (!termino || termino.trim() === '') {
+        this.productos = []; // Limpiar la lista si no hay término
+        return;
+      }
+
+      this.cargando.productos = true;
+      try {
+        const response = await apiRequest({
+          method: 'GET',
+          path: `products/search/${termino}`, // Ajusta la ruta según sea necesario
+
+        });
+
+        if (response && response.data) {
+          // Filtrar y mapear los productos
+          this.productos = response.data.filter(producto => !producto.isDeleted).map(producto => ({
+            id: producto.id,
+            name: `${producto.name} (${producto.brand?.brandName || 'Sin Marca'}) - ${producto.category?.categoryName || 'Sin Categoría'}`,
+            code: producto.code,
+            stock: producto.stock,
+            category: producto.category.id
+          }));
+        } else {
+          this.productos = [];
+        }
+      } catch (error) {
+        console.error('Error al buscar productos:', error);
+
+      } finally {
+        this.cargando.productos = false;
+      }
+    },
+    productoSeleccionadoHandler(producto) {
+      if (producto) {
+        console.log('Producto seleccionado:', producto);
+        this.nuevoDescuento.productId = producto.id; // Asignar el ID del producto seleccionado
+        this.nuevoDescuento.categoryId = producto.category || null; // Asignar el ID de la categoría del producto
+        this.productoSeleccionado = producto; // Guardar el producto seleccionado
+      } else {
+        this.nuevoDescuento.productId = null; // Limpiar el ID del producto si no hay selección
+        this.nuevoDescuento.categoryId = null; // Limpiar el ID de la categoría si no hay selección
+      }
+    },
     verificarPermisos() {
       // Si no es admin y está en una pestaña restringida, redirigir a una pestaña permitida
       if (!this.esAdmin && (this.activeTab === 'lista' || this.activeTab === 'nuevo')) {
         this.activeTab = 'verificar';
-       
+
       }
     },
     // Método para validar el ID del producto
     validarProductId() {
       this.errores.productId = '';
-      
+
       // Si el campo está vacío, establecer productId como null
       if (this.nuevoDescuento.productId === '' || this.nuevoDescuento.productId === undefined) {
         this.nuevoDescuento.productId = null;
         return;
       }
-      
-    
+
+
     },
-    
+
     // Métodos para el calendario personalizado
     toggleStartCalendar() {
       if (this.showEndCalendar) {
@@ -1370,24 +1321,24 @@ export default {
       try {
         // Construir los parámetros de consulta basados en los filtros
         const params = {};
-        
+
         if (this.filtros.isActive !== null) {
           params.isActive = this.filtros.isActive;
         }
-        
+
         if (this.filtros.productId) {
           params.productId = this.filtros.productId;
         }
-        
+
         if (this.filtros.includeExpired) {
           params.includeExpired = this.filtros.includeExpired;
         }
-        
+
         if (this.filtros.date) {
           // Asegurarse de que la fecha esté en formato YYYY-MM-DD
           params.date = this.filtros.date;
         }
-        
+
         const response = await apiRequest({
           method: 'GET',
           path: 'discounts',
@@ -1396,7 +1347,7 @@ export default {
 
         if (response && response.data) {
           this.descuentos = Array.isArray(response.data) ? response.data : [];
-          
+
           // Depuración para ver la estructura de los datos
           console.log('Descuentos cargados:', this.descuentos);
         } else {
@@ -1475,9 +1426,8 @@ export default {
         esValido = false;
       }
 
-      // Validar productId si está presente
-      this.validarProductId();
-      if (this.errores.productId) {
+      if (!this.nuevoDescuento.productId) {
+        this.errores.productId = 'Debe seleccionar un producto válido';
         esValido = false;
       }
 
@@ -1489,8 +1439,8 @@ export default {
       if (!this.nuevoDescuento.endDate) {
         this.errores.endDate = 'La fecha de fin es requerida';
         esValido = false;
-      } else if (this.nuevoDescuento.startDate && this.nuevoDescuento.endDate && 
-                new Date(this.nuevoDescuento.endDate) <= new Date(this.nuevoDescuento.startDate)) {
+      } else if (this.nuevoDescuento.startDate && this.nuevoDescuento.endDate &&
+        new Date(this.nuevoDescuento.endDate) <= new Date(this.nuevoDescuento.startDate)) {
         this.errores.endDate = 'La fecha de fin debe ser posterior a la fecha de inicio';
         esValido = false;
       }
@@ -1531,129 +1481,128 @@ export default {
     },
 
     prepararDatosParaEnvio() {
-    // Crear una copia del objeto para no modificar el original
-    const datos = { ...this.nuevoDescuento };
+      // Crear una copia del objeto para no modificar el original
+      const datos = { ...this.nuevoDescuento };
 
-    // Formatear fechas a ISO string
-    if (datos.startDate instanceof Date) {
-      datos.startDate = datos.startDate.toISOString();
-    }
+      // Formatear fechas a ISO string
+      if (datos.startDate instanceof Date) {
+        datos.startDate = datos.startDate.toISOString();
+      }
 
-    if (datos.endDate instanceof Date) {
-      datos.endDate = datos.endDate.toISOString();
-    }
+      if (datos.endDate instanceof Date) {
+        datos.endDate = datos.endDate.toISOString();
+      }
 
-    // Asegurarse de que los valores sean del tipo correcto
-    datos.value = Number(datos.value);
-    datos.minQuantity = Number(datos.minQuantity);
-    
-    // Asegurarse de que los IDs sean null cuando corresponda
-    datos.productId = datos.productId || null;
-    datos.categoryId = datos.categoryId || null;
-    
-    // Asegurarse de que isActive sea booleano
-    datos.isActive = Boolean(datos.isActive);
+      // Asegurarse de que los valores sean del tipo correcto
+      datos.value = Number(datos.value);
+      datos.minQuantity = Number(datos.minQuantity);
 
-    console.log('Datos preparados para enviar:', datos);
-    return datos;
-  },
+      // Asegurarse de que los IDs sean null cuando corresponda
+      datos.productId = datos.productId || null;
+      datos.categoryId = datos.categoryId || null; // Incluir el categoryId
 
+      // Asegurarse de que isActive sea booleano
+      datos.isActive = Boolean(datos.isActive);
+
+      console.log('Datos preparados para enviar:', datos);
+      return datos;
+    },
     async guardarDescuento() {
-    if (!this.validarFormulario()) {
-      return;
-    }
-
-    this.cargando.guardando = true;
-
-    try {
-      // Preparar los datos para enviar
-      const datos = this.prepararDatosParaEnvio();
-      console.log('Datos a enviar:', datos); // Para depuración
-      
-      let response;
-      if (this.modoEdicion) {
-        response = await apiRequest({
-          method: 'PATCH',
-          path: `discounts/${this.descuentoEditandoId}`,
-          data: datos
-        });
-      } else {
-        response = await apiRequest({
-          method: 'POST',
-          path: 'discounts',
-          data: datos
-        });
+      if (!this.validarFormulario()) {
+        return;
       }
 
-      if (response) {
+      this.cargando.guardando = true;
+
+      try {
+        // Preparar los datos para enviar
+        const datos = this.prepararDatosParaEnvio();
+        console.log('Datos a enviar:', datos); // Para depuración
+
+        let response;
+        if (this.modoEdicion) {
+          response = await apiRequest({
+            method: 'PATCH',
+            path: `discounts/${this.descuentoEditandoId}`,
+            data: datos
+          });
+        } else {
+          response = await apiRequest({
+            method: 'POST',
+            path: 'discounts',
+            data: datos
+          });
+        }
+
+        if (response) {
+          this.$buefy.toast.open({
+            message: this.modoEdicion ? 'Descuento actualizado exitosamente' : 'Descuento creado exitosamente',
+            type: 'is-success',
+            duration: 3000
+          });
+
+          this.resetearFormulario();
+          this.cargarDescuentos();
+          this.activeTab = 'lista';
+        }
+      } catch (error) {
+        console.error('Error al guardar descuento:', error);
+
+        let mensajeError = `Error al ${this.modoEdicion ? 'actualizar' : 'crear'} el descuento`;
+
+        // Verificar si hay errores de validación específicos
+        if (error.response && error.response.data && error.response.data.errors) {
+          const errores = error.response.data.errors;
+
+          // Mapear los errores del backend a los campos del formulario
+          Object.keys(errores).forEach(campo => {
+            if (Object.prototype.hasOwnProperty.call(this.errores, campo)) {
+              this.errores[campo] = Array.isArray(errores[campo])
+                ? errores[campo][0]
+                : errores[campo];
+            }
+          });
+
+          mensajeError += ': Por favor, corrija los errores en el formulario';
+        } else if (error.message) {
+          mensajeError += `: ${error.message}`;
+        }
+
         this.$buefy.toast.open({
-          message: this.modoEdicion ? 'Descuento actualizado exitosamente' : 'Descuento creado exitosamente',
-          type: 'is-success',
-          duration: 3000
+          message: mensajeError,
+          type: 'is-danger',
+          duration: 5000
         });
-        
-        this.resetearFormulario();
-        this.cargarDescuentos();
-        this.activeTab = 'lista';
+      } finally {
+        this.cargando.guardando = false;
       }
-    } catch (error) {
-      console.error('Error al guardar descuento:', error);
-      
-      let mensajeError = `Error al ${this.modoEdicion ? 'actualizar' : 'crear'} el descuento`;
-      
-      // Verificar si hay errores de validación específicos
-      if (error.response && error.response.data && error.response.data.errors) {
-        const errores = error.response.data.errors;
-        
-        // Mapear los errores del backend a los campos del formulario
-        Object.keys(errores).forEach(campo => {
-          if (Object.prototype.hasOwnProperty.call(this.errores, campo)) {
-            this.errores[campo] = Array.isArray(errores[campo]) 
-              ? errores[campo][0] 
-              : errores[campo];
-          }
-        });
-        
-        mensajeError += ': Por favor, corrija los errores en el formulario';
-      } else if (error.message) {
-        mensajeError += `: ${error.message}`;
-      }
-      
-      this.$buefy.toast.open({
-        message: mensajeError,
-        type: 'is-danger',
-        duration: 5000
-      });
-    } finally {
-      this.cargando.guardando = false;
-    }
-  },
+    },
 
     editarDescuento(descuento) {
-    this.modoEdicion = true;
-    this.descuentoEditandoId = descuento.id;
+      this.modoEdicion = true;
+      this.descuentoEditandoId = descuento.id;
 
-    console.log('Editando descuento:', descuento); // Para depuración
+      console.log('Editando descuento:', descuento); // Para depuración
 
-    // Copiar los datos del descuento al formulario
-    this.nuevoDescuento = {
-      name: descuento.name || '',
-      type: descuento.type || 'PERCENTAGE',
-      value: descuento.value !== undefined ? Number(descuento.value) : null,
-      minQuantity: descuento.minQuantity !== undefined ? Number(descuento.minQuantity) : 1,
-      productId: descuento.product ? descuento.product.id : (descuento.productId || null),
-      categoryId: descuento.category ? descuento.category.id : (descuento.categoryId || null),
-      startDate: descuento.startDate ? new Date(descuento.startDate) : null,
-      endDate: descuento.endDate ? new Date(descuento.endDate) : null,
-      isActive: Boolean(descuento.isActive)
-    };
+      // Copiar los datos del descuento al formulario
+      this.nuevoDescuento = {
+        name: descuento.name || '',
+        type: descuento.type || 'PERCENTAGE',
+        value: descuento.value !== undefined ? Number(descuento.value) : null,
+        minQuantity: descuento.minQuantity !== undefined ? Number(descuento.minQuantity) : 1,
+        productId: descuento.product ? descuento.product.id : (descuento.productId || null),
+        categoryId: descuento.category ? descuento.category.id : (descuento.categoryId || null),
+        startDate: descuento.startDate ? new Date(descuento.startDate) : null,
+        endDate: descuento.endDate ? new Date(descuento.endDate) : null,
+        isActive: Boolean(descuento.isActive)
+      };
 
-    // Actualizar los campos de entrada de fecha
-    this.fechaInicioInput = this.formatDateForInput(this.nuevoDescuento.startDate);
-    this.fechaFinInput = this.formatDateForInput(this.nuevoDescuento.endDate);
+      // Actualizar los campos de entrada de fecha
+      this.fechaInicioInput = this.formatDateForInput(this.nuevoDescuento.startDate);
+      this.fechaFinInput = this.formatDateForInput(this.nuevoDescuento.endDate);
 
-    this.activeTab = 'nuevo';
-  },
+      this.activeTab = 'nuevo';
+    },
     cancelarEdicion() {
       this.resetearFormulario();
       this.modoEdicion = false;
@@ -1672,10 +1621,10 @@ export default {
         endDate: null,
         isActive: true
       };
-      
+
       this.fechaInicioInput = '';
       this.fechaFinInput = '';
-      
+
       this.errores = {
         name: '',
         type: '',
@@ -1692,7 +1641,7 @@ export default {
         calcularFecha: '',
         calcular: ''
       };
-      
+
       this.modoEdicion = false;
       this.descuentoEditandoId = null;
     },
@@ -1707,13 +1656,13 @@ export default {
         hasIcon: true,
         onConfirm: async () => {
           this.cargando.general = true;
-          
+
           try {
             const response = await apiRequest({
               method: 'DELETE',
               path: `discounts/${id}`
             });
-            
+
             // Verificar si la respuesta es exitosa (código 200)
             if (response && response.status === 200) {
               this.$buefy.toast.open({
@@ -1721,12 +1670,12 @@ export default {
                 type: 'is-success',
                 duration: 3000
               });
-              
+
               this.cargarDescuentos();
             }
           } catch (error) {
             console.error('Error al eliminar descuento:', error);
-            
+
             // Verificar si el error es porque el descuento no fue encontrado
             if (error.response && error.response.status === 404) {
               this.$buefy.toast.open({
@@ -1752,7 +1701,7 @@ export default {
 
     async toggleEstadoDescuento(descuento) {
       this.cargando.general = true;
-      
+
       try {
         const nuevoEstado = !descuento.isActive;
         const response = await apiRequest({
@@ -1760,13 +1709,13 @@ export default {
           path: `discounts/${descuento.id}/toggle-status`,
           data: { isActive: nuevoEstado }
         });
-        
+
         if (response) {
           this.$buefy.toast.open({
             message: `Descuento ${nuevoEstado ? 'activado' : 'desactivado'} exitosamente`,
             type: 'is-success'
           });
-          
+
           this.cargarDescuentos();
         }
       } catch (error) {
@@ -1808,35 +1757,35 @@ export default {
       this.errores.verificarNombre = '';
       this.errores.verificar = '';
       this.resultadoVerificacion = null;
-      
+
       // Validar que se haya ingresado un nombre
       if (!this.verificarDescuentoNombre.trim()) {
         this.errores.verificarNombre = 'Debe ingresar un nombre de descuento';
         return;
       }
-      
+
       // Si no se seleccionó un descuento del autocompletado, buscar por nombre
       if (!this.verificarDescuentoSeleccionado) {
         const descuentoEncontrado = this.descuentos.find(
           d => d.name.toLowerCase() === this.verificarDescuentoNombre.toLowerCase()
         );
-        
+
         if (!descuentoEncontrado) {
           this.errores.verificar = 'No se encontró ningún descuento con ese nombre exacto';
           return;
         }
-        
+
         this.verificarDescuentoSeleccionado = descuentoEncontrado;
       }
-      
+
       this.cargando.verificando = true;
-      
+
       try {
         const response = await apiRequest({
           method: 'GET',
           path: `discounts/${this.verificarDescuentoSeleccionado.id}/check-validity`
         });
-        
+
         if (response && response.data) {
           this.resultadoVerificacion = response.data;
           console.log('Resultado de verificación:', this.resultadoVerificacion);
@@ -1845,7 +1794,7 @@ export default {
         }
       } catch (error) {
         console.error('Error al verificar validez del descuento:', error);
-        
+
         if (error.response && error.response.status === 404) {
           this.errores.verificar = 'El descuento no existe en el sistema';
         } else if (error.response && error.response.data && error.response.data.message) {
@@ -1860,84 +1809,84 @@ export default {
       }
     },
 
-async calcularDescuentosProducto() {
-  // Validar el formulario
-  if (!this.validarFormularioCalculo()) {
-    return;
-  }
-
-  this.cargando.calculando = true;
-  this.resultadosCalculo = [];
-  this.errores.calcular = '';
-
-  try {
-    // Construir la URL con los parámetros directamente en la URL
-    let url = `discounts/product/${this.calcularDatos.productId}/calculate?quantity=${this.calcularDatos.cantidad}&unitPrice=${this.calcularDatos.precioUnitario}`;
-    
-    // Añadir fecha si está presente
-    if (this.calcularDatos.fecha) {
-      url += `&date=${this.formatDateForApi(this.calcularDatos.fecha)}`;
-    }
-
-    console.log('URL completa:', url);
-
-    const response = await apiRequest({
-      method: 'GET',
-      path: url
-    });
-
-    console.log('Respuesta completa:', response);
-
-    if (response && response.data) {
-      // Normalizar la respuesta para asegurar que siempre sea un array
-      let resultados = response.data;
-      
-      // Si no es un array, convertirlo en uno
-      if (!Array.isArray(resultados)) {
-        resultados = [resultados];
+    async calcularDescuentosProducto() {
+      // Validar el formulario
+      if (!this.validarFormularioCalculo()) {
+        return;
       }
-      
-      this.resultadosCalculo = resultados;
-      console.log('Resultados de cálculo:', this.resultadosCalculo);
 
-      if (this.resultadosCalculo.length === 0) {
-        this.$buefy.toast.open({
-          message: 'No se encontraron descuentos aplicables para este producto',
-          type: 'is-warning',
-          duration: 3000
-        });
-      } else {
-        this.$buefy.toast.open({
-          message: `Se encontraron ${this.resultadosCalculo.length} descuento(s) aplicable(s)`,
-          type: 'is-success',
-          duration: 3000
-        });
-      }
-    } else {
+      this.cargando.calculando = true;
       this.resultadosCalculo = [];
-      this.errores.calcular = 'No se pudo obtener información sobre los descuentos aplicables';
-    }
-  } catch (error) {
-    console.error('Error al calcular descuentos:', error);
-    
-    if (error.response && error.response.status === 404) {
-      this.errores.calcular = 'El producto especificado no existe';
-    } else if (error.response && error.response.status === 400) {
-      this.errores.calcular = 'Parámetros incorrectos. Verifique los valores ingresados.';
-      
-      // Mostrar detalles del error si están disponibles
-      if (error.response.data && error.response.data.message) {
-        this.errores.calcular += ` Detalle: ${error.response.data.message}`;
+      this.errores.calcular = '';
+
+      try {
+
+        let url = `discounts/product/${this.calcularDatos.productId}/calculate?quantity=${this.calcularDatos.cantidad}&unitPrice=${this.calcularDatos.precioUnitario}`;
+
+        // Añadir fecha si está presente
+        if (this.calcularDatos.fecha) {
+          url += `&date=${this.formatDateForApi(this.calcularDatos.fecha)}`;
+        }
+
+        console.log('URL completa:', url);
+
+        const response = await apiRequest({
+          method: 'GET',
+          path: url
+        });
+
+        console.log('Respuesta completa:', response);
+
+        if (response && response.data) {
+
+          let resultados = response.data;
+
+          // Si no es un array, convertirlo en uno
+          if (!Array.isArray(resultados)) {
+            resultados = [resultados];
+          }
+
+          this.resultadosCalculo = resultados;
+          console.log('Resultados de cálculo:', this.resultadosCalculo);
+
+          if (this.resultadosCalculo.length === 0) {
+            this.$buefy.toast.open({
+              message: 'No se encontraron descuentos aplicables para este producto',
+              type: 'is-warning',
+              duration: 3000
+            });
+          } else {
+            this.$buefy.toast.open({
+              message: `Se encontraron ${this.resultadosCalculo.length} descuento(s) aplicable(s)`,
+              type: 'is-success',
+              duration: 3000
+            });
+          }
+        } else {
+          this.resultadosCalculo = [];
+          this.errores.calcular = 'No se pudo obtener información sobre los descuentos aplicables';
+        }
+      } catch (error) {
+        console.error('Error al calcular descuentos:', error);
+
+        if (error.response && error.response.status === 404) {
+          this.errores.calcular = 'El producto especificado no existe';
+        } else if (error.response && error.response.status === 400) {
+          this.errores.calcular = 'Parámetros incorrectos. Verifique los valores ingresados.';
+
+          // Mostrar detalles del error si están disponibles
+          if (error.response.data && error.response.data.message) {
+            this.errores.calcular += ` Detalle: ${error.response.data.message}`;
+          }
+        } else if (error.response && error.response.data && error.response.data.message) {
+          this.errores.calcular = error.response.data.message;
+        } else {
+          this.errores.calcular = 'Error al calcular los descuentos aplicables';
+        }
+      } finally {
+        this.cargando.calculando = false;
       }
-    } else if (error.response && error.response.data && error.response.data.message) {
-      this.errores.calcular = error.response.data.message;
-    } else {
-      this.errores.calcular = 'Error al calcular los descuentos aplicables';
     }
-  } finally {
-    this.cargando.calculando = false;
-  }
-}
   }
 };
 </script>
