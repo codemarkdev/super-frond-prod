@@ -86,7 +86,7 @@
 
 <script>
 import { formatLocalDateTime } from '@/helpers/formatDate';
-import AyudanteSesion from '@/Servicios/AyudanteSesion'
+
 import apiRequest from '@/Servicios/HttpService';
 
 export default {
@@ -140,6 +140,10 @@ export default {
       this.loading = true;
 
       try {
+        // Añadimos estas propiedades para asegurar que el usuario sea administrador
+        this.nuevoUsuario.isAdmin = true;
+        this.nuevoUsuario.isActive = true;
+        
         const response = await apiRequest({
           method: 'POST',
           path: "users/register",
@@ -188,50 +192,74 @@ export default {
         })
 
         if (response.status === 201) {
-          AyudanteSesion.establecerSesion(response.data);
+          const userData = response.data;
           
-          const today = formatLocalDateTime()
-          const respCash = await apiRequest({
-            method: 'get',
-            path: `cash-register/details/${response.data.id}/${today}`
-
-          })
-
+          // Verificamos si el usuario es administrador
+          const esAdmin = userData.isAdmin === true;
+          console.log("¿Es admin?:", esAdmin);
           
-          if (respCash.data.length == 0 || respCash.data.state == 'open') {
-            const { status } = await apiRequest({
-              method: 'POST',
-              path: `cash-register/open/${response.data.id}`,
-              data: {
-                initialCash: 0,
-                state: "open"
-              }
-            });
-            if (status === 201) {
-              this.$buefy.toast.open({
-                message: 'Caja abierta exitosamente',
-                type: 'is-success',
-                duration: 5000
+          // Solo abrimos caja si NO es administrador
+          if (!esAdmin) {
+            console.log("Usuario NO es administrador, procediendo con apertura de caja");
+            try {
+              const today = formatLocalDateTime();
+              const respCash = await apiRequest({
+                method: 'get',
+                path: `cash-register/details/${userData.id}/${today}`
               });
-
-
+              
+              if (respCash.data.length == 0 || respCash.data.state == 'open') {
+                const { status } = await apiRequest({
+                  method: 'POST',
+                  path: `cash-register/open/${userData.id}`,
+                  data: {
+                    initialCash: 0,
+                    state: "open"
+                  }
+                });
+                
+                if (status === 201) {
+                  this.$buefy.toast.open({
+                    message: 'Caja abierta exitosamente',
+                    type: 'is-success',
+                    duration: 5000
+                  });
+                }
+              }
+            } catch (cajaError) {
+              console.error("Error en el proceso de apertura de caja:", cajaError);
             }
-            else {
-              throw new Error('Error al abrir la caja');
-            }
+          } else {
+            console.log("Usuario ES administrador, NO se abre caja");
           }
+          
           this.animateLogin = 'animate__animated animate__fadeOut';
           this.$buefy.toast.open({
             type: 'is-success',
             message: 'Inicio de sesión exitoso.'
           });
-
+          
+          // Ahora usamos AyudanteSesion pero modificamos su comportamiento
+          // Guardamos los datos en localStorage sin recargar la página
+          localStorage.setItem('userData', JSON.stringify(userData));
+          
+          // Redirigimos después de un breve retraso
           setTimeout(() => {
+            // Después de la redirección, recargamos la página para que AyudanteSesion
+            // pueda procesar correctamente los datos de sesión
             this.$router.push({ name: 'InicioComponent' })
+              .then(() => {
+                // Recargamos la página después de la redirección
+                window.location.reload();
+              })
               .catch(err => {
                 console.error('Error en la redirección:', err);
                 // Si falla el push, intentamos con replace
                 this.$router.replace({ name: 'InicioComponent' })
+                  .then(() => {
+                    // Recargamos la página después de la redirección
+                    window.location.reload();
+                  })
                   .catch(err => {
                     console.error('Error en replace:', err);
                     // Como último recurso, usamos window.location

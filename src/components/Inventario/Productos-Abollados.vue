@@ -107,25 +107,26 @@
                 </b-button>
               </b-tooltip>
               
+              <!-- Botón para solicitar reposición (primer paso) -->
               <b-tooltip label="Solicitar reposición" position="is-top" v-if="!props.row.replacementRequested && !props.row.replaced && isAdmin">
                 <b-button class="btn-warning" @click="solicitarReemplazo(props.row)">
                   <b-icon icon="refresh" />
                 </b-button>
               </b-tooltip>
               
+              <!-- Botón para aprobar reposición (segundo paso) -->
               <b-tooltip label="Aprobar reposición" position="is-top" v-if="props.row.replacementRequested && !props.row.replacementApproved && !props.row.replaced && isAdmin">
                 <b-button class="btn-info" @click="aprobarReposicion(props.row)">
                   <b-icon icon="check" />
                 </b-button>
               </b-tooltip>
               
+              <!-- Botón para procesar reposición (tercer paso) -->
               <b-tooltip label="Procesar reposición" position="is-top" v-if="props.row.replacementApproved && !props.row.replaced && isAdmin">
                 <b-button class="btn-success" @click="procesarReposicion(props.row)">
                   <b-icon icon="package-variant-closed" />
                 </b-button>
               </b-tooltip>
-              
-              
             </div>
           </b-table-column>
         </b-table>
@@ -190,33 +191,14 @@
         </section>
         <footer class="modal-card-foot">
           <button class="button" @click="isDetallesModalActive = false">Cerrar</button>
-          <button 
-            class="button is-warning" 
-            v-if="productoSeleccionado && !productoSeleccionado.replacementRequested && !productoSeleccionado.replaced && isAdmin"
-            @click="solicitarReemplazo(productoSeleccionado)"
-          >
-            Solicitar reposición
-          </button>
-          <button 
-            class="button is-info" 
-            v-if="productoSeleccionado && productoSeleccionado.replacementRequested && !productoSeleccionado.replacementApproved && !productoSeleccionado.replaced && isAdmin"
-            @click="aprobarReposicion(productoSeleccionado)"
-          >
-            Aprobar reposición
-          </button>
+          
+          <!-- Solo mantener el botón de procesar reposición -->
           <button 
             class="button is-success" 
             v-if="productoSeleccionado && productoSeleccionado.replacementApproved && !productoSeleccionado.replaced && isAdmin"
             @click="procesarReposicion(productoSeleccionado)"
           >
             Procesar reposición
-          </button>
-          <button 
-            class="button is-success" 
-            v-if="productoSeleccionado && !productoSeleccionado.replaced && isAdmin"
-            @click="restaurarProducto(productoSeleccionado)"
-          >
-            Restaurar al inventario
           </button>
         </footer>
       </div>
@@ -314,7 +296,6 @@ export default {
     obtenerProductosAbollados() {
       this.cargando = true
       
-      // Agregar console.log para depuración
       console.log("Obteniendo productos abollados...")
       
       apiRequest({
@@ -322,7 +303,6 @@ export default {
         path: 'damaged-products'
       })
       .then(respuesta => {
-        // Agregar console.log para ver la respuesta
         console.log("Respuesta de damaged-products:", respuesta)
         
         // Verificar si la respuesta tiene una estructura diferente
@@ -336,46 +316,8 @@ export default {
         this.totalPages = Math.ceil(this.totalProductosAbollados / this.perPage)
         this.cargando = false
         
-        // Agregar console.log para verificar los datos procesados
         console.log("Productos abollados procesados:", this.productosAbollados)
         console.log("Total productos abollados:", this.totalProductosAbollados)
-        
-        // Si no hay datos, agregar datos de prueba para verificar que el componente funciona
-        if (this.productosAbollados.length === 0) {
-          console.log("No hay productos abollados, agregando datos de prueba...")
-          this.productosAbollados = [
-            {
-              id: 1,
-              quantity: 12,
-              dateReported: "2025-03-29T02:16:10.000Z",
-              replaced: false,
-              dateReplaced: null,
-              replacedQuantity: null,
-              notes: "Producto de prueba",
-              replacementRequested: true,
-              replacementApproved: true,
-              product: {
-                id: 1,
-                code: "PROD123",
-                name: "Producto de prueba",
-                purchasePrice: 1200,
-                salePrice: 1500,
-                touristPrice: 1500,
-                stock: 88
-              },
-              brand: {
-                id: 1,
-                brandName: "Marca de prueba",
-                provider: {
-                  id: 1,
-                  name: "Proveedor de prueba"
-                }
-              }
-            }
-          ];
-          this.totalProductosAbollados = this.productosAbollados.length;
-          this.totalPages = Math.ceil(this.totalProductosAbollados / this.perPage);
-        }
       })
       .catch(error => {
         console.error('Error al obtener productos abollados:', error)
@@ -709,8 +651,6 @@ export default {
     },
     
     // MÉTODOS PARA ESTADÍSTICAS DE PÉRDIDAS
-    
-    // Método para cargar estadísticas de pérdidas
     cargarEstadisticasPerdidas() {
       this.cargando = true;
       
@@ -797,6 +737,10 @@ export default {
                 maximumFractionDigits: 2
               })}`, 
               icono: "refresh", 
+              clase: "has-text-info" 
+            },
+            { 
+              nombre: "Pérdida Neta", 
               clase: "has-text-info" 
             },
             { 

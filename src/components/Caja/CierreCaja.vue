@@ -14,8 +14,18 @@
                     <user-info :cargando="cargando" :userData="userData" />
                     <date-info :fecha="fecha" :hora="hora" />
                     
-                    <!-- Resumen de ventas del turno actual (solo visible cuando la caja está abierta) -->
-                    <div class="card mt-4 mb-4" v-if="cajaAbierta">
+                    <!-- Alerta para usuarios administradores -->
+                    <div v-if="esAdmin" class="notification is-warning mt-4">
+                        <p class="has-text-centered has-text-weight-bold">
+                            <span class="icon">
+                                <i class="mdi mdi-alert"></i>
+                            </span>
+                            El usuario admin NO CIERRA CAJAS
+                        </p>
+                    </div>
+                    
+                    <!-- Resumen de ventas del turno actual (solo visible cuando la caja está abierta y no es admin) -->
+                    <div class="card mt-4 mb-4" v-if="cajaAbierta && !esAdmin">
                         <header class="card-header">
                             <p class="card-header-title">
                                 Resumen del Turno Actual
@@ -73,16 +83,29 @@
                         </div>
                     </div>
                     
-                    <cash-input :cajaAbierta="cajaAbierta" @inputData="updateData" />
-                    <action-btn :cajaAbierta="cajaAbierta" :isValidAmount="isValidAmount" :cargando="cargando"
-                        :actionCash="handleCashAction" :isButtonDisabled="isButtonDisabled" />
-                    <div class="notification is-info is-light mt-4">
-                        <p class="has-text-centered">
+                    <!-- Solo mostrar los campos de entrada y botones si no es admin -->
+                    <template v-if="!esAdmin">
+                        <cash-input :cajaAbierta="cajaAbierta" @inputData="updateData" />
+                        <action-btn :cajaAbierta="cajaAbierta" :isValidAmount="isValidAmount" :cargando="cargando"
+                            :actionCash="handleCashAction" :isButtonDisabled="isButtonDisabled" />
+                        <div class="notification is-info is-light mt-4">
+                            <p class="has-text-centered">
+                                <span class="icon">
+                                    <i class="mdi mdi-information"></i>
+                                </span>
+                                Asegúrese de contar correctamente el efectivo antes de cerrar la caja.
+                            </p>
+                        </div>
+                    </template>
+                    
+                    <!-- Si es admin, mostrar botón para volver -->
+                    <div v-else class="mt-4">
+                        <button class="button is-fullwidth is-primary" @click="volverAtras">
                             <span class="icon">
-                                <i class="mdi mdi-information"></i>
+                                <i class="mdi mdi-arrow-left"></i>
                             </span>
-                            Asegúrese de contar correctamente el efectivo antes de cerrar la caja.
-                        </p>
+                            <span>Volver</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -143,7 +166,8 @@ export default {
             totalCuentasPorPagar: 0,
             showConfirmModal: false,
             cierreInfo: null,
-            date: this.formatDateToYYYYMMDD()
+            date: this.formatDateToYYYYMMDD(),
+            esAdmin: false // Nueva propiedad para verificar si el usuario es administrador
         };
     },
 
@@ -153,6 +177,20 @@ export default {
         this.obtenerTotalVentasHoy();
         this.validCashRegister();
         setInterval(this.actualizarFecha, 60000);
+        
+        // Verificar si el usuario es administrador
+        const sesion = AyudanteSesion.obtenerDatosSesion();
+        this.esAdmin = sesion && sesion.rol === 'Admin';
+        
+        // Si es admin, mostrar alerta
+        if (this.esAdmin) {
+            this.$buefy.toast.open({
+                message: 'El usuario admin NO CIERRA CAJAS',
+                type: 'is-warning',
+                duration: 5000,
+                position: 'is-top'
+            });
+        }
     },
     computed: {
         isValidAmount() {
@@ -161,7 +199,7 @@ export default {
                 !isNaN(this.cashInHand)
         },
         isButtonDisabled() {
-            return this.disableBtn || !this.isValidAmount || this.cargando;
+            return this.disableBtn || !this.isValidAmount || this.cargando || this.esAdmin;
         }
     },
 
@@ -222,6 +260,17 @@ export default {
             this.hora = this.getFormattedTime();
         },
         handleCashAction() {
+            // Si es admin, mostrar alerta y no permitir cerrar caja
+            if (this.esAdmin) {
+                this.$buefy.toast.open({
+                    message: 'El usuario admin NO CIERRA CAJAS',
+                    type: 'is-warning',
+                    duration: 5000,
+                    position: 'is-top'
+                });
+                return;
+            }
+            
             // Prevent multiple clicks
             if (this.cargando || this.showConfirmModal) return;
             
@@ -238,6 +287,10 @@ export default {
                 if (!sesion) {
                     throw new Error('ID de usuario no encontrado');
                 }
+                
+                // Guardar si el usuario es administrador
+                this.esAdmin = sesion.rol === 'Admin';
+                
                 const { data, status } = await apiRequest({
                     method: 'GET',
                     path: `users/${sesion.id}`
@@ -259,61 +312,24 @@ export default {
                 this.cargando = false;
             }
         },
-        /* 
-        // Commented out since we don't need the open register functionality
-        async abrirCaja() {
-            if (!this.isValidAmount) {
-                this.mostrarError('Por favor ingrese un monto válido');
-                return;
-            }
 
-            this.cargando = true;
-            try {
-                const { id: userId } = AyudanteSesion.obtenerDatosSesion();
-
-                if (!userId) {
-                    throw new Error('ID de usuario no encontrado');
-                }
-
-                const { status } = await apiRequest({
-                    method: 'POST',
-                    path: `cash-register/open/${userId}`,
-                    data: {
-                        initialCash: this.cashInHand,
-                        state: "open"
-                    }
-                });
-
-                if (status === 201) {
-                    this.$buefy.toast.open({
-                        message: 'Caja abierta exitosamente',
-                        type: 'is-success',
-                        duration: 5000
-                    });
-                    this.cajaAbierta = true;
-
-                    try {
-                        await Promise.all([
-                            this.obtenerTotalVentasHoy(),
-                            this.obtenerTotalCuentasPorPagar()
-                        ]);
-                    } catch (error) {
-                        console.warn('No se pudieron actualizar los totales:', error);
-                    }
-                } else {
-                    throw new Error('Error al abrir la caja');
-                }
-            } catch (error) {
-                console.error('Error al abrir la caja:', error);
-                this.mostrarError(error.response?.data?.message || 'Error al abrir la caja. Por favor intente nuevamente.');
-            } finally {
-                this.cargando = false;
-                this.cashInHand = null;
-            }
+        volverAtras() {
+            this.$router.go(-1);
         },
-        */
 
         async confirmarCierre() {
+            // Si es admin, no permitir cerrar caja
+            if (this.esAdmin) {
+                this.$buefy.toast.open({
+                    message: 'El usuario admin NO CIERRA CAJAS',
+                    type: 'is-warning',
+                    duration: 5000,
+                    position: 'is-top'
+                });
+                this.showConfirmModal = false;
+                return;
+            }
+            
             // Prevent multiple submissions
             if (this.cargando) return;
             
@@ -362,6 +378,18 @@ export default {
             }
         },
         confirmarCierreCaja() {
+            // Si es admin, no permitir cerrar caja
+            if (this.esAdmin) {
+                this.$buefy.toast.open({
+                    message: 'El usuario admin NO CIERRA CAJAS',
+                    type: 'is-warning',
+                    duration: 5000,
+                    position: 'is-top'
+                });
+                this.showConfirmModal = false;
+                return;
+            }
+            
             // Prevent multiple submissions
             if (this.cargando) return;
             this.confirmarCierre();
@@ -517,4 +545,3 @@ export default {
     margin-bottom: 0.5rem;
 }
 </style>
-

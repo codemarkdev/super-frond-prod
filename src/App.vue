@@ -12,9 +12,9 @@
 <script>
   import EncabezadoComponent from './components/EncabezadoComponent'
   import InicioSesion from './components/Usuarios/InicioSesion'
-import { formatLocalDateTime } from './helpers/formatDate'
+  import { formatLocalDateTime } from './helpers/formatDate'
   import AyudanteSesion from './Servicios/AyudanteSesion'
-import apiRequest from './Servicios/HttpService'
+  import apiRequest from './Servicios/HttpService'
 
   export default {
     name: "App", 
@@ -31,7 +31,20 @@ import apiRequest from './Servicios/HttpService'
       const log = AyudanteSesion.verificarSesion()
       this.logeado = log
       console.log(this.logeado)
-      this.registerCashOpen()
+      
+      // Solo registramos la apertura de caja si el usuario está logueado
+      if (this.logeado) {
+        // Verificamos si el usuario es administrador
+        const userData = AyudanteSesion.obtenerDatosSesion();
+        const esAdmin = userData.rol === 'Admin';
+        
+        // Solo abrimos caja si NO es administrador
+        if (!esAdmin) {
+          this.registerCashOpen();
+        } else {
+          console.log("Usuario es administrador, no se abre caja");
+        }
+      }
     },
 
     methods: {
@@ -40,18 +53,30 @@ import apiRequest from './Servicios/HttpService'
         if(resultado.estado) {
           AyudanteSesion.establecerSesion(resultado.usuario)
           this.logeado = AyudanteSesion.verificarSesion()
+          
+          // Verificamos si el usuario es administrador
+          const userData = AyudanteSesion.obtenerDatosSesion();
+          const esAdmin = userData.rol === 'Admin';
+          
+          // Solo abrimos caja si NO es administrador
+          if (!esAdmin) {
+            this.registerCashOpen();
+          } else {
+            console.log("Usuario es administrador, no se abre caja");
+          }
         }
       },
 
       async registerCashOpen() {
-        const {id} = AyudanteSesion.obtenerDatosSesion()
-      
-        const today = formatLocalDateTime()
+        try {
+          const {id} = AyudanteSesion.obtenerDatosSesion()
+        
+          const today = formatLocalDateTime()
           const respCash = await apiRequest({
             method: 'get',
             path: `cash-register/details/${id}/${today}`
-
           })
+          
           console.log('resp', respCash)
           if (respCash.data.length == 0 || respCash.data.state == 'open') {
             
@@ -63,20 +88,21 @@ import apiRequest from './Servicios/HttpService'
                 state: "open"
               }
             });
+            
             if (status === 201) {
               this.$buefy.toast.open({
                 message: 'Caja abierta exitosamente',
                 type: 'is-success',
                 duration: 5000
               });
-
-
             }
             else {
               throw new Error('Error al abrir la caja');
             }
           }
-
+        } catch (error) {
+          console.error("Error al abrir la caja:", error);
+        }
       }
     }
   }

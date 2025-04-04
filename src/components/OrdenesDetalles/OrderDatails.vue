@@ -72,14 +72,19 @@
   
           <div class="section-content">
             <form @submit.prevent="registrarDetalle" class="form">
-              <!-- Número de factura -->
+              <!-- Número de factura (como select) -->
               <div class="form-group">
                 <label for="invoiceNumber">
                   <i class="fas fa-file-invoice label-icon"></i> Número de factura:
                 </label>
                 <div class="input-wrapper">
-                  <input type="text" id="invoiceNumber" v-model="ordenActual.invoiceNumber"
-                    class="form-control" placeholder="Ej: INV-2514" required />
+                  <select id="invoiceNumber" v-model="ordenActual.invoiceNumber"
+                    class="form-control" required>
+                    <option value="" disabled>Seleccione una factura</option>
+                    <option v-for="orden in ordenesDisponibles" :key="orden.id" :value="orden.invoiceNumber">
+                      {{ orden.invoiceNumber }}
+                    </option>
+                  </select>
                 </div>
               </div>
   
@@ -554,7 +559,14 @@
     cargandoMarcas: false,
     
     // Estado de administrador
-    esAdmin: false
+    esAdmin: false,
+    
+    // Nuevos datos para órdenes disponibles
+    ordenesDisponibles: [],
+    cargandoOrdenes: false,
+    
+    // Flag para controlar la carga inicial
+    cargaInicialRealizada: false
   };
   },
   
@@ -584,7 +596,53 @@
   this.verificarAdmin();
   },
   
+  mounted() {
+  // Cargar órdenes disponibles automáticamente solo una vez al montar el componente
+  if (!this.cargaInicialRealizada) {
+    this.cargarOrdenesDisponibles();
+    this.cargaInicialRealizada = true;
+  }
+  },
+  
   methods: {
+  // Método para cargar órdenes disponibles
+  async cargarOrdenesDisponibles() {
+    this.cargandoOrdenes = true;
+    try {
+      const response = await apiRequest({
+        method: 'GET',
+        path: 'orders/findActive'
+      });
+  
+      if (response.status === 200) {
+        this.ordenesDisponibles = response.data;
+        
+        // Si no hay órdenes disponibles, mostrar mensaje
+        if (this.ordenesDisponibles.length === 0) {
+          this.$buefy.toast.open({
+            message: 'No hay órdenes disponibles para registrar detalles',
+            type: 'is-warning',
+            duration: 5000
+          });
+        }
+      } else {
+        console.error('Error al cargar órdenes disponibles:', response.status);
+        this.$buefy.toast.open({
+          message: `Error al cargar órdenes disponibles: ${response.status}`,
+          type: 'is-danger'
+        });
+      }
+    } catch (err) {
+      console.error('Error al cargar órdenes disponibles:', err);
+      this.$buefy.toast.open({
+        message: `Error al cargar órdenes disponibles: ${err.message || 'Error desconocido'}`,
+        type: 'is-danger'
+      });
+    } finally {
+      this.cargandoOrdenes = false;
+    }
+  },
+  
   // Método para verificar si el usuario es administrador
   verificarAdmin() {
     // Obtener el rol del usuario desde AyudanteSesion
@@ -792,28 +850,6 @@
     }
   },
   
-  async verificarOrdenExistente(invoiceNumber) {
-    try {
-      const response = await apiRequest({
-        method: 'GET',
-        path: 'orders'
-      });
-  
-      if (response.status === 200 && Array.isArray(response.data)) {
-        // Buscar la orden con el número de factura proporcionado
-        const ordenExistente = response.data.find(orden => 
-          orden.invoiceNumber.trim().toLowerCase() === invoiceNumber.trim().toLowerCase()
-        );
-        
-        return ordenExistente || null;
-      }
-      return null;
-    } catch (err) {
-      console.error('Error al verificar orden existente:', err);
-      return null;
-    }
-  },
-  
   async registrarDetalle() {
     this.enviando = true;
     this.error = null;
@@ -823,7 +859,7 @@
       // Validar que el número de factura no esté vacío
       const invoiceNumber = this.ordenActual.invoiceNumber.trim();
       if (!invoiceNumber) {
-        this.error = "Debe proporcionar un número de factura válido";
+        this.error = "Debe seleccionar una factura válida";
         this.enviando = false;
         return;
       }
@@ -831,15 +867,6 @@
       // Validar que haya al menos un producto
       if (this.ordenActual.products.length === 0) {
         this.error = "Debe agregar al menos un producto a la orden";
-        this.enviando = false;
-        return;
-      }
-  
-      // Verificar si la orden existe
-      const ordenExistente = await this.verificarOrdenExistente(invoiceNumber);
-      
-      if (!ordenExistente) {
-        this.error = `No se encontró ninguna orden con el número de factura "${invoiceNumber}". Por favor, cree primero la orden en la pestaña "Crear Orden".`;
         this.enviando = false;
         return;
       }
@@ -921,6 +948,9 @@
       if (!hayError) {
         // Éxito - todos los productos se registraron correctamente
         this.exitoso = true;
+        
+        // Actualizar la lista de órdenes disponibles después de registrar
+        this.cargarOrdenesDisponibles();
   
         // Resetear formulario después de 2 segundos
         setTimeout(() => {
