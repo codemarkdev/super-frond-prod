@@ -61,7 +61,7 @@
                 :type="props.row.type === 'PERCENTAGE' ? 'is-info' : props.row.type === 'FIXED_AMOUNT' ? 'is-success' : 'is-warning'">
                 {{ props.row.type === 'PERCENTAGE' ? 'Porcentaje' :
                   props.row.type === 'FIXED_AMOUNT' ? 'Monto Fijo' :
-                    props.row.type === 'BUY_X_GET_Y' ? 'Promoción' :
+                    props.row.type === 'BUY_X_GET_Y' ? 'Promoción 2x1' :
                       props.row.type === 'BUNDLE' ? 'Paquete' :
                         props.row.type === 'SEASONAL' ? 'Temporal' : 'Otro' }}
               </b-tag>

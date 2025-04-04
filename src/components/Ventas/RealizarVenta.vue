@@ -1,4 +1,5 @@
-<template>
+```vue type="vue" project="POS System" file="RealizarVenta.vue"
+[v0-no-op-code-block-prefix]<template>
   <section>
     <!-- Add a switch to toggle between salePrice and touristPrice -->
 
@@ -15,66 +16,64 @@
       <div class="box mt-3" v-if="descuentosDisponibles.length > 0">
         <h4 class="title is-5 mb-3">Descuentos Disponibles</h4>
         <div class="columns is-multiline">
-         <!-- filepath: c:\Users\adona\Documents\Super\Pos\src\components\Ventas\RealizarVenta.vue -->
-<!-- filepath: c:\Users\adona\Documents\Super\Pos\src\components\Ventas\RealizarVenta.vue -->
-<div class="column is-12" 
-     v-for="(descuento, index) in descuentosDisponibles" 
-     :key="index">
-  <div class="card mb-2">
-    <div class="card-content p-3">
-      <div class="level mb-0">
-        <div class="level-left">
-          <div class="level-item">
-            <div>
-              <p class="is-size-6 has-text-weight-bold">{{ descuento.discount.name }}</p>
-              <p class="is-size-7">
-                <b-tag 
-                  :type="descuento.discount.type === 'PERCENTAGE' ? 'is-info' : 
-                         descuento.discount.type === 'FIXED_AMOUNT' ? 'is-success' : 
-                         descuento.discount.type === 'BUY_X_GET_Y' ? 'is-warning' : 
-                         descuento.discount.type === 'BUNDLE' ? 'is-primary' : 
-                         descuento.discount.type === 'SEASONAL' ? 'is-link' : 'is-dark'"
-                  size="is-small">
-                  {{ descuento.discount.type === 'PERCENTAGE' ? `${descuento.discount.value}%` :
-                     descuento.discount.type === 'FIXED_AMOUNT' ? `$${descuento.discount.value}` :
-                     descuento.discount.type === 'BUY_X_GET_Y' ? `${descuento.discount.name}` :
-                     descuento.discount.type === 'BUNDLE' ? `Paquete ${descuento.discount.value}` :
-                     descuento.discount.type === 'SEASONAL' ? `Descuento ${descuento.discount.value}` : 'N/A' }}
-                </b-tag>
-              </p>
-              <p class="is-size-7 has-text-grey">
-                Ahorro: ${{ descuento.discountAmount.toFixed(2) }}
-              </p>
-              <p v-if="descuento.finalPrice <= 0" class="is-size-7 has-text-danger">
-                Este descuento no puede aplicarse (precio final inválido).
-              </p>
+          <div class="column is-12" 
+               v-for="(descuento, index) in descuentosDisponibles" 
+               :key="index">
+            <div class="card mb-2">
+              <div class="card-content p-3">
+                <div class="level mb-0">
+                  <div class="level-left">
+                    <div class="level-item">
+                      <div>
+                        <p class="is-size-6 has-text-weight-bold">{{ descuento.discount.name }}</p>
+                        <p class="is-size-7">
+                          <b-tag 
+                            :type="descuento.discount.type === 'PERCENTAGE' ? 'is-info' : 
+                                   descuento.discount.type === 'FIXED_AMOUNT' ? 'is-success' : 
+                                   descuento.discount.type === 'BUY_X_GET_Y' ? 'is-warning' : 
+                                   descuento.discount.type === 'BUNDLE' ? 'is-primary' : 
+                                   descuento.discount.type === 'SEASONAL' ? 'is-link' : 'is-dark'"
+                            size="is-small">
+                            {{ descuento.discount.type === 'PERCENTAGE' ? `${descuento.discount.value}%` :
+                               descuento.discount.type === 'FIXED_AMOUNT' ? `$${descuento.discount.value}` :
+                               descuento.discount.type === 'BUY_X_GET_Y' ? `${descuento.discount.name}` :
+                               descuento.discount.type === 'BUNDLE' ? `Paquete ${descuento.discount.value}` :
+                               descuento.discount.type === 'SEASONAL' ? `Descuento ${descuento.discount.value}` : 'N/A' }}
+                          </b-tag>
+                        </p>
+                        <p class="is-size-7 has-text-grey">
+                          Ahorro: ${{ formatearNumero(descuento.discountAmount) }}
+                        </p>
+                        <p v-if="descuento.finalPrice <= 0" class="is-size-7 has-text-danger">
+                          Este descuento no puede aplicarse (precio final inválido).
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="level-right">
+                    <div class="level-item">
+                      <b-checkbox 
+                        v-model="descuento.aplicado" 
+                        @input="actualizarTotalConDescuentos"
+                        :disabled="descuento.finalPrice <= 0">
+                        Aplicar
+                      </b-checkbox>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="level-right">
-          <div class="level-item">
-            <b-checkbox 
-              v-model="descuento.aplicado" 
-              @input="actualizarTotalConDescuentos"
-              :disabled="descuento.finalPrice <= 0">
-              Aplicar
-            </b-checkbox>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
         </div>
       </div>
 
       <div class="notification is-primary-bg mt-3">
         <div v-if="descuentoTotal > 0" class="has-text-centered mb-2">
-          <p class="is-size-5">Subtotal: ${{ subtotal.toFixed(2) }}</p>
-          <p class="is-size-5 has-text-success">Descuento: -${{ descuentoTotal.toFixed(2) }}</p>
+          <p class="is-size-5">Subtotal: ${{ formatearNumero(subtotal) }}</p>
+          <p class="is-size-5 has-text-success">Descuento: -${{ formatearNumero(descuentoTotal) }}</p>
         </div>
         <p class="has-text-weight-bold has-text-centered" style="font-size:5em">
-          Total ${{ total.toFixed(2) }}
+          Total ${{ formatearNumero(total) }}
         </p>
         <nav class="level mt-2">
           <div class="level-item has-text-centered">
@@ -149,9 +148,6 @@ import apiRequest from '@/Servicios/HttpService'
 import { formatLocalDateTime } from '@/helpers/formatDate'
 import VisorPDF from './VisorPDF.vue'
 
-
-
-
 export default {
   name: "RealizarVenta",
   components: {
@@ -185,10 +181,17 @@ export default {
     mostrarComprobante: false,
     tipoVenta: "",
     usarPrecioTurista: false,
-    apiBaseUrl: process.env.VUE_APP_API
+    apiBaseUrl: process.env.VUE_APP_API,
+    // Mapa para evitar aplicar múltiples descuentos al mismo producto
+    descuentosAplicadosPorProducto: {}
   }),
 
   methods: {
+    // Método para formatear números con 2 decimales y separador de miles
+    formatearNumero(valor) {
+      return parseFloat(valor).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    },
+
     onImpreso(resultado) {
       this.mostrarComprobante = resultado
     },
@@ -354,6 +357,7 @@ export default {
             this.subtotal = 0;
             this.descuentoTotal = 0;
             this.descuentosDisponibles = [];
+            this.descuentosAplicadosPorProducto = {};
             this.cargando = false;
             this.mostrarTerminarVenta = this.mostrarAgregarCuenta = this.mostrarAgregarApartado = this.mostrarRegistrarCotizacion = false;
             this.mostrarDialogo = false;
@@ -383,12 +387,11 @@ export default {
           this.subtotal = 0
           this.descuentoTotal = 0
           this.descuentosDisponibles = []
+          this.descuentosAplicadosPorProducto = {}
           this.$buefy.toast.open('Venta cancelada')
         }
       })
     },
-
-
 
     abrirDialogo(opcion) {
       this.mostrarDialogo = true
@@ -426,6 +429,9 @@ export default {
       this.descuentosDisponibles = this.descuentosDisponibles.filter(
         descuento => descuento.productId !== id
       );
+
+      // Eliminar del mapa de descuentos aplicados
+      delete this.descuentosAplicadosPorProducto[id];
 
       this.actualizarTotalConDescuentos();
     },
@@ -502,13 +508,11 @@ export default {
             resultado = true
           }
         }
-
       })
       return resultado
     },
 
     verificarMayoreo(cantidadMayoreo, id, precioMayoreo) {
-
       this.productos.forEach(producto => {
         if (producto.mayoreoAplicado) return
         if (producto.id === id) {
@@ -568,11 +572,10 @@ export default {
     calcularTotal() {
       let total = 0
       this.productos.forEach(producto => {
-        total = parseFloat(producto.cantidad * producto.precio) + parseFloat(total)
+        total += parseFloat(producto.cantidad * producto.precio)
       })
       return total
     },
-
 
     async buscarDescuentosDisponibles() {
       if (this.productos.length === 0) return;
@@ -605,7 +608,11 @@ export default {
                 ...d,
                 productId: producto.id,
                 productoNombre: producto.nombre,
-                aplicado: false // Por defecto, el descuento no está aplicado
+                aplicado: false, // Por defecto, el descuento no está aplicado
+                // Asegurar que discountAmount sea un número válido
+                discountAmount: parseFloat(d.discountAmount) || 0,
+                // Asegurar que finalPrice sea un número válido
+                finalPrice: parseFloat(d.finalPrice) || 0
               }));
 
             // Añadir a la lista de descuentos disponibles
@@ -677,70 +684,113 @@ export default {
               return false;
             }
 
-
+            // Validar cantidad mínima
             if (producto.cantidad < descuento.minQuantity) {
               return false;
             }
+
+            // Calcular el monto de descuento según el tipo
             switch (descuento.type) {
-  case 'FIXED_AMOUNT':
-    d.discountAmount = descuento.value;
-    d.finalPrice = producto.precio - descuento.value;
+              case 'FIXED_AMOUNT': {
+                // Asegurar que el valor del descuento sea un número
+                const valorFijo = parseFloat(descuento.value) || 0;
+                // Calcular el descuento por unidad
+                d.discountAmount = valorFijo * producto.cantidad;
+                // Calcular el precio final
+                d.finalPrice = (producto.precio * producto.cantidad) - d.discountAmount;
+                
+                // Validar que el precio final no sea negativo o cero
+                if (d.finalPrice <= 0) {
+                  d.discountAmount = 0;
+                  d.finalPrice = producto.precio * producto.cantidad;
+                  return false;
+                }
+                break;
+              }
 
-    // Validar que el precio final no sea negativo o igual a 0
-    if (d.finalPrice <= 0) {
-      d.discountAmount = 0;
-      d.finalPrice = producto.precio; // Restaurar el precio original
-      return false; // No aplicar el descuento
-    }
-    break;
+              case 'PERCENTAGE': {
+                // Asegurar que el valor del porcentaje sea un número
+                const porcentaje = parseFloat(descuento.value) || 0;
+                // Calcular el descuento total (precio * cantidad * porcentaje / 100)
+                d.discountAmount = (producto.precio * producto.cantidad * porcentaje) / 100;
+                // Calcular el precio final
+                d.finalPrice = (producto.precio * producto.cantidad) - d.discountAmount;
+                
+                // Validar que el precio final no sea negativo o cero
+                if (d.finalPrice <= 0) {
+                  d.discountAmount = 0;
+                  d.finalPrice = producto.precio * producto.cantidad;
+                  return false;
+                }
+                break;
+              }
 
-  case 'PERCENTAGE':
-    d.discountAmount = (producto.precio * descuento.value) / 100;
-    d.finalPrice = producto.precio - d.discountAmount;
+              case 'BUNDLE': {
+                if (producto.cantidad >= descuento.minQuantity) {
+                  // Calcular cuántos paquetes completos hay
+                  const bundles = Math.floor(producto.cantidad / descuento.value);
+                  // El descuento es el precio de los productos gratuitos
+                  d.discountAmount = bundles * producto.precio;
+                  // El precio final es el precio de los productos que se pagan
+                  d.finalPrice = producto.precio * (producto.cantidad - bundles);
+                  
+                  // Validar que el precio final no sea negativo o cero
+                  if (d.finalPrice <= 0) {
+                    d.discountAmount = 0;
+                    d.finalPrice = producto.precio * producto.cantidad;
+                    return false;
+                  }
+                } else {
+                  return false;
+                }
+                break;
+              }
 
-    // Validar que el precio final no sea negativo o igual a 0
-    if (d.finalPrice <= 0) {
-      d.discountAmount = 0;
-      d.finalPrice = producto.precio; // Restaurar el precio original
-      return false; // No aplicar el descuento
-    }
-    break;
+              case 'BUY_X_GET_Y': {
+                if (producto.cantidad >= descuento.minQuantity) {
+                  // Calcular cuántos productos gratuitos hay (compra X, lleva Y gratis)
+                  const gratis = Math.floor(producto.cantidad / (descuento.value + 1));
+                  // El descuento es el precio de los productos gratuitos
+                  d.discountAmount = gratis * producto.precio;
+                  // El precio final es el precio de los productos que se pagan
+                  d.finalPrice = producto.precio * (producto.cantidad - gratis);
+                  
+                  // Validar que el precio final no sea negativo o cero
+                  if (d.finalPrice <= 0) {
+                    d.discountAmount = 0;
+                    d.finalPrice = producto.precio * producto.cantidad;
+                    return false;
+                  }
+                } else {
+                  return false;
+                }
+                break;
+              }
 
-  case 'BUNDLE':
-    if (producto.cantidad >= descuento.minQuantity) {
-      const bundles = Math.floor(producto.cantidad / descuento.value);
-      d.discountAmount = bundles * producto.precio;
-      d.finalPrice = producto.precio * (producto.cantidad - bundles);
+              case 'SEASONAL': {
+                // Similar al porcentaje pero puede tener lógica adicional
+                const valorEstacional = parseFloat(descuento.value) || 0;
+                d.discountAmount = (producto.precio * producto.cantidad * valorEstacional) / 100;
+                d.finalPrice = (producto.precio * producto.cantidad) - d.discountAmount;
+                
+                // Validar que el precio final no sea negativo o cero
+                if (d.finalPrice <= 0) {
+                  d.discountAmount = 0;
+                  d.finalPrice = producto.precio * producto.cantidad;
+                  return false;
+                }
+                break;
+              }
 
-      // Validar que el precio final no sea negativo o igual a 0
-      if (d.finalPrice <= 0) {
-        d.discountAmount = 0;
-        d.finalPrice = producto.precio * producto.cantidad; // Restaurar el precio original
-        return false; // No aplicar el descuento
-      }
-    }
-    break;
+              default:
+                return false;
+            }
 
-  case 'BUY_X_GET_Y':
-    if (producto.cantidad >= descuento.minQuantity) {
-      const gratis = Math.floor(producto.cantidad / (descuento.value + 1));
-      d.discountAmount = gratis * producto.precio;
-      d.finalPrice = producto.precio * (producto.cantidad - gratis);
-
-      // Validar que el precio final no sea negativo o igual a 0
-      if (d.finalPrice <= 0) {
-        d.discountAmount = 0;
-        d.finalPrice = producto.precio * producto.cantidad; // Restaurar el precio original
-        return false; // No aplicar el descuento
-      }
-    }
-    break;
-
-  default:
-    return false;
-}
-
-           
+            // Redondear los valores a 2 decimales para evitar problemas de precisión
+            d.discountAmount = parseFloat(d.discountAmount.toFixed(2));
+            d.finalPrice = parseFloat(d.finalPrice.toFixed(2));
+            
+            return true;
           });
 
           // Actualizar los descuentos existentes
@@ -779,24 +829,64 @@ export default {
       }
     },
 
-
     // Método para actualizar el total con los descuentos aplicados
     actualizarTotalConDescuentos() {
       // Calcular el subtotal (sin descuentos)
       this.subtotal = this.calcularTotal();
 
+      // Reiniciar el mapa de descuentos aplicados por producto
+      this.descuentosAplicadosPorProducto = {};
+      
       // Calcular el total de descuentos aplicados
       this.descuentoTotal = 0;
 
-      // Sumar todos los descuentos aplicados
+      // Agrupar descuentos por producto para evitar aplicar múltiples descuentos al mismo producto
+      const descuentosPorProducto = {};
+      
+      // Primero, agrupar todos los descuentos por producto
       this.descuentosDisponibles.forEach(descuento => {
         if (descuento.aplicado) {
-          this.descuentoTotal += descuento.discountAmount;
+          if (!descuentosPorProducto[descuento.productId]) {
+            descuentosPorProducto[descuento.productId] = [];
+          }
+          descuentosPorProducto[descuento.productId].push(descuento);
+        }
+      });
+      
+      // Luego, para cada producto, aplicar solo el descuento más beneficioso
+      Object.keys(descuentosPorProducto).forEach(productoId => {
+        const descuentosProducto = descuentosPorProducto[productoId];
+        
+        if (descuentosProducto.length > 0) {
+          // Ordenar descuentos por monto de descuento (de mayor a menor)
+          descuentosProducto.sort((a, b) => b.discountAmount - a.discountAmount);
+          
+          // Aplicar solo el descuento más beneficioso
+          const mejorDescuento = descuentosProducto[0];
+          this.descuentoTotal += mejorDescuento.discountAmount;
+          
+          // Marcar este producto como que ya tiene un descuento aplicado
+          this.descuentosAplicadosPorProducto[productoId] = mejorDescuento.discount.id;
+          
+          // Desactivar los demás descuentos para este producto
+          descuentosProducto.slice(1).forEach(d => {
+            d.aplicado = false;
+          });
         }
       });
 
+      // Asegurar que el descuento total no exceda el subtotal
+      if (this.descuentoTotal > this.subtotal) {
+        this.descuentoTotal = this.subtotal;
+      }
+
       // Calcular el total final (subtotal - descuentos)
-      this.total = this.subtotal - this.descuentoTotal;
+      this.total = Math.max(0, this.subtotal - this.descuentoTotal);
+      
+      // Redondear a 2 decimales para evitar problemas de precisión
+      this.total = parseFloat(this.total.toFixed(2));
+      this.subtotal = parseFloat(this.subtotal.toFixed(2));
+      this.descuentoTotal = parseFloat(this.descuentoTotal.toFixed(2));
     }
   }
 };
