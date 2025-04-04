@@ -114,10 +114,12 @@
                   <b-icon icon="pencil" />
                 </b-button>
               </b-tooltip>
-              <b-tooltip label="Eliminar" position="is-top">
+              <b-tooltip label="Desactivar" position="is-top">
                 <b-button class="is-danger" @click="eliminarDescuento(props.row.id)" size="is-small">
-                  <b-icon icon="delete" />
-                </b-button>
+  <b-icon icon="power-off" />
+  <span>Desactivar</span>
+</b-button>
+
               </b-tooltip>
             </div>
           </b-table-column>
@@ -1741,8 +1743,8 @@ export default {
     async eliminarDescuento(id) {
       this.$buefy.dialog.confirm({
         title: 'Eliminar Descuento',
-        message: '¿Está seguro que desea eliminar este descuento? Esta acción no se puede deshacer.',
-        confirmText: 'Eliminar',
+        message: '¿Está seguro que desea Desactivar este descuento?   ',
+        confirmText: 'Desactivar',
         cancelText: 'Cancelar',
         type: 'is-danger',
         hasIcon: true,
@@ -1758,7 +1760,7 @@ export default {
             // Verificar si la respuesta es exitosa (código 200)
             if (response && response.status === 200) {
               this.$buefy.toast.open({
-                message: 'Descuento eliminado exitosamente',
+                message: 'Descuento Desactivado exitosamente',
                 type: 'is-success',
                 duration: 3000
               });
@@ -1771,7 +1773,7 @@ export default {
             // Verificar si el error es porque el descuento no fue encontrado
             if (error.response && error.response.status === 404) {
               this.$buefy.toast.open({
-                message: 'El descuento no existe o ya fue eliminado',
+                message: 'El descuento no existe o ya fue Desactivado',
                 type: 'is-warning',
                 duration: 3000
               });
