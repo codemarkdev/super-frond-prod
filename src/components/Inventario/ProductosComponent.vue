@@ -570,7 +570,10 @@
                         .then(respuesta => {
                             this.cartasTotales = [
                                 { nombre: "Número Productos", total: this.totalProductos, icono: "package-variant-closed", clase: "has-text-danger" },
-                                { nombre: "Total Inventario", total: `$ ${respuesta.data.toFixed(2)}`, icono: "chart-bar-stacked", clase: "has-text-primary" },
+                                { nombre: "Total Inventario", total: `$ ${parseFloat(respuesta.data).toLocaleString('en-US',{
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits:2
+                                })}`, icono: "chart-bar-stacked", clase: "has-text-primary" },
                             ]
                         })
                         .catch(error => {
@@ -583,7 +586,10 @@
                         })
                         .then(respuesta => {
                             this.cartasTotales.push(
-                                { nombre: "Ganancia a precio venta", total: `$ ${respuesta.data.toFixed(2)}`, icono: "currency-usd", clase: "has-text-info" }
+                                { nombre: "Ganancia a precio venta", total: `$ ${parseFloat(respuesta.data).toLocaleString('en-US',{
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })}`, icono: "currency-usd", clase: "has-text-info" }
                             )
                         })
                         .catch(error => {
