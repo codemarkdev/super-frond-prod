@@ -1,65 +1,84 @@
-<template>
-  <section>
-    <div class="columns is-multiline">
-      <!-- Columna izquierda: Búsqueda y productos -->
-      <div class="column is-8">
-        <buscar-producto @seleccionado="onSeleccionado" />
-        <b-switch v-model="usarPrecioTurista" type="is-info" class="mb-3">
+```vue type="vue" project="POS System" file="RealizarVenta.vue"
+[v0-no-op-code-block-prefix]<template>
+  <section class="full-width-section">
+    <!-- Barra superior con búsqueda y switch -->
+    <div class="top-controls">
+      <div class="search-container">
+        <buscar-producto @seleccionado="onSeleccionado" class="full-width-search" />
+        <b-switch v-model="usarPrecioTurista" type="is-info" class="tourist-switch">
           Aplicar precio de turista antes de agregar los productos!
         </b-switch>
-        
-        <mensaje-inicial :titulo="'No has agregado productos'"
-          :subtitulo="'Agrega algunos productos a la lista para venderlos'" v-if="productos.length < 1" />
-        
-        <div v-if="productos.length > 0">
-          <tabla-productos :listaProductos="productos" @quitar="onQuitar" @aumentar="onAumentar" />
+      </div>
+    </div>
+    
+    <!-- Contenido principal -->
+    <div class="main-content">
+      <!-- Estado vacío rediseñado - Alineado a la izquierda como en la imagen -->
+      <div v-if="productos.length < 1" class="epic-empty-state">
+        <div class="epic-empty-content">
+          <!-- Texto alineado a la izquierda con icono de carrito -->
+          <div class="empty-message">
+            <i class="mdi mdi-cart-outline cart-icon"></i>
+            <div class="empty-text">
+              <h2 class="empty-title">No has agregado productos</h2>
+              <p class="empty-subtitle">Agrega algunos productos a la lista para venderlos</p>
+            </div>
+          </div>
         </div>
       </div>
       
-      <!-- Columna derecha: Resumen y acciones - Solo visible cuando hay productos -->
-      <div class="column is-4" v-if="productos.length > 0">
-        <div class="card sticky-card">
-          <div class="card-content">
-            <!-- Resumen de venta -->
-            <div class="notification is-primary-bg mb-3">
-              <div v-if="descuentoTotal > 0" class="has-text-centered mb-2">
-                <p class="is-size-5">Subtotal: ${{ formatearNumero(subtotal) }}</p>
-                <p class="is-size-5 has-text-success">Descuento: -${{ formatearNumero(descuentoTotal) }}</p>
+      <!-- Contenido cuando hay productos -->
+      <div v-if="productos.length > 0" class="columns is-multiline product-content">
+        <!-- Columna izquierda: Lista de productos -->
+        <div class="column is-8">
+          <tabla-productos :listaProductos="productos" @quitar="onQuitar" @aumentar="onAumentar" />
+        </div>
+        
+        <!-- Columna derecha: Resumen y acciones -->
+        <div class="column is-4">
+          <div class="card sticky-card">
+            <div class="card-content">
+              <!-- Resumen de venta -->
+              <div class="notification is-primary-bg mb-3">
+                <div v-if="descuentoTotal > 0" class="has-text-centered mb-2">
+                  <p class="is-size-5">Subtotal: ${{ formatearNumero(subtotal) }}</p>
+                  <p class="is-size-5 has-text-success">Descuento: -${{ formatearNumero(descuentoTotal) }}</p>
+                </div>
+                <p class="has-text-weight-bold has-text-centered" style="font-size:3em">
+                  Total ${{ formatearNumero(total) }}
+                </p>
               </div>
-              <p class="has-text-weight-bold has-text-centered" style="font-size:3em">
-                Total ${{ formatearNumero(total) }}
-              </p>
-            </div>
-            
-            <!-- Botones de acción principales -->
-            <div class="buttons is-centered mb-4">
-              <b-button class="button" type="is-success" icon-left="check" expanded
-                @click="abrirDialogo('venta')">
-                Terminar venta
-              </b-button>
-              <b-button class="button" type="is-danger" icon-left="cancel" expanded
-                @click="cancelarVenta">
-                Cancelar
-              </b-button>
-            </div>
-            
-            <!-- Botón de búsqueda de descuentos siempre visible cuando hay productos -->
-            <div class="has-text-centered">
-              <b-button type="is-info" @click="buscarDescuentosDisponibles" :loading="cargandoDescuentos" expanded>
-                <span class="icon"><i class="mdi mdi-tag-multiple"></i></span>
-                <span>Buscar descuentos disponibles</span>
-              </b-button>
               
-              <!-- Mensaje informativo más compacto - solo cuando no hay descuentos disponibles -->
-              <div class="notification is-warning is-light mt-2 py-2 px-3" v-if="descuentosDisponibles.length === 0">
-                <p class="is-size-7 has-text-centered">
-                  <span class="icon is-small mr-1"><i class="mdi mdi-information"></i></span>
-                  ¡IMPORTANTE!
+              <!-- Botones de acción principales -->
+              <div class="buttons is-centered mb-4">
+                <b-button class="button" type="is-success" icon-left="check" expanded
+                  @click="abrirDialogo('venta')">
+                  Terminar venta
+                </b-button>
+                <b-button class="button" type="is-danger" icon-left="cancel" expanded
+                  @click="cancelarVenta">
+                  Cancelar
+                </b-button>
+              </div>
+              
+              <!-- Botón de búsqueda de descuentos -->
+              <div class="has-text-centered">
+                <b-button type="is-info" @click="buscarDescuentosDisponibles" :loading="cargandoDescuentos" expanded>
+                  <span class="icon"><i class="mdi mdi-tag-multiple"></i></span>
+                  <span>Buscar descuentos disponibles</span>
+                </b-button>
+                
+                <!-- Mensaje informativo - solo cuando no hay descuentos disponibles -->
+                <div class="notification is-warning is-light mt-2 py-2 px-3" v-if="descuentosDisponibles.length === 0">
+                  <p class="is-size-7 has-text-centered">
+                    <span class="icon is-small mr-1"><i class="mdi mdi-information"></i></span>
+                    ¡IMPORTANTE!
 
 AGREGA LA CANTIDAD CORRECTA DE CADA PRODUCTO ANTES DE BUSCAR LOS DESCUENTOS
 
 Los descuentos se calculan en base a la cantidad y precio de los productos seleccionados.
-                </p>
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -68,7 +87,7 @@ Los descuentos se calculan en base a la cantidad y precio de los productos selec
     </div>
     
     <!-- Sección de descuentos disponibles - Solo visible cuando hay descuentos -->
-    <div v-if="descuentosDisponibles.length > 0" class="mt-4">
+    <div v-if="descuentosDisponibles.length > 0" class="discounts-section">
       <div class="card">
         <header class="card-header">
           <p class="card-header-title">
@@ -157,7 +176,6 @@ import DialogoAgregarCuenta from './DialogoAgregarCuenta'
 import DialogoAgregarApartado from './DialogoAgregarApartado'
 import DialogoCotizar from './DialogoCotizar'
 import ComprobanteCompra from './ComprobanteCompra'
-import MensajeInicial from '../Extras/MensajeInicial'
 import AyudanteSesion from '../../Servicios/AyudanteSesion'
 import apiRequest from '@/Servicios/HttpService'
 import { formatLocalDateTime } from '@/helpers/formatDate'
@@ -172,7 +190,6 @@ export default {
     DialogoAgregarCuenta,
     DialogoAgregarApartado,
     DialogoCotizar,
-    MensajeInicial,
     ComprobanteCompra,
     VisorPDF
   },
@@ -908,6 +925,47 @@ export default {
 </script>
 
 <style scoped>
+/* Estilos para la sección principal */
+.full-width-section {
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+  margin: 0;
+  position: relative;
+  overflow: hidden; /* Evitar scroll */
+}
+
+.top-controls {
+  display: flex;
+  align-items: center;
+  padding: 1rem 0;
+  background-color: white;
+  width: 100%;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.full-width-search {
+  flex: 1;
+  min-width: 300px;
+  margin-right: 2rem;
+}
+
+.tourist-switch {
+  white-space: nowrap;
+  font-size: 1.1rem;
+}
+
+.main-content {
+  width: 100%;
+  position: relative;
+}
+
 .notification.is-primary-bg {
   background-color: #f5f5f5;
   border-radius: 6px;
@@ -923,7 +981,76 @@ export default {
   top: 20px;
 }
 
+/* Estilos para el estado vacío alineado a la izquierda como en la imagen */
+.epic-empty-state {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  height: calc(100vh - 120px); /* Altura ajustada para evitar scroll */
+  width: 100%;
+  background: #0077c2;
+  overflow: hidden;
+}
+
+.epic-empty-content {
+  padding: 3rem;
+  width: 100%;
+}
+
+.empty-message {
+  display: flex;
+  align-items: center;
+  padding-left: 2rem;
+}
+
+.cart-icon {
+  font-size: 4rem;
+  margin-right: 2rem;
+  color: white;
+}
+
+.empty-text {
+  color: white;
+}
+
+.empty-title {
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.empty-subtitle {
+  font-size: 2rem;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.5;
+}
+
+/* Estilos para el contenido de productos */
+.product-content {
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+
+/* Estilos para la sección de descuentos */
+.discounts-section {
+  margin-top: 1rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
 @media screen and (max-width: 768px) {
+  .search-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tourist-switch {
+    margin-left: 0;
+    margin-top: 0.75rem;
+  }
+
   .level-item .button {
     font-size: 0.8rem;
     padding: 0.5em 0.75em;
@@ -940,6 +1067,19 @@ export default {
   .sticky-card {
     position: relative;
     top: 0;
+  }
+  
+  .cart-icon {
+    font-size: 2.5rem;
+    margin-right: 1rem;
+  }
+  
+  .empty-title {
+    font-size: 2rem;
+  }
+  
+  .empty-subtitle {
+    font-size: 1.2rem;
   }
 }
 </style>
