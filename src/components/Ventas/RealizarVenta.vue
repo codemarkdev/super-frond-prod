@@ -1,62 +1,127 @@
 <template>
   <section>
-    <!-- Add a switch to toggle between salePrice and touristPrice -->
+    <div class="columns is-multiline">
+      <!-- Columna izquierda: Búsqueda y productos -->
+      <div class="column is-8">
+        <buscar-producto @seleccionado="onSeleccionado" />
+        <b-switch v-model="usarPrecioTurista" type="is-info" class="mb-3">
+          Aplicar precio de turista antes de agregar los productos!
+        </b-switch>
+        
+        <mensaje-inicial :titulo="'No has agregado productos'"
+          :subtitulo="'Agrega algunos productos a la lista para venderlos'" v-if="productos.length < 1" />
+        
+        <div v-if="productos.length > 0">
+          <tabla-productos :listaProductos="productos" @quitar="onQuitar" @aumentar="onAumentar" />
+        </div>
+      </div>
+      
+      <!-- Columna derecha: Resumen y acciones - Solo visible cuando hay productos -->
+      <div class="column is-4" v-if="productos.length > 0">
+        <div class="card sticky-card">
+          <div class="card-content">
+            <!-- Resumen de venta -->
+            <div class="notification is-primary-bg mb-3">
+              <div v-if="descuentoTotal > 0" class="has-text-centered mb-2">
+                <p class="is-size-5">Subtotal: ${{ formatearNumero(subtotal) }}</p>
+                <p class="is-size-5 has-text-success">Descuento: -${{ formatearNumero(descuentoTotal) }}</p>
+              </div>
+              <p class="has-text-weight-bold has-text-centered" style="font-size:3em">
+                Total ${{ formatearNumero(total) }}
+              </p>
+            </div>
+            
+            <!-- Botones de acción principales -->
+            <div class="buttons is-centered mb-4">
+              <b-button class="button" type="is-success" icon-left="check" expanded
+                @click="abrirDialogo('venta')">
+                Terminar venta
+              </b-button>
+              <b-button class="button" type="is-danger" icon-left="cancel" expanded
+                @click="cancelarVenta">
+                Cancelar
+              </b-button>
+            </div>
+            
+            <!-- Botón de búsqueda de descuentos siempre visible cuando hay productos -->
+            <div class="has-text-centered">
+              <b-button type="is-info" @click="buscarDescuentosDisponibles" :loading="cargandoDescuentos" expanded>
+                <span class="icon"><i class="mdi mdi-tag-multiple"></i></span>
+                <span>Buscar descuentos disponibles</span>
+              </b-button>
+              
+              <!-- Mensaje informativo más compacto - solo cuando no hay descuentos disponibles -->
+              <div class="notification is-warning is-light mt-2 py-2 px-3" v-if="descuentosDisponibles.length === 0">
+                <p class="is-size-7 has-text-centered">
+                  <span class="icon is-small mr-1"><i class="mdi mdi-information"></i></span>
+                  ¡IMPORTANTE!
 
-    <buscar-producto @seleccionado="onSeleccionado" />
-    <b-switch v-model="usarPrecioTurista" type="is-info" class="mb-3">
-      Aplicar precio de turista antes de agregar los productos!
-    </b-switch>
-    <mensaje-inicial :titulo="'No has agregado productos'"
-      :subtitulo="'Agrega algunos productos a la lista para venderlos'" v-if="productos.length < 1" />
-    <div v-if="productos.length > 0">
-      <tabla-productos :listaProductos="productos" @quitar="onQuitar" @aumentar="onAumentar" />
+AGREGA LA CANTIDAD CORRECTA DE CADA PRODUCTO ANTES DE BUSCAR LOS DESCUENTOS
 
-      <!-- Sección de descuentos disponibles -->
-      <div class="box mt-3" v-if="descuentosDisponibles.length > 0">
-        <h4 class="title is-5 mb-3">Descuentos Disponibles</h4>
-        <div class="columns is-multiline">
-          <div class="column is-12" 
-               v-for="(descuento, index) in descuentosDisponibles" 
-               :key="index">
-            <div class="card mb-2">
-              <div class="card-content p-3">
-                <div class="level mb-0">
-                  <div class="level-left">
-                    <div class="level-item">
-                      <div>
-                        <p class="is-size-6 has-text-weight-bold">{{ descuento.discount.name }}</p>
-                        <p class="is-size-7">
-                          <b-tag 
-                            :type="descuento.discount.type === 'PERCENTAGE' ? 'is-info' : 
-                                   descuento.discount.type === 'FIXED_AMOUNT' ? 'is-success' : 
-                                   descuento.discount.type === 'BUY_X_GET_Y' ? 'is-warning' : 
-                                   descuento.discount.type === 'BUNDLE' ? 'is-primary' : 
-                                   descuento.discount.type === 'SEASONAL' ? 'is-link' : 'is-dark'"
-                            size="is-small">
-                            {{ descuento.discount.type === 'PERCENTAGE' ? `${descuento.discount.value}%` :
-                               descuento.discount.type === 'FIXED_AMOUNT' ? `$${descuento.discount.value}` :
-                               descuento.discount.type === 'BUY_X_GET_Y' ? `${descuento.discount.name}` :
-                               descuento.discount.type === 'BUNDLE' ? `Paquete ${descuento.discount.value}` :
-                               descuento.discount.type === 'SEASONAL' ? `Descuento ${descuento.discount.value}` : 'N/A' }}
-                          </b-tag>
-                        </p>
-                        <p class="is-size-7 has-text-grey">
-                          Ahorro: ${{ formatearNumero(descuento.discountAmount) }}
-                        </p>
-                        <p v-if="descuento.finalPrice <= 0" class="is-size-7 has-text-danger">
-                          Este descuento no puede aplicarse (precio final inválido).
-                        </p>
+Los descuentos se calculan en base a la cantidad y precio de los productos seleccionados.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Sección de descuentos disponibles - Solo visible cuando hay descuentos -->
+    <div v-if="descuentosDisponibles.length > 0" class="mt-4">
+      <div class="card">
+        <header class="card-header">
+          <p class="card-header-title">
+            <span class="icon mr-2"><i class="mdi mdi-tag-multiple"></i></span>
+            Descuentos Disponibles
+          </p>
+        </header>
+        <div class="card-content">
+          <div class="columns is-multiline">
+            <div class="column is-6" 
+                v-for="(descuento, index) in descuentosDisponibles" 
+                :key="index">
+              <div class="card mb-2">
+                <div class="card-content p-3">
+                  <div class="level mb-0">
+                    <div class="level-left">
+                      <div class="level-item">
+                        <div>
+                          <p class="is-size-6 has-text-weight-bold">{{ descuento.discount.name }}</p>
+                          <p class="is-size-7">
+                            <b-tag 
+                              :type="descuento.discount.type === 'PERCENTAGE' ? 'is-info' : 
+                                    descuento.discount.type === 'FIXED_AMOUNT' ? 'is-success' : 
+                                    descuento.discount.type === 'BUY_X_GET_Y' ? 'is-warning' : 
+                                    descuento.discount.type === 'BUNDLE' ? 'is-primary' : 
+                                    descuento.discount.type === 'SEASONAL' ? 'is-link' : 'is-dark'"
+                              size="is-small">
+                              {{ descuento.discount.type === 'PERCENTAGE' ? `${descuento.discount.value}%` :
+                                descuento.discount.type === 'FIXED_AMOUNT' ? `$${descuento.discount.value}` :
+                                descuento.discount.type === 'BUY_X_GET_Y' ? `${descuento.discount.name}` :
+                                descuento.discount.type === 'BUNDLE' ? `Paquete ${descuento.discount.value}` :
+                                descuento.discount.type === 'SEASONAL' ? `Descuento ${descuento.discount.value}` : 'N/A' }}
+                            </b-tag>
+                            <span class="ml-2 has-text-grey">Producto: {{ descuento.productoNombre }}</span>
+                          </p>
+                          <p class="is-size-7 has-text-success">
+                            Ahorro: ${{ formatearNumero(descuento.discountAmount) }}
+                          </p>
+                          <p v-if="descuento.finalPrice <= 0" class="is-size-7 has-text-danger">
+                            Este descuento no puede aplicarse (precio final inválido).
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div class="level-right">
-                    <div class="level-item">
-                      <b-checkbox 
-                        v-model="descuento.aplicado" 
-                        @input="actualizarTotalConDescuentos"
-                        :disabled="descuento.finalPrice <= 0">
-                        Aplicar
-                      </b-checkbox>
+                    <div class="level-right">
+                      <div class="level-item">
+                        <b-checkbox 
+                          v-model="descuento.aplicado" 
+                          @input="actualizarTotalConDescuentos"
+                          :disabled="descuento.finalPrice <= 0">
+                          Aplicar
+                        </b-checkbox>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -65,71 +130,8 @@
           </div>
         </div>
       </div>
-
-      <div class="notification is-primary-bg mt-3">
-        <div v-if="descuentoTotal > 0" class="has-text-centered mb-2">
-          <p class="is-size-5">Subtotal: ${{ formatearNumero(subtotal) }}</p>
-          <p class="is-size-5 has-text-success">Descuento: -${{ formatearNumero(descuentoTotal) }}</p>
-        </div>
-        <p class="has-text-weight-bold has-text-centered" style="font-size:5em">
-          Total ${{ formatearNumero(total) }}
-        </p>
-        <nav class="level mt-2">
-          <div class="level-item has-text-centered">
-            <b-button class="button is-responsive" type="is-success" inverted icon-left="check" size="is-large"
-              @click="abrirDialogo('venta')">
-              Terminar venta
-            </b-button>
-          </div>
-
-          <!-- <div class="level-item has-text-centered">
-            <b-button class="button is-responsive" type="is-info" inverted icon-left="wallet-plus" size="is-large"
-              @click=" abrirDialogo('cuenta')">
-              Agregar a cuenta
-            </b-button>
-          </div> -->
-          <!-- <div class="level-item has-text-centered">
-            <b-button class="button is-responsive" type="is-dark" inverted icon-left="wallet-travel" size="is-large"
-              @click=" abrirDialogo('apartado')">
-              Realizar apartado
-            </b-button>
-          </div> -->
-          <div class="level-item has-text-centered">
-            <b-button class="button is-responsive" type="is-danger" inverted icon-left="cancel" size="is-large"
-              @click="cancelarVenta">
-              Cancelar
-            </b-button>
-          </div>
-          <!-- <div class="level-item has-text-centered">
-            <b-button class="button is-responsive" type="is-warning" inverted icon-left="ticket-outline" size="is-large"
-              @click="abrirDialogo('cotiza')">
-              Cotizar
-            </b-button>
-          </div> -->
-        </nav>
-      </div>
-
-      <!-- Mensaje importante sobre la cantidad de productos -->
-      <div class="notification is-warning mt-4 mb-3" v-if="productos.length > 0 && descuentosDisponibles.length === 0">
-        <p class="is-size-4 has-text-centered has-text-weight-bold">
-          <span class="icon mr-2"><i class="mdi mdi-alert-circle"></i></span>
-          ¡IMPORTANTE!
-        </p>
-        <p class="is-size-5 has-text-centered">
-          AGREGA LA CANTIDAD CORRECTA DE CADA PRODUCTO ANTES DE BUSCAR LOS DESCUENTOS
-        </p>
-        <p class="has-text-centered mt-2">
-          Los descuentos se calculan en base a la cantidad y precio de los productos seleccionados.
-        </p>
-      </div>
-
-      <!-- Botón para buscar descuentos -->
-      <div class="has-text-centered mt-3" v-if="productos.length > 0 && descuentosDisponibles.length === 0">
-        <b-button type="is-info" @click="buscarDescuentosDisponibles" :loading="cargandoDescuentos">
-          Buscar descuentos disponibles
-        </b-button>
-      </div>
     </div>
+
     <b-loading :is-full-page="true" v-model="cargando" :can-cancel="false"></b-loading>
     <b-modal v-model="mostrarDialogo" has-modal-card trap-focus :destroy-on-hide="false" aria-role="dialog"
       aria-label="Modal Terminar Venta" close-button-aria-label="Close" aria-modal>
@@ -916,6 +918,11 @@ export default {
   margin: 0 0.5rem;
 }
 
+.sticky-card {
+  position: sticky;
+  top: 20px;
+}
+
 @media screen and (max-width: 768px) {
   .level-item .button {
     font-size: 0.8rem;
@@ -926,8 +933,13 @@ export default {
     margin-right: 0.25em;
   }
 
-  p[style="font-size:5em"] {
-    font-size: 3em !important;
+  p[style="font-size:3em"] {
+    font-size: 2em !important;
+  }
+  
+  .sticky-card {
+    position: relative;
+    top: 0;
   }
 }
 </style>
