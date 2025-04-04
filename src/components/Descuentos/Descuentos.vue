@@ -1,4 +1,4 @@
-<template>
+]<template>
   <section>
     <div class="level mb-5">
       <div class="level-left">
@@ -149,9 +149,7 @@
                 <b-select v-model="nuevoDescuento.type" placeholder="Seleccione tipo" expanded required>
                   <option value="PERCENTAGE">Descuento porcentual</option>
                   <option value="FIXED_AMOUNT">Descuento por monto fijo</option>
-                  <option value="BUY_X_GET_Y">Promoción</option>
-                  <option value="BUNDLE">Descuento por paquete</option>
-                  <option value="SEASONAL">Descuento temporal</option>
+                  <option value="BUY_X_GET_Y">Promoción 2x1, 2x3</option>
                 </b-select>
               </b-field>
             </div>
@@ -180,10 +178,7 @@
               </b-field>
             </div>
 
-            <!-- ID del Producto  - MODIFICADO PARA INGRESAR DIRECTAMENTE EL ID -->
-
-            <!-- filepath: c:\Users\adona\Documents\Super\Pos\src\components\Descuentos\Descuentos.vue -->
-            <!-- filepath: c:\Users\adona\Documents\Super\Pos\src\components\Descuentos\Descuentos.vue -->
+            <!-- Producto -->
             <div class="column is-6">
               <b-field label="Producto" :type="{ 'is-danger': errores.productId }" :message="errores.productId">
                 <b-autocomplete v-model="productoSeleccionado" :data="productos" placeholder="Seleccione un producto"
@@ -193,17 +188,6 @@
                 </b-autocomplete>
               </b-field>
             </div>
-            <!-- Categoría  -->
-            <!-- <div class="column is-6">
-              <b-field label="Categoría ">
-                <b-select v-model="nuevoDescuento.categoryId" placeholder="Seleccione una categoría" expanded>
-
-                  <option v-for="categoria in categorias" :key="categoria.id" :value="categoria.id">
-                    {{ categoria.categoryName }}
-                  </option>
-                </b-select>
-              </b-field>
-            </div> -->
 
             <!-- Fecha de inicio -->
             <div class="column is-6">
@@ -235,6 +219,7 @@
             <div class="column is-6">
               <b-field label="Estado del descuento">
                 <b-switch v-model="nuevoDescuento.isActive" type="is-info">
+                  {{ nuevoDescuento.isActive ? 'Activo' : 'Inactivo' }}
                 </b-switch>
               </b-field>
             </div>
@@ -317,8 +302,8 @@
                   <div class="field-body">
                     <div class="field">
                       <p class="control">
-                        <b-tag :type="'is-info'">
-                          {{ resultadoVerificacion.discount.type === 'PERCENTAGE' ? 'Porcentaje' : '' }}
+                        <b-tag :type="getTipoTagType(resultadoVerificacion.discount.type)">
+                          {{ getTipoDescuento(resultadoVerificacion.discount.type) }}
                         </b-tag>
                       </p>
                     </div>
@@ -332,9 +317,7 @@
                   <div class="field-body">
                     <div class="field">
                       <p class="control">
-                        <span>{{ resultadoVerificacion.discount.type === 'PERCENTAGE' ?
-                          `${resultadoVerificacion.discount.value}%` :
-                          `$${resultadoVerificacion.discount.value}` }}</span>
+                        <span>{{ formatearValorDescuento(resultadoVerificacion.discount) }}</span>
                       </p>
                     </div>
                   </div>
@@ -408,12 +391,16 @@
       <div class="card-content">
         <form @submit.prevent="calcularDescuentosProducto">
           <div class="columns is-multiline">
-            <!-- ID del Producto -->
+            <!-- Producto -->
             <div class="column is-6">
-              <b-field label="ID del Producto" :type="{ 'is-danger': errores.calcularProductId }"
+              <b-field label="Producto" :type="{ 'is-danger': errores.calcularProductId }"
                 :message="errores.calcularProductId">
-                <b-input v-model.number="calcularDatos.productId" type="number" placeholder="Ej: 123" min="1"
-                  required></b-input>
+                <b-autocomplete v-model="calcularProductoSeleccionado" :data="productosCalculo" 
+                  placeholder="Buscar producto" field="name" :loading="cargando.productosCalculo" 
+                  @select="calcularProductoSeleccionadoHandler" @input="buscarProductosCalculo" 
+                  :open-on-focus="true" :keep-first="true" icon="magnify" required>
+                  <template #empty>No se encontraron productos</template>
+                </b-autocomplete>
               </b-field>
             </div>
 
@@ -437,7 +424,7 @@
 
             <!-- Fecha específica  -->
             <div class="column is-6">
-              <b-field label="Fecha específica " :type="{ 'is-danger': errores.calcularFecha }"
+              <b-field label="Fecha específica" :type="{ 'is-danger': errores.calcularFecha }"
                 :message="errores.calcularFecha">
                 <div class="date-input-container" ref="calcularFechaContainer">
                   <input type="text" class="input" placeholder="dd/mm/aaaa" v-model="calcularFechaInput"
@@ -496,12 +483,10 @@
                     <div class="field">
                       <label class="label">Tipo de Descuento:</label>
                       <p>
-                        <b-tag :type="'is-info'">
-                          {{ resultado.discount && resultado.discount.type === 'PERCENTAGE' ? 'Porcentaje' : '' }}
+                        <b-tag :type="getTipoTagType(resultado.discount?.type)">
+                          {{ getTipoDescuento(resultado.discount?.type) }}
                         </b-tag>
-                        <span class="ml-2">{{ resultado.discount && resultado.discount.type === 'PERCENTAGE' ?
-                          `${resultado.discount.value || 0}%` :
-                          `$${resultado.discount ? (resultado.discount.value || 0) : 0}` }}</span>
+                        <span class="ml-2">{{ formatearValorDescuento(resultado.discount) }}</span>
                       </p>
                     </div>
                   </div>
@@ -516,7 +501,7 @@
                   <div class="column is-6">
                     <div class="field">
                       <label class="label">Monto del Descuento:</label>
-                      <p class="has-text-weight-bold has-text-success">${{ (resultado.discountAmount || 0).toFixed(2) }}
+                      <p class="has-text-weight-bold has-text-success">${{ formatearNumero(resultado.discountAmount || 0) }}
                       </p>
                     </div>
                   </div>
@@ -524,7 +509,7 @@
                   <div class="column is-6">
                     <div class="field">
                       <label class="label">Precio Final:</label>
-                      <p class="has-text-weight-bold">${{ (resultado.finalPrice || 0).toFixed(2) }}</p>
+                      <p class="has-text-weight-bold">${{ formatearNumero(resultado.finalPrice || 0) }}</p>
                     </div>
                   </div>
 
@@ -547,19 +532,19 @@
                 <div class="column is-4">
                   <div class="field">
                     <label class="label">Precio Original:</label>
-                    <p class="is-size-5">${{ (calcularDatos.precioUnitario * calcularDatos.cantidad).toFixed(2) }}</p>
+                    <p class="is-size-5">${{ formatearNumero(calcularDatos.precioUnitario * calcularDatos.cantidad) }}</p>
                   </div>
                 </div>
                 <div class="column is-4">
                   <div class="field">
                     <label class="label">Mejor Descuento:</label>
-                    <p class="is-size-5 has-text-success">${{ mejorDescuento.toFixed(2) }}</p>
+                    <p class="is-size-5 has-text-success">${{ formatearNumero(mejorDescuento) }}</p>
                   </div>
                 </div>
                 <div class="column is-4">
                   <div class="field">
                     <label class="label">Mejor Precio Final:</label>
-                    <p class="is-size-5 has-text-weight-bold">${{ mejorPrecioFinal.toFixed(2) }}</p>
+                    <p class="is-size-5 has-text-weight-bold">${{ formatearNumero(mejorPrecioFinal) }}</p>
                   </div>
                 </div>
               </div>
@@ -708,6 +693,7 @@ export default {
       activeTab: 'lista',
       descuentos: [],
       productos: [],
+      productosCalculo: [], // Separar los productos para el cálculo
       categorias: [],
       nuevoDescuento: {
         name: '',
@@ -740,10 +726,15 @@ export default {
         general: false,
         lista: false,
         guardando: false,
-        verificando: false
+        verificando: false,
+        calculando: false,
+        productos: false,
+        productosCalculo: false
       },
       modoEdicion: false,
       descuentoEditandoId: null,
+      productoSeleccionado: '',
+      calcularProductoSeleccionado: '',
 
       // Propiedades para la verificación de validez
       verificarDescuentoNombre: '',
@@ -842,7 +833,7 @@ export default {
       // Encontrar el descuento con el monto más alto
       return Math.max(...this.resultadosCalculo
         .filter(r => r.valid)
-        .map(r => r.discountAmount));
+        .map(r => r.discountAmount || 0));
     },
     mejorPrecioFinal() {
       if (!this.resultadosCalculo.length) return 0;
@@ -850,14 +841,13 @@ export default {
       // Encontrar el precio final más bajo
       const precios = this.resultadosCalculo
         .filter(r => r.valid)
-        .map(r => r.finalPrice);
+        .map(r => r.finalPrice || 0);
 
       return precios.length ? Math.min(...precios) : (this.calcularDatos.precioUnitario * this.calcularDatos.cantidad);
     }
   },
 
   mounted() {
-  
     this.cargarDescuentos();
     this.cargarCategorias();
     this.verificarPermisos();
@@ -882,6 +872,66 @@ export default {
   },
 
   methods: {
+    // Método para formatear números con 2 decimales y separador de miles
+    formatearNumero(valor) {
+      return parseFloat(valor).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    },
+
+    // Método para obtener el tipo de tag según el tipo de descuento
+    getTipoTagType(tipo) {
+      switch (tipo) {
+        case 'PERCENTAGE':
+          return 'is-info';
+        case 'FIXED_AMOUNT':
+          return 'is-success';
+        case 'BUY_X_GET_Y':
+          return 'is-warning';
+        case 'BUNDLE':
+          return 'is-primary';
+        case 'SEASONAL':
+          return 'is-link';
+        default:
+          return 'is-dark';
+      }
+    },
+
+    // Método para obtener el nombre del tipo de descuento
+    getTipoDescuento(tipo) {
+      switch (tipo) {
+        case 'PERCENTAGE':
+          return 'Porcentaje';
+        case 'FIXED_AMOUNT':
+          return 'Monto Fijo';
+        case 'BUY_X_GET_Y':
+          return 'Promoción';
+        case 'BUNDLE':
+          return 'Paquete';
+        case 'SEASONAL':
+          return 'Temporal';
+        default:
+          return 'Otro';
+      }
+    },
+
+    // Método para formatear el valor del descuento según su tipo
+    formatearValorDescuento(descuento) {
+      if (!descuento) return 'N/A';
+      
+      switch (descuento.type) {
+        case 'PERCENTAGE':
+          return `${descuento.value}%`;
+        case 'FIXED_AMOUNT':
+          return `$${descuento.value}`;
+        case 'BUY_X_GET_Y':
+          return `${descuento.name}`;
+        case 'BUNDLE':
+          return `Paquete ${descuento.value}`;
+        case 'SEASONAL':
+          return `Descuento ${descuento.value}`;
+        default:
+          return 'N/A';
+      }
+    },
 
     async buscarProductos(termino) {
       if (!termino || termino.trim() === '') {
@@ -894,7 +944,6 @@ export default {
         const response = await apiRequest({
           method: 'GET',
           path: `products/search/${termino}`, // Ajusta la ruta según sea necesario
-
         });
 
         if (response && response.data) {
@@ -904,47 +953,82 @@ export default {
             name: `${producto.name} (${producto.brand?.brandName || 'Sin Marca'}) - ${producto.category?.categoryName || 'Sin Categoría'}`,
             code: producto.code,
             stock: producto.stock,
-            category: producto.category.id
+            category: producto.category?.id
           }));
         } else {
           this.productos = [];
         }
       } catch (error) {
         console.error('Error al buscar productos:', error);
-
       } finally {
         this.cargando.productos = false;
       }
     },
+
+    async buscarProductosCalculo(termino) {
+      if (!termino || termino.trim() === '') {
+        this.productosCalculo = []; // Limpiar la lista si no hay término
+        return;
+      }
+
+      this.cargando.productosCalculo = true;
+      try {
+        const response = await apiRequest({
+          method: 'GET',
+          path: `products/search/${termino}`, // Ajusta la ruta según sea necesario
+        });
+
+        if (response && response.data) {
+          // Filtrar y mapear los productos
+          this.productosCalculo = response.data.filter(producto => !producto.isDeleted).map(producto => ({
+            id: producto.id,
+            name: `${producto.name} (${producto.brand?.brandName || 'Sin Marca'}) - ${producto.category?.categoryName || 'Sin Categoría'}`,
+            code: producto.code,
+            stock: producto.stock,
+            price: producto.salePrice
+          }));
+        } else {
+          this.productosCalculo = [];
+        }
+      } catch (error) {
+        console.error('Error al buscar productos para cálculo:', error);
+      } finally {
+        this.cargando.productosCalculo = false;
+      }
+    },
+
     productoSeleccionadoHandler(producto) {
       if (producto) {
         console.log('Producto seleccionado:', producto);
         this.nuevoDescuento.productId = producto.id; // Asignar el ID del producto seleccionado
         this.nuevoDescuento.categoryId = producto.category || null; // Asignar el ID de la categoría del producto
-        this.productoSeleccionado = producto; // Guardar el producto seleccionado
+        this.productoSeleccionado = producto.name; // Guardar el nombre del producto seleccionado
       } else {
         this.nuevoDescuento.productId = null; // Limpiar el ID del producto si no hay selección
         this.nuevoDescuento.categoryId = null; // Limpiar el ID de la categoría si no hay selección
       }
     },
+
+    calcularProductoSeleccionadoHandler(producto) {
+      if (producto) {
+        console.log('Producto seleccionado para cálculo:', producto);
+        this.calcularDatos.productId = producto.id; // Asignar el ID del producto seleccionado
+        this.calcularProductoSeleccionado = producto.name; // Guardar el nombre del producto seleccionado
+        
+        // Si el producto tiene precio, asignarlo automáticamente
+        if (producto.price) {
+          this.calcularDatos.precioUnitario = producto.price;
+        }
+      } else {
+        this.calcularDatos.productId = null; // Limpiar el ID del producto si no hay selección
+      }
+    },
+
     verificarPermisos() {
       // Si no es admin y está en una pestaña restringida, redirigir a una pestaña permitida
       if (!this.esAdmin && (this.activeTab === 'lista' || this.activeTab === 'nuevo')) {
         this.activeTab = 'verificar';
-
       }
-    },
-    // Método para validar el ID del producto
-    validarProductId() {
-      this.errores.productId = '';
-
-      // Si el campo está vacío, establecer productId como null
-      if (this.nuevoDescuento.productId === '' || this.nuevoDescuento.productId === undefined) {
-        this.nuevoDescuento.productId = null;
-        return;
-      }
-
-
     },
 
     // Métodos para el calendario personalizado
@@ -1336,7 +1420,7 @@ export default {
 
         if (this.filtros.date) {
           // Asegurarse de que la fecha esté en formato YYYY-MM-DD
-          params.date = this.filtros.date;
+          params.date = this.formatDateForApi(this.filtros.date);
         }
 
         const response = await apiRequest({
@@ -1471,7 +1555,7 @@ export default {
         esValido = false;
       }
 
-      // La fecha es , pero si se proporciona debe ser válida
+      // La fecha es opcional, pero si se proporciona debe ser válida
       if (this.calcularDatos.fecha && !(this.calcularDatos.fecha instanceof Date && !isNaN(this.calcularDatos.fecha))) {
         this.errores.calcularFecha = 'La fecha proporcionada no es válida';
         esValido = false;
@@ -1507,6 +1591,7 @@ export default {
       console.log('Datos preparados para enviar:', datos);
       return datos;
     },
+    
     async guardarDescuento() {
       if (!this.validarFormulario()) {
         return;
@@ -1601,8 +1686,14 @@ export default {
       this.fechaInicioInput = this.formatDateForInput(this.nuevoDescuento.startDate);
       this.fechaFinInput = this.formatDateForInput(this.nuevoDescuento.endDate);
 
+      // Actualizar el campo de producto seleccionado
+      if (descuento.product) {
+        this.productoSeleccionado = descuento.product.name;
+      }
+
       this.activeTab = 'nuevo';
     },
+    
     cancelarEdicion() {
       this.resetearFormulario();
       this.modoEdicion = false;
@@ -1624,6 +1715,7 @@ export default {
 
       this.fechaInicioInput = '';
       this.fechaFinInput = '';
+      this.productoSeleccionado = '';
 
       this.errores = {
         name: '',
@@ -1820,7 +1912,6 @@ export default {
       this.errores.calcular = '';
 
       try {
-
         let url = `discounts/product/${this.calcularDatos.productId}/calculate?quantity=${this.calcularDatos.cantidad}&unitPrice=${this.calcularDatos.precioUnitario}`;
 
         // Añadir fecha si está presente
@@ -1838,7 +1929,6 @@ export default {
         console.log('Respuesta completa:', response);
 
         if (response && response.data) {
-
           let resultados = response.data;
 
           // Si no es un array, convertirlo en uno

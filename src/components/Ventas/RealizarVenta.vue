@@ -1,11 +1,10 @@
-```vue type="vue" project="POS System" file="RealizarVenta.vue"
-[v0-no-op-code-block-prefix]<template>
+<template>
   <section>
     <!-- Add a switch to toggle between salePrice and touristPrice -->
 
     <buscar-producto @seleccionado="onSeleccionado" />
     <b-switch v-model="usarPrecioTurista" type="is-info" class="mb-3">
-      Aplicar precio de turista
+      Aplicar precio de turista antes de agregar los productos!
     </b-switch>
     <mensaje-inicial :titulo="'No has agregado productos'"
       :subtitulo="'Agrega algunos productos a la lista para venderlos'" v-if="productos.length < 1" />
@@ -108,6 +107,20 @@
             </b-button>
           </div> -->
         </nav>
+      </div>
+
+      <!-- Mensaje importante sobre la cantidad de productos -->
+      <div class="notification is-warning mt-4 mb-3" v-if="productos.length > 0 && descuentosDisponibles.length === 0">
+        <p class="is-size-4 has-text-centered has-text-weight-bold">
+          <span class="icon mr-2"><i class="mdi mdi-alert-circle"></i></span>
+          ¡IMPORTANTE!
+        </p>
+        <p class="is-size-5 has-text-centered">
+          AGREGA LA CANTIDAD CORRECTA DE CADA PRODUCTO ANTES DE BUSCAR LOS DESCUENTOS
+        </p>
+        <p class="has-text-centered mt-2">
+          Los descuentos se calculan en base a la cantidad y precio de los productos seleccionados.
+        </p>
       </div>
 
       <!-- Botón para buscar descuentos -->
