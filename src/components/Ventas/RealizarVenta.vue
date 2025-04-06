@@ -4,9 +4,23 @@
     <!-- Barra superior con búsqueda y switch -->
     <div class="top-controls">
       <div class="search-container">
-        <buscar-producto @seleccionado="onSeleccionado" class="full-width-search" />
+     
+        <b-switch
+        v-model="searchByBarcode"
+        size="is-medium"
+        type="is-info"
+        class="search-toggle">
+        {{ searchByBarcode ? '🔍 Modo Escaner' : '🔍 Modo Manual'  }}
+        </b-switch>
+
+        <buscar-producto 
+        ref="buscador"
+        @seleccionado="onSeleccionado"
+        :modo-busqueda="searchByBarcode ? 'codigo' : 'nombre'" 
+        class="full-width-search"
+        autofocus/>
         <b-switch v-model="usarPrecioTurista" type="is-info" class="tourist-switch">
-          Aplicar precio de turista antes de agregar los productos!
+          💸 Aplicar precio de turista antes de agregar los productos!
         </b-switch>
       </div>
     </div>
@@ -214,11 +228,30 @@ export default {
     tipoVenta: "",
     usarPrecioTurista: false,
     apiBaseUrl: process.env.VUE_APP_API,
-    // Mapa para evitar aplicar múltiples descuentos al mismo producto
-    descuentosAplicadosPorProducto: {}
+    searchByBarcode: true, // Nuevo estado para el toggle
+    descuentosAplicadosPorProducto: {} // Mapa para evitar aplicar múltiples descuentos al mismo producto
   }),
 
+  mounted() {
+    // Triple seguridad para el enfoque inicial
+    this.$nextTick(() => {
+      setTimeout(() => {
+        if (this.$refs.buscador?.focusInput) {
+          this.$refs.buscador.focusInput();
+        } else {
+          // Fallback directo al DOM
+          const input = document.querySelector('#producto input');
+          if (input) {
+            input.focus();
+            input.setAttribute('autofocus', '');
+          }
+        }
+      }, 300); // Delay generoso para SPA
+    });
+  },
+  
   methods: {
+
     // Método para formatear números con 2 decimales y separador de miles
     formatearNumero(valor) {
       return parseFloat(valor).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -483,6 +516,17 @@ export default {
     },
 
     onSeleccionado(producto) {
+
+      // Validacion de codigo de barras no encontrado
+
+      if (this.searchByBarcode && !producto) {
+        this.$buefy.toast.open({
+          type: 'is-danger',
+          message: 'Codigo de barras no encontrado'
+        });
+        return;
+      }
+
       let verificaExistencia = this.verificarExistenciaAlcanzada(producto.existencia, producto.id)
 
       if (verificaExistencia) return
@@ -500,6 +544,10 @@ export default {
 
       this.agregarALista(producto)
       this.actualizarTotalConDescuentos();
+
+      this.$nextTick(() => {
+        this.$refs.buscador.focusInput();
+      })
     },
 
     agregarALista(producto) {
@@ -920,8 +968,16 @@ export default {
       this.subtotal = parseFloat(this.subtotal.toFixed(2));
       this.descuentoTotal = parseFloat(this.descuentoTotal.toFixed(2));
     }
-  }
-};
+  },
+
+  watch: {
+    '$route'() {
+      this.$nextTick(() => {
+        this.$refs.buscador.focusInput();
+      });
+    }
+  },
+}
 </script>
 
 <style scoped>
@@ -1081,5 +1137,22 @@ export default {
   .empty-subtitle {
     font-size: 1.2rem;
   }
+
+  .search-toggle {
+  margin-right: 15px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+}
+
+.search-toggle .switch {
+  margin-right: 8px;
+  font-size: 100px;
+}
+
+.search-toggle >>> .switch span {
+  font-size: 1.2rem; /* Ajusta el tamaño a tu necesidad (ej: 1.2rem, 16px, etc.) */
+  font-weight: bold; /* Opcional: si quieres negrita */
+}
 }
 </style>
