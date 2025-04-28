@@ -1,0 +1,165 @@
+:root {
+    --primary-dark: #0077C2;
+    --primary: #59a5f5;
+    --primary-light: #c8ffff;
+    --accent: #00BFFF;
+    --accent-dark: #00619a;
+    --text-primary: #333333;
+    --text-secondary: #5c5c5c;
+    --background: #FFFFFF;
+    --background-light: #f5f5f5;
+    --background-dark: #cccccc;
+}
+input:focus,
+input:active {
+    border-color: var(--primary-dark) !important;
+    -webkit-box-shadow: 0 0 0 0.125em rgba(95, 109, 243, 0.25) !important;
+    box-shadow: 0 0 0 0.125em rgba(74, 90, 233, 0.25) !important;
+
+}
+
+a.is-primary {
+    background-color: var(--accent-dark) !important;
+    color: var(--background-light) !important;
+  }
+button.is-primary {
+    background-color: var(--accent-dark) !important;
+    /* color: var(--accent) !important; */
+  }
+button.is-info{
+    background-color: var(--primary-dark) !important;
+}
+.tabs li.is-active a {    
+    color: var(--accent-dark) !important;
+    border-bottom-color: var(--accent-dark) !important;
+
+}
+.tabs li a {    
+    color: var(--text-secondary) !important;
+    border-bottom-color: var(--text-secondary) !important;
+
+}
+.is-primary-bg {
+    color: white;
+    background-color: var(--accent-dark) !important;
+
+}
+
+.pagination-link.is-current {
+    color: white;
+    background-color: var(--primary) !important;
+    border: var(--primary-dark) !important;
+}
+
+.breadcrumb a{
+    color: var(--text-secondary) !important;
+}
+  
+.breadcrumb li.is-active a {
+    color: var(--text-primary) !important;
+}
+
+.is-1 {
+    color: var(--text-primary) !important;
+    font-size: 2.5rem !important;
+}
+
+.is-primary-icon {
+    background-color: var(--accent-dark) !important;
+    color: var(--background-light) !important;
+    width: 40px;
+    border-radius: 0.3rem;
+    height: 40px;
+}
+.card-header-title {
+    color: var(--text-primary) !important;
+    font-weight: 400;
+    
+}
+.btn-primary {
+ background-color: var(--accent-dark) !important;
+ border-radius: 0.3rem !important;
+}
+.btn-primary:hover,
+.btn-primary:active,
+.btn-primary:focus {
+  background-color: var(--primary-dark) !important;
+  border-radius: 0.3rem !important;
+  color: var(--background-light) !important;
+}
+.btn-ghost {
+    background-color: var(--background-light) !important;
+    border-radius: 0.3rem !important;
+    color: var(--accent-dark);
+    border: none !important;
+}
+.btn-link {
+    border: none !important;
+    color: var(--text-secondary);
+
+}
+.btn-link-primary {
+    border-radius: 0.3rem !important;
+    color: var(--text-secondary);
+    
+
+}
+
+.button:focus {
+    border: none
+}
+
+a.navbar-item{
+    color: var(--text-secondary) ;
+}
+a.navbar-item:hover{
+    color: var(--text-primary) ;
+}
+.router-link-exact-active{
+    color: var(--text-primary) !important;
+}
+
+.navbar-link:not(.is-arrowless)::after {
+    border-color: var(--text-primary);
+}
+a.navbar-link:active{
+    color: var(--text-primary) !important;
+}
+a.navbar-link:hover{
+    color: var(--text-primary) !important;
+}
+a.navbar-link:focus{
+    color: var(--text-primary) !important;
+}
+div.navbar-item.has-dropdown {
+    color: var(--text-primary) !important;
+}
+select:active{
+
+    border-color: var(--accent-dark) !important;
+
+}
+select:focus{
+    border-color: var(--accent-dark) !important;
+
+}
+.select:not(.is-multiple):not(.is-loading)::after{
+    border-color: var(--text-secondary);
+}
+.b-tooltip.is-primary .tooltip-content {
+    background-color: var(--primary-dark) !important;
+    color: var(--background-light) !important;
+    border-radius: 5px; /* Opcional: Para bordes redondeados */
+  }
+  .b-tooltip.is-primary .tooltip-content::before {
+    border-color: var(--primary-dark) transparent transparent transparent !important;
+  }
+
+  .tile.is-parent {
+    padding: 0.75rem;
+    gap: 0.8rem;
+}
+
+.switch input[type=checkbox]:checked + .check{
+    background-color: var(--accent-dark) !important;
+}
