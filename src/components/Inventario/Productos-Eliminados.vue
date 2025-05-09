@@ -71,11 +71,7 @@
                                     <b-icon icon="restore" />
                                 </b-button>
                             </b-tooltip>
-                            <b-tooltip label="Eliminar permanentemente" position="is-top">
-                                <b-button class="btn-link" @click="eliminarPermanente(props.row.id)">
-                                    <b-icon icon="delete-forever" />
-                                </b-button>
-                            </b-tooltip>
+                          
                         </div>
                     </b-table-column>
                 </b-table>
@@ -175,39 +171,7 @@ export default {
             })
         },
     
-        eliminarPermanente(idProducto) {
-            this.$buefy.dialog.confirm({
-                title: 'Eliminar permanentemente',
-                message: 'Esta acción eliminará permanentemente el producto. ¿Deseas continuar?',
-                confirmText: 'Sí, eliminar',
-                cancelText: 'Cancelar',
-                type: 'is-danger',
-                hasIcon: true,
-                onConfirm: () => {
-                    this.cargando = true
-                    
-                    apiRequest({
-                        method: 'DELETE',
-                        path: `products/${idProducto}/permanent`
-                    })
-                    .then(resultado => {
-                        this.cargando = false
-                        if (resultado) {
-                            this.$buefy.toast.open({
-                                message: 'Producto eliminado permanentemente',
-                                type: 'is-success'
-                            })
-                            this.obtenerProductosEliminados()
-                        } else {
-                            this.$buefy.toast.open({
-                                message: 'Error al eliminar el producto',
-                                type: 'is-danger'
-                            })
-                        }
-                    })
-                }
-            })
-        },
+      
     
         obtenerProductosEliminados() {
             this.cargando = true

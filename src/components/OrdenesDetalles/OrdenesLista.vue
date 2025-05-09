@@ -384,28 +384,3 @@ export default {
 }
 </script>
 
-<style scoped>
-.ordenes-lista {
-    padding: 1rem 0;
-}
-
-
-.header-left {
-    display: flex;
-    align-items: center;
-}
-
-.section-icon {
-    font-size: 1.5rem;
-    margin-right: 0.75rem;
-    color: #3273dc;
-}
-
-.section-content {
-    padding: 0.5rem 0;
-}
-
-.filters {
-    margin-bottom: 1rem;
-}
-</style>

@@ -1,0 +1,80 @@
+.full-width-section {
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+  margin: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.main-content {
+  width: 100%;
+  position: relative;
+}
+
+/* Estilos para el estado vacío alineado a la izquierda como en la imagen */
+.epic-empty-state {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  height: calc(100vh - 120px);
+  width: 100%;
+  background: #0077c2;
+  overflow: hidden;
+}
+
+.epic-empty-content {
+  padding: 3rem;
+  width: 100%;
+}
+
+.empty-message {
+  display: flex;
+  align-items: center;
+  padding-left: 2rem;
+}
+
+.cart-icon {
+  font-size: 4rem;
+  margin-right: 2rem;
+  color: white;
+}
+
+.empty-text {
+  color: white;
+}
+
+.empty-title {
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.empty-subtitle {
+  font-size: 2rem;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.5;
+}
+
+/* Estilos para el contenido de productos */
+.product-content {
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+
+@media screen and (max-width: 768px) {
+  .cart-icon {
+    font-size: 2.5rem;
+    margin-right: 1rem;
+  }
+  
+  .empty-title {
+    font-size: 2rem;
+  }
+  
+  .empty-subtitle {
+    font-size: 1.2rem;
+  }
+}

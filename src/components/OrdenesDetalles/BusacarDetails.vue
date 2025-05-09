@@ -26,7 +26,7 @@
                 <button 
                   type="button" 
                   @click="buscarDetalles" 
-                  class="btn btn-primary search-btn" 
+                  class="btn btn-secondary search-btn" 
                   :disabled="buscando || !invoiceNumber.trim()"
                 >
                   <i class="fas" :class="buscando ? 'fa-spinner fa-spin' : 'fa-search'"></i>
