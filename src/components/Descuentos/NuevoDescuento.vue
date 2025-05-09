@@ -105,7 +105,7 @@
 
 <script>
 import apiRequest from '../../Servicios/HttpService';
-import CalendarioSelector from './CalendarioSelector.vue';
+import CalendarioSelector from '../Extras/CalendarioSelector.vue';
 
 export default {
   name: 'NuevoDescuento',
