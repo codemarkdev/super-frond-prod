@@ -114,10 +114,11 @@
                   <b-icon icon="pencil" />
                 </b-button>
               </b-tooltip>
-              <b-tooltip label="Desactivar" position="is-top">
-                <b-button class="is-danger" @click="eliminarDescuento(props.row.id)" size="is-small">
-                  <b-icon icon="power-off" />
-                  <span>Desactivar</span>
+              <b-tooltip :label="props.row.isActive ? 'Desactivar' : 'Activar'" position="is-top">
+                <b-button
+                :class="props.row.isActive ? 'is-danger' : 'is-info'"
+                @click="stateDiscount(props.row.id, props.row.isActive)" size="is-small">
+                  <span>{{ props.row.isActive ? 'Desactivar' : 'Activar' }}</span>
                 </b-button>
               </b-tooltip>
             </div>
@@ -337,11 +338,11 @@ export default {
       }
     },
 
-    async eliminarDescuento(id) {
+    async stateDiscount(id, isActive) {
       this.$buefy.dialog.confirm({
-        title: 'Eliminar Descuento',
-        message: '¿Está seguro que desea Desactivar este descuento?   ',
-        confirmText: 'Desactivar',
+        title: `Confirmar ${isActive ? 'Desactivar' : 'Activar'} Descuento`,
+        message: `¿Está seguro que desea ${isActive ? 'Desactivar' : 'Activar'} este descuento?`,
+        confirmText: `${isActive ? 'Desactivar' : 'Activar'}`,
         cancelText: 'Cancelar',
         type: 'is-danger',
         hasIcon: true,
@@ -350,14 +351,17 @@ export default {
 
           try {
             const response = await apiRequest({
-              method: 'DELETE',
-              path: `discounts/${id}`
+              method: 'PATCH',
+              path: `discounts/${id}`,
+              data: {
+                isActive: !isActive
+              }
             });
 
             // Verificar si la respuesta es exitosa (código 200)
             if (response && response.status === 200) {
               this.$buefy.toast.open({
-                message: 'Descuento Desactivado exitosamente',
+                message: `Descuento ${isActive ? 'Desactivado' : 'Activado'} correctamente`,
                 type: 'is-success',
                 duration: 3000
               });
@@ -370,7 +374,7 @@ export default {
             // Verificar si el error es porque el descuento no fue encontrado
             if (error.response && error.response.status === 404) {
               this.$buefy.toast.open({
-                message: 'El descuento no existe o ya fue Desactivado',
+                message: 'El descuento no existe',
                 type: 'is-warning',
                 duration: 3000
               });

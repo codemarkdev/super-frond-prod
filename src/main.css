@@ -79,6 +79,7 @@ button.is-info{
 .btn-primary {
  background-color: var(--accent-dark) !important;
  border-radius: 0.3rem !important;
+ width: auto 
 }
 .btn-primary:hover,
 .btn-primary:active,
