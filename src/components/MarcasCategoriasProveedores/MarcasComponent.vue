@@ -15,6 +15,7 @@
                     <div class="level-item">
                         <b-button v-if="isActive" type="is-primary" size="is-medium" class="is-rounded" icon-left="plus"
                             @click="agregarMarca">
+
                             Agregar Marca
                         </b-button>
                     </div>
@@ -30,7 +31,7 @@
                 {{ props.row.brandName }}
             </b-table-column>
             <b-table-column field="nombreMarca" label="Productos" sortable v-slot="props">
-                <b-tag  size="is-medium">
+                <b-tag size="is-medium">
                     {{ props.row.products.length }}
                 </b-tag>
             </b-table-column>
@@ -41,13 +42,10 @@
                     <b-button v-if="isActive" class="btn-link" icon-left="delete" size="is-small"
                         @click="eliminar(props.row)">Eliminar</b-button>
 
-                    <b-button 
-                    class="btn-primary" 
-                    icon-left="pen" 
-                    size="is-small"
-                    @click="!isActive ? activarMarca(props.row) : editar(props.row)">
-                       {{ !isActive
-                        ? 'Activar' : 'Editar'}}
+                    <b-button class="btn-primary" size="is-small"
+                        @click="!isActive ? activarMarca(props.row) : editar(props.row)">
+                        {{ !isActive
+                            ? 'Activar' : '✏️' }}
                     </b-button>
                 </div>
             </b-table-column>
@@ -81,7 +79,7 @@ export default {
 
     data: () => ({
         isAdmin: false,
-        isActive: true, 
+        isActive: true,
         cargando: false,
         marcas: [],
         proveedores: [],
@@ -100,10 +98,10 @@ export default {
 
     methods: {
 
-        
-        isRole (){
-         const {rol} = AyudanteSesion.obtenerDatosSesion()
-         this.isAdmin = rol === 'Admin'
+
+        isRole() {
+            const { rol } = AyudanteSesion.obtenerDatosSesion()
+            this.isAdmin = rol === 'Admin'
 
         },
         async handleSwitchChange() {
@@ -121,7 +119,7 @@ export default {
                     this.cargando = true
                     apiRequest({
                         method: 'POST',
-                        path: `brands/active/${marca.id}` 
+                        path: `brands/active/${marca.id}`
                     })
                         .then(resultado => {
                             if (resultado) {
@@ -261,7 +259,7 @@ export default {
 
         obtenerProveedores() {
             apiRequest({ method: 'GET', path: 'providers' })
-                .then(response => this.proveedores = response.data ?? [] )
+                .then(response => this.proveedores = response.data ?? [])
         },
 
         getProviderName(providerId) {

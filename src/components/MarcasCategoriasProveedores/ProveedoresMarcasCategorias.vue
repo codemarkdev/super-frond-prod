@@ -1,11 +1,11 @@
 <template>
   <section>
-    <p class="title is-1">Proveedores, Marcas y Categorías</p>
+    <p class="title is-1">Catálogo PMC</p>
     <b-breadcrumb
     align="is-left"
     >
     <b-breadcrumb-item tag='router-link' to="/">Inicio</b-breadcrumb-item>
-    <b-breadcrumb-item active>Proveedores, Marcas y Categorías</b-breadcrumb-item>
+    <b-breadcrumb-item active>Catálogo PMC</b-breadcrumb-item>
   </b-breadcrumb>
   
   <!-- <b-tabs v-model="tabActiva" size="is-large">

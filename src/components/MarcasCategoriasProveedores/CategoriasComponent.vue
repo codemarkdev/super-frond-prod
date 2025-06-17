@@ -41,10 +41,10 @@
 
               Eliminar
             </b-button>
-            <b-button class="btn-primary" icon-left="pen" size="is-small"
+            <b-button class="btn-primary" size="is-small"
               @click="!isActive ? activarCat(props.row) : editar(props.row)">
               {{ !isActive
-                ? 'Activar' : 'Editar' }}
+                ? 'Activar' : '✏️' }}
             </b-button>
           </div>
         </b-table-column>
@@ -93,7 +93,7 @@ export default {
   components: { DialogoCategorias },
 
   data: () => ({
-    isAdmin: false,  
+    isAdmin: false,
     isActive: true,
     categorias: [],
     cargando: false,
@@ -110,11 +110,11 @@ export default {
 
   methods: {
 
-    isRole (){
-         const {rol} = AyudanteSesion.obtenerDatosSesion()
-         this.isAdmin = rol === 'Admin'
+    isRole() {
+      const { rol } = AyudanteSesion.obtenerDatosSesion()
+      this.isAdmin = rol === 'Admin'
 
-        },
+    },
 
     async handleSwitchChange() {
       this.obtenerCategorias();
@@ -140,7 +140,7 @@ export default {
                   type: 'is-success',
                   message: 'Categoria reactivada correctamente'
                 })
-                this.obtenerCategorias() 
+                this.obtenerCategorias()
               }
             })
             .catch(() => {

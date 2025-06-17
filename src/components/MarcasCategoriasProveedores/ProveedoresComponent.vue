@@ -54,11 +54,11 @@
               </b-button>
               <b-button 
                 class="btn-primary"
-                icon-left="pen" 
+          
                 size="is-small"
                 @click="!isActive ? activarProvider(props.row) : editar(props.row)">
                        {{ !isActive
-                        ? 'Activar' : 'Editar'}}
+                        ? 'Activar' : '✏️'}}
               </b-button>
               
             </div>

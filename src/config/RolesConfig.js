@@ -5,7 +5,7 @@ const rolesConfig = {
         views: [
             createView("Inicio", "/"),
             createView("Inventario", "/inventario"),
-            createView("Proveedores, Marcas y Categorías", "/proveedores-marcas-y-categorias"),
+            createView("Catálogo PMC", "/proveedores-marcas-y-categorias"),
             createView("Reportes", "/reportes", [
                 createView("Ventas", "/reporte-ventas"),
                 // createView("Pagos", "/Pagos")
