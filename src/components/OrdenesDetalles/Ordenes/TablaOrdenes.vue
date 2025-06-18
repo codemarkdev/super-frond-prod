@@ -112,11 +112,11 @@
         <div class="per-page-selector">
           <span>Mostrar:</span>
           <b-select v-model="elementosPorPaginaLocal" size="is-small" @input="cambiarElementosPorPagina">
-            <option value="5">5</option>
-            <option value="10">10</option>
-            <option value="20">20</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
+            <option :value="5">5</option>
+            <option :value="10">10</option>
+            <option :value="20">20</option>
+            <option :value="50">50</option>
+            <option :value="100">100</option>
           </b-select>
         </div>
       </div>
@@ -186,7 +186,6 @@ export default {
     paginaActual(newVal) {
       this.paginaActualLocal = newVal;
     },
-    
     elementosPorPagina(newVal) {
       this.elementosPorPaginaLocal = newVal;
     }
@@ -195,28 +194,15 @@ export default {
   methods: {
     formatearFecha(fecha) {
       if (!fecha) return 'N/A';
-      
       const options = { year: 'numeric', month: 'long', day: 'numeric' };
       return new Date(fecha).toLocaleDateString('es-ES', options);
     },
     
     obtenerNombreProducto(detalle) {
-      if (detalle.productName) {
-        return detalle.productName;
-      }
-      
-      if (detalle.product && detalle.product.name) {
-        return detalle.product.name;
-      }
-      
-      if (detalle.product && detalle.product.id && this.productosCache[detalle.product.id]) {
-        return this.productosCache[detalle.product.id].name;
-      }
-      
-      if (detalle.productId && this.productosCache[detalle.productId]) {
-        return this.productosCache[detalle.productId].name;
-      }
-      
+      if (detalle.productName) return detalle.productName;
+      if (detalle.product && detalle.product.name) return detalle.product.name;
+      if (detalle.product && detalle.product.id && this.productosCache[detalle.product.id]) return this.productosCache[detalle.product.id].name;
+      if (detalle.productId && this.productosCache[detalle.productId]) return this.productosCache[detalle.productId].name;
       return "Producto sin información";
     },
     

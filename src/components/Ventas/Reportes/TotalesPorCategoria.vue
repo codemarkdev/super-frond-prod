@@ -18,6 +18,9 @@
               ${{ formatNumber(props.row.totalSales) }}
             </b-table-column>
           </b-table>
+          <div v-if="!totalesPorMarca.length && !cargando.byBrand" class="message is-warning is-light mt-2">
+            <div class="message-body">No hay totales registrados por marca.</div>
+          </div>
         </div>
       </div>
     </div>
@@ -40,6 +43,9 @@
               ${{ formatNumber(props.row.totalSales) }}
             </b-table-column>
           </b-table>
+          <div v-if="!totalesPorCategoria.length && !cargando.byCategory" class="message is-warning is-light mt-2">
+            <div class="message-body">No hay totales registrados por categoría.</div>
+          </div>
         </div>
       </div>
     </div>
@@ -65,6 +71,9 @@
               {{ formatNumber(props.row.totalUnitsSold) }}
             </b-table-column>
           </b-table>
+          <div v-if="!productosPorMarca.length && !cargando.topByBrand" class="message is-warning is-light mt-2">
+            <div class="message-body">No hay productos registrados por marca.</div>
+          </div>
         </div>
       </div>
     </div>
@@ -79,8 +88,7 @@
           </p>
         </header>
         <div class="card-content">
-          <b-table :data="productosPorCategoria" :loading="cargando.topByCategory" :striped="true"
-            :hoverable="true">
+          <b-table :data="productosPorCategoria" :loading="cargando.topByCategory" :striped="true" :hoverable="true">
             <b-table-column field="categoryName" label="Categoría" v-slot="props">
               {{ props.row.categoryName }}
             </b-table-column>
@@ -91,6 +99,9 @@
               {{ formatNumber(props.row.totalUnitsSold) }}
             </b-table-column>
           </b-table>
+          <div v-if="!productosPorCategoria.length && !cargando.topByCategory" class="message is-warning is-light mt-2">
+            <div class="message-body">No hay productos registrados por categoría.</div>
+          </div>
         </div>
       </div>
     </div>
@@ -102,14 +113,12 @@ import apiRequest from "@/Servicios/HttpService";
 
 export default {
   name: "TotalesPorCategoria",
-  
   props: {
     isAdmin: {
       type: Boolean,
       default: false
     }
   },
-  
   data() {
     return {
       totalesPorMarca: [],
@@ -124,11 +133,9 @@ export default {
       }
     };
   },
-  
   mounted() {
     this.cargarDatos();
   },
-  
   methods: {
     formatNumber(value) {
       if (!value) return "0.00";
@@ -136,11 +143,11 @@ export default {
       return isNaN(num)
         ? "0.00"
         : num.toLocaleString("es-MX", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        });
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          });
     },
-    
+
     async cargarDatos() {
       await Promise.all([
         this.obtenerTotalesPorMarca(),
@@ -149,7 +156,7 @@ export default {
         this.obtenerProductosPorCategoria()
       ]);
     },
-    
+
     async obtenerTotalesPorMarca() {
       this.cargando.byBrand = true;
       try {
@@ -157,15 +164,15 @@ export default {
           method: "GET",
           path: "sold-products/totals-by-brand",
         });
-
-        if (response?.data) {
-          this.totalesPorMarca = Array.isArray(response.data)
-            ? response.data
-            : response.data.data || [];
-        }
+        this.totalesPorMarca = Array.isArray(response?.data)
+          ? response.data
+          : response?.data?.data || [];
       } catch (error) {
-        console.error("Error al obtener totales por marca:", error);
-        this.mostrarError("Error al cargar los totales por marca");
+        if (error?.response?.status !== 404) {
+          this.mostrarError("Error al cargar los totales por marca");
+          console.error("Error al obtener totales por marca:", error);
+        }
+        this.totalesPorMarca = [];
       } finally {
         this.cargando.byBrand = false;
       }
@@ -178,15 +185,15 @@ export default {
           method: "GET",
           path: "sold-products/totals-by-category",
         });
-
-        if (response?.data) {
-          this.totalesPorCategoria = Array.isArray(response.data)
-            ? response.data
-            : response.data.data || [];
-        }
+        this.totalesPorCategoria = Array.isArray(response?.data)
+          ? response.data
+          : response?.data?.data || [];
       } catch (error) {
-        console.error("Error al obtener totales por categoría:", error);
-        this.mostrarError("Error al cargar los totales por categoría");
+        if (error?.response?.status !== 404) {
+          this.mostrarError("Error al cargar los totales por categoría");
+          console.error("Error al obtener totales por categoría:", error);
+        }
+        this.totalesPorCategoria = [];
       } finally {
         this.cargando.byCategory = false;
       }
@@ -199,15 +206,15 @@ export default {
           method: "GET",
           path: "sold-products/top-sold-by-brand",
         });
-
-        if (response?.data) {
-          this.productosPorMarca = Array.isArray(response.data)
-            ? response.data
-            : response.data.data || [];
-        }
+        this.productosPorMarca = Array.isArray(response?.data)
+          ? response.data
+          : response?.data?.data || [];
       } catch (error) {
-        console.error("Error al obtener productos por marca:", error);
-        this.mostrarError("Error al cargar los productos por marca");
+        if (error?.response?.status !== 404) {
+          this.mostrarError("Error al cargar los productos por marca");
+          console.error("Error al obtener productos por marca:", error);
+        }
+        this.productosPorMarca = [];
       } finally {
         this.cargando.topByBrand = false;
       }
@@ -220,20 +227,20 @@ export default {
           method: "GET",
           path: "sold-products/top-sold-by-category",
         });
-
-        if (response?.data) {
-          this.productosPorCategoria = Array.isArray(response.data)
-            ? response.data
-            : response.data.data || [];
-        }
+        this.productosPorCategoria = Array.isArray(response?.data)
+          ? response.data
+          : response?.data?.data || [];
       } catch (error) {
-        console.error("Error al obtener productos por categoría:", error);
-        this.mostrarError("Error al cargar los productos por categoría");
+        if (error?.response?.status !== 404) {
+          this.mostrarError("Error al cargar los productos por categoría");
+          console.error("Error al obtener productos por categoría:", error);
+        }
+        this.productosPorCategoria = [];
       } finally {
         this.cargando.topByCategory = false;
       }
     },
-    
+
     mostrarError(mensaje) {
       this.$buefy.toast.open({
         message: mensaje,

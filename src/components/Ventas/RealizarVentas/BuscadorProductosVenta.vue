@@ -6,8 +6,9 @@
         size="is-medium"
         type="is-info"
         class="search-toggle"
-        @input="$emit('toggle-search-mode')">
-        {{ searchByBarcode ? '🔍 Modo Escaner' : '🔍 Modo Manual' }}
+        @input="$emit('toggle-search-mode')"
+      >
+        <span class="emoji-lupa">🔍</span> {{ searchByBarcode ? 'Modo Escaner' : 'Modo Manual' }}
       </b-switch>
 
       <buscar-producto 
@@ -16,15 +17,22 @@
         :modo-busqueda="searchByBarcode ? 'codigo' : 'nombre'" 
         class="full-width-search"
         autofocus/>
-        
-      <b-switch 
-        :value="usarPrecioTurista" 
-        type="is-info" 
-        class="tourist-switch"
-        @input="$emit('toggle-tourist-price')">
-        💸 Aplicar precio de turista antes de agregar los productos!
-      </b-switch>
+
+      <div
+        class="emoji-toggle tourist-toggle"
+        :class="{ active: turistaActivo }"
+        @click="togglePrecioTurista"
+        title="Aplicar precio de turista antes de agregar los productos!"
+      >
+       🌴
+      </div>
     </div>
+
+    <transition name="fade">
+      <div v-if="showMessage" class="tourist-msg">
+        {{ turistaActivo ? 'Precio turista aplicado' : 'Precio turista desactivado' }}
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -46,6 +54,17 @@ export default {
       default: false
     }
   },
+  data() {
+    return {
+      showMessage: false,
+      turistaActivo: this.usarPrecioTurista
+    }
+  },
+  watch: {
+    usarPrecioTurista(newVal) {
+      this.turistaActivo = newVal
+    }
+  },
   methods: {
     onProductoSeleccionado(producto) {
       this.$emit('seleccionado', producto);
@@ -54,13 +73,20 @@ export default {
       if (this.$refs.buscadorInput?.focusInput) {
         this.$refs.buscadorInput.focusInput();
       } else {
-        // Fallback directo al DOM
         const input = document.querySelector('#producto input');
         if (input) {
           input.focus();
           input.setAttribute('autofocus', '');
         }
       }
+    },
+    togglePrecioTurista() {
+      this.turistaActivo = !this.turistaActivo;
+      this.$emit('toggle-tourist-price', this.turistaActivo);
+      this.showMessage = true;
+      setTimeout(() => {
+        this.showMessage = false;
+      }, 2000);
     }
   }
 }
@@ -73,6 +99,7 @@ export default {
   padding: 1rem 0;
   background-color: white;
   width: 100%;
+  flex-direction: column;
 }
 
 .search-container {
@@ -88,16 +115,40 @@ export default {
   margin-right: 2rem;
 }
 
-.tourist-switch {
-  white-space: nowrap;
-  font-size: 1.1rem;
+.emoji-toggle {
+  font-size: 1.8rem;
+  cursor: pointer;
+  user-select: none;
+  margin-right: 15px;
+  transition: transform 0.2s;
 }
 
-.search-toggle {
-  margin-right: 15px;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
+.emoji-toggle.active {
+  color: #2b9e4f;
+}
+
+.emoji-lupa {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.emoji-lupa:hover {
+  transform: scale(1.3);
+}
+
+.tourist-msg {
+  margin-top: 0.75rem;
+  color: #2b9e4f;
+  font-weight: bold;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+.fade-enter, .fade-leave-to {
+  opacity: 0;
 }
 
 @media screen and (max-width: 768px) {
@@ -106,14 +157,8 @@ export default {
     align-items: flex-start;
   }
 
-  .tourist-switch {
-    margin-left: 0;
+  .emoji-toggle {
     margin-top: 0.75rem;
-  }
-  
-  .search-toggle >>> .switch span {
-    font-size: 1.2rem;
-    font-weight: bold;
   }
 }
 </style>

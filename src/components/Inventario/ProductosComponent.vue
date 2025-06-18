@@ -1,4 +1,3 @@
-// ProductosComponent.vue (refactorizado usando InventarioTab y TabsHeader)
 <template>
   <section>
     <div class="field is-grouped mb-4">
@@ -46,8 +45,8 @@ import InventarioTab from './sud-products-comp/InventarioTab.vue'
 import ProductosAbollados from '../Inventario/Productos-Abollados.vue'
 import ProductosEliminados from '../Inventario/Productos-Eliminados.vue'
 import GestionDescuentos from '../Descuentos/Descuentos.vue'
-import apiRequest from '../../Servicios/HttpService';
-import AyudanteSesion from '../../Servicios/AyudanteSesion';
+import apiRequest from '../../Servicios/HttpService'
+import AyudanteSesion from '../../Servicios/AyudanteSesion'
 
 export default {
   name: 'ProductosComponent',
@@ -94,8 +93,8 @@ export default {
       this.obtenerProductos()
     },
     verificarPermisos() {
-      const datos = AyudanteSesion.obtenerDatosSesion();
-      this.isAdmin = datos.rol === 'Admin';
+      const datos = AyudanteSesion.obtenerDatosSesion()
+      this.isAdmin = datos.rol === 'Admin'
     },
     onPageChange(page) {
       this.pagination.currentPage = page
@@ -120,7 +119,12 @@ export default {
         let res
         if (term) {
           res = await apiRequest({ method: 'GET', path: `products/search/${encodeURIComponent(term)}` })
-          this.productos = Array.isArray(res?.data) ? res.data : []
+          const resultados = Array.isArray(res?.data) ? res.data : []
+          const filtro = term.toLowerCase()
+          this.productos = resultados.filter(p =>
+            p.name?.toLowerCase().includes(filtro) || p.code?.toLowerCase().includes(filtro)
+          ).slice(0, 20)
+
           this.totalProductos = this.productos.length
           this.pagination.totalPages = 1
           this.cartasTotales = []
@@ -153,38 +157,37 @@ export default {
 
     agregarExistencia(producto) {
       this.$buefy.dialog.prompt({
-        message: '¿Cuántas piezas vas a agregar de ' + producto.name + '?',
+        message: `¿Cuántas piezas vas a agregar a ${producto.name}?`,
         cancelText: 'Cancelar',
         confirmText: 'Agregar',
         inputAttrs: {
           type: 'number',
-          placeholder: 'Escribe la cantidad de productos',
-          value: '',
+          placeholder: 'Cantidad a agregar',
           min: 1
         },
         trapFocus: true,
         onConfirm: (value) => {
-          const cantidad = Number(value);
+          const cantidad = Number(value)
           if (isNaN(cantidad) || cantidad <= 0) {
-            this.$buefy.toast.open({ message: 'Por favor ingresa una cantidad válida', type: 'is-danger' });
-            return;
+            this.$buefy.toast.open({ message: 'Por favor ingresa una cantidad válida', type: 'is-danger' })
+            return
           }
-          this.cargando = true;
+          this.cargando = true
           apiRequest({
             method: 'PATCH',
             path: `products/${producto.id}/add-stock?quantity=${cantidad}`
           })
-          .then(registrado => {
-            this.cargando = false
-            if (registrado) {
-              this.$buefy.toast.open(cantidad + ' Productos agregados a ' + producto.name)
-              this.obtenerProductos()
-            }
-          })
-          .catch(() => {
-            this.cargando = false
-            this.$buefy.toast.open({ message: 'Error al agregar existencia', type: 'is-danger' });
-          });
+            .then(registrado => {
+              this.cargando = false
+              if (registrado) {
+                this.$buefy.toast.open(`${cantidad} productos agregados a ${producto.name}`)
+                this.obtenerProductos()
+              }
+            })
+            .catch(() => {
+              this.cargando = false
+              this.$buefy.toast.open({ message: 'Error al agregar existencia', type: 'is-danger' })
+            })
         }
       })
     },
@@ -202,31 +205,31 @@ export default {
         },
         trapFocus: true,
         onConfirm: (value) => {
-          const cantidad = Number(value);
+          const cantidad = Number(value)
           if (isNaN(cantidad) || cantidad <= 0) {
-            this.$buefy.toast.open({ message: 'Por favor ingresa una cantidad válida', type: 'is-danger' });
-            return;
+            this.$buefy.toast.open({ message: 'Por favor ingresa una cantidad válida', type: 'is-danger' })
+            return
           }
           if (cantidad > producto.stock) {
             this.$buefy.toast.open('No puedes quitar más de ' + producto.stock + ' productos')
             return
           }
-          this.cargando = true;
+          this.cargando = true
           apiRequest({
             method: 'PATCH',
             path: `products/${producto.id}/subtract-stock?quantity=${cantidad}`
           })
-          .then(registrado => {
-            this.cargando = false
-            if (registrado) {
-              this.$buefy.toast.open(cantidad + ' Productos quitados a ' + producto.name)
-              this.obtenerProductos()
-            }
-          })
-          .catch(() => {
-            this.cargando = false
-            this.$buefy.toast.open({ message: 'Error al quitar existencia', type: 'is-danger' });
-          });
+            .then(registrado => {
+              this.cargando = false
+              if (registrado) {
+                this.$buefy.toast.open(cantidad + ' Productos quitados a ' + producto.name)
+                this.obtenerProductos()
+              }
+            })
+            .catch(() => {
+              this.cargando = false
+              this.$buefy.toast.open({ message: 'Error al quitar existencia', type: 'is-danger' })
+            })
         }
       })
     },
@@ -246,10 +249,10 @@ export default {
         },
         trapFocus: true,
         onConfirm: (value) => {
-          const cantidad = Number(value);
+          const cantidad = Number(value)
           if (isNaN(cantidad) || cantidad <= 0) {
-            this.$buefy.toast.open({ message: 'Por favor ingresa una cantidad válida', type: 'is-danger' });
-            return;
+            this.$buefy.toast.open({ message: 'Por favor ingresa una cantidad válida', type: 'is-danger' })
+            return
           }
           if (cantidad > producto.stock) {
             this.$buefy.toast.open({ message: 'No puedes marcar más unidades de las disponibles', type: 'is-danger' })
@@ -278,19 +281,19 @@ export default {
                   notes: motivo
                 }
               })
-              .then(resultado => {
-                this.cargando = false
-                if (resultado) {
-                  this.$buefy.toast.open({ message: 'Producto marcado como abollado correctamente', type: 'is-success' })
-                  this.obtenerProductos()
-                } else {
+                .then(resultado => {
+                  this.cargando = false
+                  if (resultado) {
+                    this.$buefy.toast.open({ message: 'Producto marcado como abollado correctamente', type: 'is-success' })
+                    this.obtenerProductos()
+                  } else {
+                    this.$buefy.toast.open({ message: 'Error al marcar el producto como abollado', type: 'is-danger' })
+                  }
+                })
+                .catch(() => {
+                  this.cargando = false
                   this.$buefy.toast.open({ message: 'Error al marcar el producto como abollado', type: 'is-danger' })
-                }
-              })
-              .catch(() => {
-                this.cargando = false
-                this.$buefy.toast.open({ message: 'Error al marcar el producto como abollado', type: 'is-danger' })
-              })
+                })
             }
           })
         }
@@ -311,24 +314,26 @@ export default {
             method: 'DELETE',
             path: `products/${id}`
           })
-          .then(resultado => {
-            this.cargando = false
-            if (resultado) {
-              this.$buefy.toast.open({ type: 'is-info', message: 'Producto eliminado.' })
-              this.obtenerProductos()
-            } else {
-              this.$buefy.toast.open('Error al eliminar')
-            }
-          })
-          .catch(() => {
-            this.cargando = false
-            this.$buefy.toast.open({ message: 'Error al eliminar el producto', type: 'is-danger' });
-          });
+            .then(resultado => {
+              this.cargando = false
+              if (resultado) {
+                this.$buefy.toast.open({ type: 'is-info', message: 'Producto eliminado.' })
+                this.obtenerProductos()
+              } else {
+                this.$buefy.toast.open('Error al eliminar')
+              }
+            })
+            .catch(() => {
+              this.cargando = false
+              this.$buefy.toast.open({ message: 'Error al eliminar el producto', type: 'is-danger' })
+            })
         }
       })
     },
 
-    editar(id) { this.$router.push({ name: 'EditarProducto', params: { id } }) }
+    editar(id) {
+      this.$router.push({ name: 'EditarProducto', params: { id } })
+    }
   }
 }
 </script>

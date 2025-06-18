@@ -11,7 +11,6 @@
     </div>
 
     <div class="product-item-body">
-      <!-- Tipo de producto -->
       <div class="form-group checkbox-group">
         <label class="switch-label">Tipo de producto:</label>
         <div class="switch-options">
@@ -26,7 +25,6 @@
         </div>
       </div>
 
-      <!-- Buscador de producto existente -->
       <div v-if="productoLocal.esExistente" class="form-row">
         <b-field label="Buscar producto existente por nombre o código">
           <b-autocomplete
@@ -49,51 +47,48 @@
         </b-field>
       </div>
 
-      <!-- Error -->
       <div v-if="productoLocal.error" class="message error product-error">
         <i class="fas fa-exclamation-circle message-icon"></i>
         <span>{{ productoLocal.error }}</span>
       </div>
 
-      <!-- Info de producto existente o nuevo -->
+      <!-- Formulario producto nuevo -->
+      <div v-if="!productoLocal.esExistente" class="form-row">
+        <div class="form-group half">
+          <label><i class="fas fa-barcode label-icon"></i> Código del producto:</label>
+          <input type="text" v-model="productoLocal.code" @input="updateProducto('code', $event.target.value)" class="form-control" placeholder="Ingrese el código" required />
+        </div>
+        <div class="form-group half">
+          <label><i class="fas fa-font label-icon"></i> Nombre del producto:</label>
+          <input type="text" v-model="productoLocal.name" @input="updateProducto('name', $event.target.value)" class="form-control" placeholder="Ingrese el nombre" required />
+        </div>
+      </div>
 
-<!-- Campos para nombre y código si es producto nuevo -->
-<div v-if="!productoLocal.esExistente" class="form-row">
-  <div class="form-group half">
-    <label><i class="fas fa-barcode label-icon"></i> Código del producto:</label>
-    <input type="text" v-model="productoLocal.code" @input="updateProducto('code', $event.target.value)" class="form-control" placeholder="Ingrese el código" required />
-  </div>
-  <div class="form-group half">
-    <label><i class="fas fa-font label-icon"></i> Nombre del producto:</label>
-    <input type="text" v-model="productoLocal.name" @input="updateProducto('name', $event.target.value)" class="form-control" placeholder="Ingrese el nombre" required />
-  </div>
-</div>
+      <div v-if="!productoLocal.esExistente" class="form-row">
+        <div class="form-group half">
+          <label><i class="fas fa-tags label-icon"></i> Categoría:</label>
+          <div class="select">
+            <select v-model="productoLocal.categoryId" @change="updateProducto('categoryId', $event.target.value)">
+              <option disabled value="">Seleccione una categoría</option>
+              <option v-for="cat in categorias" :key="cat.id" :value="cat.id">
+                {{ cat.categoryName }}
+              </option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group half">
+          <label><i class="fas fa-industry label-icon"></i> Marca:</label>
+          <div class="select">
+            <select v-model="productoLocal.brandId" @change="updateProducto('brandId', $event.target.value)">
+              <option disabled value="">Seleccione una marca</option>
+              <option v-for="marca in marcas" :key="marca.id" :value="marca.id">
+                {{ marca.brandName }}
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
 
-<!-- Campos para seleccionar categoría y marca si es producto nuevo -->
-<div v-if="!productoLocal.esExistente" class="form-row">
-  <div class="form-group half">
-    <label><i class="fas fa-tags label-icon"></i> Categoría:</label>
-    <div class="select">
-      <select v-model="productoLocal.categoryId" @change="updateProducto('categoryId', $event.target.value)">
-        <option disabled value="">Seleccione una categoría</option>
-        <option v-for="cat in categorias" :key="cat.id" :value="cat.id">
-          {{ cat.categoryName }}
-        </option>
-      </select>
-    </div>
-  </div>
-  <div class="form-group half">
-    <label><i class="fas fa-industry label-icon"></i> Marca:</label>
-    <div class="select">
-      <select v-model="productoLocal.brandId" @change="updateProducto('brandId', $event.target.value)">
-        <option disabled value="">Seleccione una marca</option>
-        <option v-for="marca in marcas" :key="marca.id" :value="marca.id">
-          {{ marca.brandName }}
-        </option>
-      </select>
-    </div>
-  </div>
-</div>
       <div v-if="!productoLocal.esExistente || (productoLocal.esExistente && productoLocal.encontrado)">
         <div v-if="productoLocal.esExistente && productoLocal.encontrado || !productoLocal.esExistente" class="product-found-info">
           <div class="product-info-header">
@@ -102,24 +97,13 @@
           <div class="product-info-content">
             <div class="info-row"><span class="info-label">Código:</span> <span class="info-value">{{ productoLocal.code }}</span></div>
             <div class="info-row"><span class="info-label">Nombre:</span> <span class="info-value">{{ productoLocal.name }}</span></div>
-            <div class="info-row">
-  <span class="info-label">Categoría:</span>
-  <span class="info-value">
-    {{ categorias.find(cat => cat.id == productoLocal.categoryId)?.categoryName || 'No especificada' }}
-  </span>
-</div>
-            <div class="info-row">
-  <span class="info-label">Marca:</span>
-  <span class="info-value">
-    {{ marcas.find(m => m.id == productoLocal.brandId)?.brandName || 'No especificada' }}
-  </span>
-</div>
+            <div class="info-row"><span class="info-label">Categoría:</span> <span class="info-value">{{ categorias.find(cat => cat.id == productoLocal.categoryId)?.categoryName || 'No especificada' }}</span></div>
+            <div class="info-row"><span class="info-label">Marca:</span> <span class="info-value">{{ marcas.find(m => m.id == productoLocal.brandId)?.brandName || 'No especificada' }}</span></div>
             <div class="info-row"><span class="info-label">Stock actual:</span> <span class="info-value">{{ productoLocal.stock }} unidades</span></div>
             <div class="info-row"><span class="info-label">Precio de venta:</span> <span class="info-value">{{ formatearMoneda(productoLocal.salePrice) }}</span></div>
           </div>
         </div>
 
-        <!-- Campos de precios -->
         <div class="form-row">
           <div class="form-group half">
             <label><i class="fas fa-shopping-cart label-icon"></i> Precio de compra:</label>
@@ -142,34 +126,31 @@
           </div>
         </div>
 
-        <!-- Cálculo de IVA y total -->
-<div class="tax-info">
-  <div class="tax-header">
-    <i class="fas fa-info-circle"></i> Información de impuestos
-  </div>
-  <p>Los impuestos se calcularán automáticamente en el servidor basados en el precio de compra.</p>
-  <div class="tax-preview">
-    <div class="tax-preview-row">
-      <span class="tax-label">Precio unitario:</span>
-      <span class="tax-value">{{ formatearMoneda(productoLocal.purchasePrice) }}</span>
-    </div>
-    <div class="tax-preview-row">
-      <span class="tax-label">IVA estimado (13%):</span>
-      <span class="tax-value">{{ formatearMoneda(calcularIVAEstimado(productoLocal.purchasePrice)) }}</span>
-    </div>
-    <div class="tax-preview-row">
-      <span class="tax-label">Cantidad:</span>
-      <span class="tax-value">{{ productoLocal.quantity || 0 }}</span>
-    </div>
-    <div class="tax-preview-row total-row">
-      <span class="tax-label">Total estimado con IVA:</span>
-      <span class="tax-value total-value">{{ formatearMoneda(calcularTotalConIVA(productoLocal)) }}</span>
-    </div>
-  </div>
-</div>
-  
-<!-- Campos de impuestos terminados -->
-<!-- Campos de mayoreo -->
+        <div class="tax-info">
+          <div class="tax-header">
+            <i class="fas fa-info-circle"></i> Información de impuestos
+          </div>
+          <p>Los impuestos se calcularán automáticamente en el servidor basados en el precio de compra.</p>
+          <div class="tax-preview">
+            <div class="tax-preview-row">
+              <span class="tax-label">Precio unitario:</span>
+              <span class="tax-value">{{ formatearMoneda(productoLocal.purchasePrice) }}</span>
+            </div>
+            <div class="tax-preview-row">
+              <span class="tax-label">IVA estimado (13%):</span>
+              <span class="tax-value">{{ formatearMoneda(calcularIVAEstimado(productoLocal.purchasePrice)) }}</span>
+            </div>
+            <div class="tax-preview-row">
+              <span class="tax-label">Cantidad:</span>
+              <span class="tax-value">{{ productoLocal.quantity || 0 }}</span>
+            </div>
+            <div class="tax-preview-row total-row">
+              <span class="tax-label">Total estimado con IVA:</span>
+              <span class="tax-value total-value">{{ formatearMoneda(calcularTotalConIVA(productoLocal)) }}</span>
+            </div>
+          </div>
+        </div>
+
         <div class="form-group checkbox-group">
           <label class="switch-label">
             <i class="fas fa-truck label-icon"></i> Venta al por mayor:
@@ -249,16 +230,25 @@ export default {
         this.productosFiltrados = []
         return
       }
+
       this.buscandoProducto = true
       try {
         const res = await apiRequest({ method: 'GET', path: `products/search/${encodeURIComponent(term)}` })
-        if (res.status === 200) {
-          this.productosFiltrados = res.data
-        }
-      } catch {
+        const resultados = Array.isArray(res?.data) ? res.data : []
+
+        const filtro = term.toLowerCase()
+        this.productosFiltrados = resultados
+          .filter(p =>
+            p.name?.toLowerCase().includes(filtro) ||
+            p.code?.toLowerCase().includes(filtro)
+          )
+          .slice(0, 20)
+      } catch (error) {
+        console.error('Error al buscar productos:', error)
         this.productosFiltrados = []
+      } finally {
+        this.buscandoProducto = false
       }
-      this.buscandoProducto = false
     },
     onSelectProductoBuscado(producto) {
       const actualizado = {
