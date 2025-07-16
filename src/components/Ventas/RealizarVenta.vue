@@ -3,10 +3,8 @@
     <!-- Barra superior con búsqueda y switch -->
     <buscador-productos-venta
       ref="buscador"
-      :search-by-barcode="searchByBarcode"
       :usar-precio-turista="usarPrecioTurista"
       @seleccionado="onSeleccionado"
-      @toggle-search-mode="searchByBarcode = !searchByBarcode"
       @toggle-tourist-price="usarPrecioTurista = !usarPrecioTurista"
     />
     
@@ -117,7 +115,6 @@ export default {
     tipoVenta: "",
     usarPrecioTurista: false,
     apiBaseUrl: process.env.VUE_APP_API,
-    searchByBarcode: true,
     descuentosAplicadosPorProducto: {}
   }),
 
@@ -373,7 +370,7 @@ export default {
 
     onSeleccionado(producto) {
       // Validacion de codigo de barras no encontrado
-      if (this.searchByBarcode && !producto) {
+      if (!producto) {
         this.$buefy.toast.open({
           type: 'is-danger',
           message: 'Codigo de barras no encontrado'

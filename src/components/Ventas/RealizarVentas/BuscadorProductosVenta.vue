@@ -1,20 +1,9 @@
 <template>
   <div class="top-controls">
     <div class="search-container">
-      <b-switch
-        :value="searchByBarcode"
-        size="is-medium"
-        type="is-info"
-        class="search-toggle"
-        @input="$emit('toggle-search-mode')"
-      >
-        <span class="emoji-lupa">🔍</span> {{ searchByBarcode ? 'Modo Escaner' : 'Modo Manual' }}
-      </b-switch>
-
       <buscar-producto 
         ref="buscadorInput"
         @seleccionado="onProductoSeleccionado"
-        :modo-busqueda="searchByBarcode ? 'codigo' : 'nombre'" 
         class="full-width-search"
         autofocus/>
 
@@ -45,10 +34,6 @@ export default {
     BuscarProducto
   },
   props: {
-    searchByBarcode: {
-      type: Boolean,
-      default: true
-    },
     usarPrecioTurista: {
       type: Boolean,
       default: false
