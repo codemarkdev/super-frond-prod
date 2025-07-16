@@ -128,7 +128,6 @@ export default {
     methods: {
         async registrar() {
             let producto = {
-                "code": this.producto.code,
                 "name": this.producto.name,
                 "purchasePrice": this.producto.purchasePrice,
                 "salePrice": this.producto.salePrice,

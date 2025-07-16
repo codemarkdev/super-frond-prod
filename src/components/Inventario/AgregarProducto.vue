@@ -46,8 +46,36 @@ export default {
             }
         },
 
+        async generateBarcode() {
+            try {
+                const {data} = await apiRequest({
+                    method: 'GET',
+                    path: 'products/internal-barcode/generate'
+                });
+                console.log("Código de barras generado:", data);
+                return data;
+            } catch (error) {
+                console.error("Error generating barcode:", error);
+                return null;
+            }
+        },
+
         async onRegistrado(producto) {
             this.cargando = true
+
+            if (!producto.code) {
+                const generatedCode = await this.generateBarcode();
+                if (generatedCode) {
+                    producto.code = generatedCode.code;
+                } else {
+                    this.cargando = false;
+                    this.$buefy.toast.open({
+                        type: 'is-danger',
+                        message: 'No se pudo generar un código de barras.'
+                    });
+                    return;
+                }
+            }
 
             const isDuplicate = await this.checkDuplicateCode(producto.code);
             if (isDuplicate) {
