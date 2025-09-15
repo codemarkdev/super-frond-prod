@@ -213,6 +213,23 @@ export default {
       this.productoLocal = actualizado
       this.$emit('update-producto', { index: this.index, producto: actualizado })
     },
+
+    // --- NUEVO: helper para considerar distintas señales de "eliminado"/"inactivo  por la gran puta lupe 🙊🙊"
+    esActivo(p) {
+     
+      const estaEliminado =
+        p?.isDeleted === true ||
+        p?.deleted === true ||
+        !!p?.deletedAt
+
+      const estaInactivo =
+        p?.is_active === false ||
+        p?.active === false ||
+        p?.status === 'inactive'
+
+      return !estaEliminado && !estaInactivo
+    },
+
     formatearMoneda(valor) {
       if (!valor || isNaN(valor)) return '$0.00'
       return new Intl.NumberFormat('es-SV', { style: 'currency', currency: 'USD' }).format(valor)
@@ -225,19 +242,28 @@ export default {
       const cantidad = parseInt(producto.quantity) || 0
       return (precio + this.calcularIVAEstimado(precio)) * cantidad
     },
+
     async buscarProductoPorNombre(term) {
-      if (term.length < 2) {
+      if (!term || term.length < 2) {
         this.productosFiltrados = []
         return
       }
 
       this.buscandoProducto = true
       try {
-        const res = await apiRequest({ method: 'GET', path: `products/search/${encodeURIComponent(term)}` })
-        const resultados = Array.isArray(res?.data) ? res.data : []
+        const res = await apiRequest({
+          method: 'GET',
+          path: `products/search/${encodeURIComponent(term)}`
+        })
 
+        const resultados = Array.isArray(res?.data) ? res.data : []
         const filtro = term.toLowerCase()
-        this.productosFiltrados = resultados
+
+        // 1) Filtrar activos
+        const soloActivos = resultados.filter(this.esActivo)
+
+        // 2) Filtrado por name/code y limitar
+        this.productosFiltrados = soloActivos
           .filter(p =>
             p.name?.toLowerCase().includes(filtro) ||
             p.code?.toLowerCase().includes(filtro)
@@ -250,7 +276,14 @@ export default {
         this.buscandoProducto = false
       }
     },
+
     onSelectProductoBuscado(producto) {
+      // (Opcional pero recomendado): impedir seleccionar eliminados
+      if (!this.esActivo(producto)) {
+        this.updateProducto('error', 'Este producto está inactivo o eliminado y no puede seleccionarse.')
+        return
+      }
+
       const actualizado = {
         ...this.productoLocal,
         esExistente: true,
@@ -281,3 +314,4 @@ export default {
   }
 }
 </script>
+
