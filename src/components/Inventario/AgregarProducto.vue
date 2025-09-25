@@ -1,125 +1,104 @@
 <template>
-    <section>
-        <p class="title is-1">Agregar productos</p>
-        <b-breadcrumb align="is-left">
-            <b-breadcrumb-item tag='router-link' to="/">Inicio</b-breadcrumb-item>
-            <b-breadcrumb-item tag='router-link' to="/inventario">Inventario</b-breadcrumb-item>
-            <b-breadcrumb-item active>Agregar producto</b-breadcrumb-item>
-        </b-breadcrumb>
-        <form-producto @registrado="onRegistrado" :productoProp="producto" />
-        <b-loading :is-full-page="true" v-model="cargando" :can-cancel="false"></b-loading>
-    </section>
+  <section>
+    <p class="title is-1">Agregar productos</p>
+    <b-breadcrumb align="is-left">
+      <b-breadcrumb-item tag="router-link" to="/">Inicio</b-breadcrumb-item>
+      <b-breadcrumb-item tag="router-link" to="/inventario">Inventario</b-breadcrumb-item>
+      <b-breadcrumb-item active>Agregar producto</b-breadcrumb-item>
+    </b-breadcrumb>
+
+    <form-producto ref="form" @registrado="onRegistrado" :productoProp="producto" />
+
+    <b-loading :is-full-page="true" v-model="cargando" :can-cancel="false"></b-loading>
+  </section>
 </template>
+
 <script>
 import FormProducto from './FormProducto.vue'
-import apiRequest from '../../Servicios/HttpService';
+import apiRequest from '../../Servicios/HttpService'
+
+const sanitizeCode = (s) =>
+  String(s ?? '').replace(/[\u200B-\u200D\uFEFF]/g, '').trim()
+
+const isHttpOk = (resp) =>
+  resp && typeof resp.status === 'number' && resp.status >= 200 && resp.status < 300
+
+const extractMessage = (resp, fallback) => {
+  const data = resp?.data ?? resp
+  const msg = data?.message
+  return Array.isArray(msg) ? msg.join(', ') : (msg || fallback)
+}
 
 export default {
-    name: "AgregarProducto",
-    components: { FormProducto },
+  name: 'AgregarProducto',
+  components: { FormProducto },
 
-    data: () => ({
-        cargando: false,
-        producto: {
-          
-        },
-    }),
+  data: () => ({
+    cargando: false,
+    producto: {},
+  }),
 
-    methods: {
-        async checkDuplicateCode(newCode) {
-            try {
-                const respuesta = await apiRequest({
-                    method: "GET",
-                    path: 'products'
-                });
-
-                const newCodeString = newCode.toString();
-                const found = respuesta.data.products.find(product => product.code === newCodeString);
-                if (found) {
-                    console.log(`El código ${newCodeString} ya existe en el producto ${found.name}.`);
-                    return true; 
-                }
-                return false;
-            } catch (error) {
-                console.error("Error checking duplicate code:", error);
-                return false;
-            }
-        },
-
-        async generateBarcode() {
-            try {
-                const {data} = await apiRequest({
-                    method: 'GET',
-                    path: 'products/internal-barcode/generate'
-                });
-                console.log("Código de barras generado:", data);
-                return data;
-            } catch (error) {
-                console.error("Error generating barcode:", error);
-                return null;
-            }
-        },
-
-        async onRegistrado(producto) {
-            this.cargando = true
-
-            if (!producto.code) {
-                const generatedCode = await this.generateBarcode();
-                if (generatedCode) {
-                    producto.code = generatedCode.code;
-                } else {
-                    this.cargando = false;
-                    this.$buefy.toast.open({
-                        type: 'is-danger',
-                        message: 'No se pudo generar un código de barras.'
-                    });
-                    return;
-                }
-            }
-
-            const isDuplicate = await this.checkDuplicateCode(producto.code);
-            if (isDuplicate) {
-                this.cargando = false
-                this.$buefy.toast.open({
-                    type: 'is-danger',
-                    message: 'El código de barras ya existe.'
-                })
-                return;
-            }
-
-           try {
-            apiRequest({
-                method: 'POST',
-                path: 'products',
-                data: {
-                    code: producto.code,
-                    name: producto.name,
-                    purchasePrice: producto.purchasePrice,
-                    salePrice: producto.salePrice,
-                    touristPrice: producto.touristPrice,
-                    reservedStock: 0,
-                    stock: producto.stock,
-                    wholesaleSale: producto.wholesaleSale,
-                    wholesalePrice: producto.wholesalePrice,
-                    wholesaleQuantity: producto.wholesaleQuantity,
-                    brandId: producto.brandId,
-                    categoryId: producto.categoryId
-                }
-            })
-            this.cargando = false
-                    this.$buefy.toast.open({
-                        type: 'is-info',
-                        message: 'Producto registrado con éxito.'
-                    })
-           } catch (error) {
-            this.cargando = false
-                this.$buefy.toast.open({
-                        type: 'is-danger',
-                        message: 'No se pudo registrar producto'
-                    })
-           }
+  methods: {
+    async onRegistrado(producto) {
+      this.cargando = true
+      try {
+        const payload = {
+          ...producto,
+          code: sanitizeCode(producto.code),
+          name: (producto.name || '').trim(),
         }
-    }
 
+        if (!payload.code) {
+          const gen = await apiRequest({
+            method: 'GET',
+            path: 'products/internal-barcode/generate',
+            headers: { 'Cache-Control': 'no-store' },
+          })
+
+          if (!isHttpOk(gen) || !gen?.data?.code) {
+            const texto = extractMessage(gen, 'No se pudo generar un código de barras.')
+            this.$buefy.toast.open({ type: 'is-danger', message: texto })
+            return
+          }
+          payload.code = gen.data.code
+        }
+
+        const resp = await apiRequest({
+          method: 'POST',
+          path: 'products',
+          data: {
+            code: payload.code,
+            name: payload.name,
+            purchasePrice: payload.purchasePrice,
+            salePrice: payload.salePrice,
+            touristPrice: payload.touristPrice,
+            reservedStock: 0,
+            stock: payload.stock,
+            wholesaleSale: payload.wholesaleSale,
+            wholesalePrice: payload.wholesalePrice,
+            wholesaleQuantity: payload.wholesaleQuantity,
+            brandId: payload.brandId,
+            categoryId: payload.categoryId,
+          },
+          headers: { 'Cache-Control': 'no-store' },
+        })
+
+        if (!isHttpOk(resp)) {
+          const texto = extractMessage(resp, 'No se pudo registrar producto')
+          this.$buefy.toast.open({ type: 'is-danger', message: texto })
+          return
+        }
+
+        this.$buefy.toast.open({ type: 'is-success', message: 'Producto registrado con éxito.' })
+        this.$refs.form?.reset?.()
+      } catch (error) {
+        const msg = error?.response?.data?.message || error?.message || 'No se pudo registrar producto'
+        const texto = Array.isArray(msg) ? msg.join(', ') : msg
+        this.$buefy.toast.open({ type: 'is-danger', message: texto })
+      } finally {
+        this.cargando = false
+      }
+    },
+  },
 }
 </script>
