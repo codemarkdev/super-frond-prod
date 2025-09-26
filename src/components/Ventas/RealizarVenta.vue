@@ -1,13 +1,9 @@
 <template>
   <section class="full-width-section">
     <!-- Barra superior con búsqueda y switch -->
-    <buscador-productos-venta
-      ref="buscador"
-      :usar-precio-turista="usarPrecioTurista"
-      @seleccionado="onSeleccionado"
-      @toggle-tourist-price="usarPrecioTurista = !usarPrecioTurista"
-    />
-    
+    <buscador-productos-venta ref="buscador" :usar-precio-turista="usarPrecioTurista" :lineas="productos"
+      @seleccionado="onSeleccionado" @toggle-tourist-price="usarPrecioTurista = !usarPrecioTurista" />
+
     <!-- Contenido principal -->
     <div class="main-content">
       <!-- Estado vacío rediseñado - Alineado a la izquierda como en la imagen -->
@@ -23,48 +19,33 @@
           </div>
         </div>
       </div>
-      
+
       <!-- Contenido cuando hay productos -->
       <div v-if="productos.length > 0" class="columns is-multiline product-content">
         <!-- Columna izquierda: Lista de productos -->
         <div class="column is-8">
-          <tabla-productos :listaProductos="productos" @quitar="onQuitar" @aumentar="onAumentar" />
+          <tabla-productos :listaProductos="productos" @quitar="onQuitar" @editar-cantidad="onEditarCantidad" />
         </div>
-        
+
         <!-- Columna derecha: Resumen y acciones -->
         <div class="column is-4">
-          <resumen-venta
-            :total="total"
-            :subtotal="subtotal"
-            :descuento-total="descuentoTotal"
-            :cargando-descuentos="cargandoDescuentos"
-            @cancelar-venta="cancelarVenta"
-            @abrir-dialogo="abrirDialogo"
-            @buscar-descuentos="buscarDescuentosDisponibles"
-          />
+          <resumen-venta :total="total" :subtotal="subtotal" :descuento-total="descuentoTotal"
+            :cargando-descuentos="cargandoDescuentos" @cancelar-venta="cancelarVenta" @abrir-dialogo="abrirDialogo"
+            @buscar-descuentos="buscarDescuentosDisponibles" />
         </div>
       </div>
     </div>
-    
+
     <!-- Sección de descuentos disponibles - Solo visible cuando hay descuentos -->
-    <seccion-descuentos
-      v-if="descuentosDisponibles.length > 0"
-      :descuentos-disponibles="descuentosDisponibles"
-      @actualizar-descuentos="actualizarTotalConDescuentos"
-    />
+    <seccion-descuentos v-if="descuentosDisponibles.length > 0" :descuentos-disponibles="descuentosDisponibles"
+      @actualizar-descuentos="actualizarTotalConDescuentos" />
 
     <b-loading :is-full-page="true" v-model="cargando" :can-cancel="false"></b-loading>
-    
-    <gestor-dialogos
-      :mostrar-dialogo="mostrarDialogo"
-      :mostrar-terminar-venta="mostrarTerminarVenta"
-      :mostrar-agregar-cuenta="mostrarAgregarCuenta"
-      :mostrar-agregar-apartado="mostrarAgregarApartado"
-      :mostrar-registrar-cotizacion="mostrarRegistrarCotizacion"
-      :total-venta="total"
-      @close="onCerrar"
-      @terminar="onTerminar"
-    />
+
+    <gestor-dialogos :mostrar-dialogo="mostrarDialogo" :mostrar-terminar-venta="mostrarTerminarVenta"
+      :mostrar-agregar-cuenta="mostrarAgregarCuenta" :mostrar-agregar-apartado="mostrarAgregarApartado"
+      :mostrar-registrar-cotizacion="mostrarRegistrarCotizacion" :total-venta="total" @close="onCerrar"
+      @terminar="onTerminar" />
 
     <visorPDF ref="visorPDF" :urlBase="apiBaseUrl + 'print/viewThermal'" titulo="Comprobante de Venta" />
     <comprobante-compra :venta="ventaRealizada" :tipo="tipoVenta" @impreso="onImpreso" v-if="mostrarComprobante" />
@@ -127,8 +108,33 @@ export default {
       }, 300);
     });
   },
-  
+
   methods: {
+
+    _normalizeQty(q, existencia) {
+      const max = Math.max(0, Number(existencia) || 0);
+      let n = Math.floor(Number(q) || 0);
+      if (n < 1) n = 1;
+      if (max > 0) n = Math.min(n, max);
+      return n;
+    },
+
+    onEditarCantidad({ id, cantidad }) {
+      const linea = this.productos.find(p => p.id === id);
+      if (!linea) return;
+
+      const next = this._normalizeQty(cantidad, linea.existencia);
+      if (next !== linea.cantidad) linea.cantidad = next;
+
+      // Si maneja mayoreo por umbral, respétalo
+      if (linea.vendidoMayoreo) {
+        this.verificarMayoreo(linea.cantidadMayoreo, linea.id, linea.precioMayoreo);
+      }
+
+      // Recalcula descuentos dependientes de cantidad y totales
+      this.actualizarDescuentosPorCantidad?.(id);
+      this.actualizarTotalConDescuentos();
+    },
     formatearNumero(valor) {
       return parseFloat(valor).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     },
@@ -223,7 +229,7 @@ export default {
         },
         venta: {
           ...baseData,
-          paid: this.ventaRealizada.pagado
+          paid: Number(this.ventaRealizada.pagado)
         },
         cuenta: {
           date: this.ventaRealizada.fecha,
@@ -369,37 +375,42 @@ export default {
     },
 
     onSeleccionado(producto) {
-      // Validacion de codigo de barras no encontrado
       if (!producto) {
-        this.$buefy.toast.open({
-          type: 'is-danger',
-          message: 'Codigo de barras no encontrado'
-        });
+        this.$buefy.toast.open({ type: 'is-danger', message: 'Código de barras no encontrado' });
         return;
       }
 
-      let verificaExistencia = this.verificarExistenciaAlcanzada(producto.existencia, producto.id);
-
-      if (verificaExistencia) return;
-      if (producto.vendidoMayoreo) {
-        this.verificarMayoreo(producto.cantidadMayoreo, producto.id, producto.precioMayoreo);
+      const stock = Number(producto.stock) || 0;
+      if (stock <= 0) {
+        this.$buefy.toast.open({ type: 'is-danger', message: `El producto ${producto.name} no tiene stock disponible.` });
+        return;
       }
 
-      let existeEnLista = this.verificarSiEstaEnLista(producto.id);
+      const i = this.productos.findIndex(p => p.id === producto.id);
+      if (i >= 0) {
+        const linea = this.productos[i];
+        const actual = Number(linea.cantidad || 0);
 
-      if (existeEnLista >= 0) {
-        this.aumentarCantidad(existeEnLista);
+        if (actual >= stock) {
+          this.$buefy.toast.open({
+            type: 'is-danger',
+            message: `Alcanzaste la existencia máxima (${stock}).`
+          });
+          return;
+        }
+
+        linea.cantidad = actual + 1;
         this.actualizarTotalConDescuentos();
+        this.$nextTick(() => this.$refs.buscador?.focusInput?.());
         return;
       }
 
-      this.agregarALista(producto);
+      // Primera vez: agregar respetando stock
+      this.agregarALista(producto);   // esta ya pone existencia = producto.stock
       this.actualizarTotalConDescuentos();
-
-      this.$nextTick(() => {
-        this.$refs.buscador.focusInput();
-      });
+      this.$nextTick(() => this.$refs.buscador?.focusInput?.());
     },
+
 
     agregarALista(producto) {
       if (producto.stock === 0) {
@@ -603,7 +614,7 @@ export default {
                 const valorFijo = parseFloat(descuento.value) || 0;
                 d.discountAmount = valorFijo * producto.cantidad;
                 d.finalPrice = (producto.precio * producto.cantidad) - d.discountAmount;
-                
+
                 if (d.finalPrice <= 0) {
                   d.discountAmount = 0;
                   d.finalPrice = producto.precio * producto.cantidad;
@@ -616,7 +627,7 @@ export default {
                 const porcentaje = parseFloat(descuento.value) || 0;
                 d.discountAmount = (producto.precio * producto.cantidad * porcentaje) / 100;
                 d.finalPrice = (producto.precio * producto.cantidad) - d.discountAmount;
-                
+
                 if (d.finalPrice <= 0) {
                   d.discountAmount = 0;
                   d.finalPrice = producto.precio * producto.cantidad;
@@ -630,7 +641,7 @@ export default {
                   const bundles = Math.floor(producto.cantidad / descuento.value);
                   d.discountAmount = bundles * producto.precio;
                   d.finalPrice = producto.precio * (producto.cantidad - bundles);
-                  
+
                   if (d.finalPrice <= 0) {
                     d.discountAmount = 0;
                     d.finalPrice = producto.precio * producto.cantidad;
@@ -647,7 +658,7 @@ export default {
                   const gratis = Math.floor(producto.cantidad / (descuento.value + 1));
                   d.discountAmount = gratis * producto.precio;
                   d.finalPrice = producto.precio * (producto.cantidad - gratis);
-                  
+
                   if (d.finalPrice <= 0) {
                     d.discountAmount = 0;
                     d.finalPrice = producto.precio * producto.cantidad;
@@ -663,7 +674,7 @@ export default {
                 const valorEstacional = parseFloat(descuento.value) || 0;
                 d.discountAmount = (producto.precio * producto.cantidad * valorEstacional) / 100;
                 d.finalPrice = (producto.precio * producto.cantidad) - d.discountAmount;
-                
+
                 if (d.finalPrice <= 0) {
                   d.discountAmount = 0;
                   d.finalPrice = producto.precio * producto.cantidad;
@@ -678,7 +689,7 @@ export default {
 
             d.discountAmount = parseFloat(d.discountAmount.toFixed(2));
             d.finalPrice = parseFloat(d.finalPrice.toFixed(2));
-            
+
             return true;
           });
 
@@ -720,7 +731,7 @@ export default {
       this.descuentoTotal = 0;
 
       const descuentosPorProducto = {};
-      
+
       this.descuentosDisponibles.forEach(descuento => {
         if (descuento.aplicado) {
           if (!descuentosPorProducto[descuento.productId]) {
@@ -729,18 +740,18 @@ export default {
           descuentosPorProducto[descuento.productId].push(descuento);
         }
       });
-      
+
       Object.keys(descuentosPorProducto).forEach(productoId => {
         const descuentosProducto = descuentosPorProducto[productoId];
-        
+
         if (descuentosProducto.length > 0) {
           descuentosProducto.sort((a, b) => b.discountAmount - a.discountAmount);
-          
+
           const mejorDescuento = descuentosProducto[0];
           this.descuentoTotal += mejorDescuento.discountAmount;
-          
+
           this.descuentosAplicadosPorProducto[productoId] = mejorDescuento.discount.id;
-          
+
           descuentosProducto.slice(1).forEach(d => {
             d.aplicado = false;
           });
@@ -752,7 +763,7 @@ export default {
       }
 
       this.total = Math.max(0, this.subtotal - this.descuentoTotal);
-      
+
       this.total = parseFloat(this.total.toFixed(2));
       this.subtotal = parseFloat(this.subtotal.toFixed(2));
       this.descuentoTotal = parseFloat(this.descuentoTotal.toFixed(2));

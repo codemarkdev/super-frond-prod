@@ -1,18 +1,8 @@
 <template>
   <b-field label="Buscar producto (nombre o código)">
-    <b-autocomplete
-      v-model="producto"
-      id="producto"
-      placeholder="Escribe el nombre o código del producto"
-      :data="productosFiltrados"
-      ref="autocompleteRef"
-      field="name"
-      @input="onInput"
-      @select="seleccionarProducto"
-      @keyup.enter.native="manejarEnter($event)"
-      size="is-large"
-      :loading="cargando"
-    >
+    <b-autocomplete v-model="producto" id="producto" placeholder="Escribe el nombre o código del producto"
+      :data="productosFiltrados" ref="autocompleteRef" field="name" @input="onInput" @select="seleccionarProducto"
+      @keyup.enter.native="manejarEnter($event)" size="is-large" :loading="cargando">
       <template #empty>
         <div class="notification is-warning is-light">
           No hay coincidencias
@@ -169,6 +159,8 @@ export default {
       const one = (this.productosFiltrados.length === 1) ? this.productosFiltrados[0] : null;
       if (!one) return;
 
+      if (Number(one.stock) <= 0) return;
+
       const exactName = (one.name || '').toLowerCase() === q.toLowerCase();
       const exactCode = String(one.code) === q;
 
@@ -179,6 +171,10 @@ export default {
 
     seleccionarProducto(opcion) {
       if (!opcion) return;
+      if (Number(opcion.stock) <= 0) {
+        this.$buefy?.toast?.open?.({ type: 'is-danger', message: 'Sin stock disponible.' });
+        return;
+      }
       this.isSelecting = true;
       this.lastEventType = 'click';
       this.manejarSeleccion(opcion);
@@ -192,10 +188,18 @@ export default {
       if (!q) return;
 
       if (!this.pendingSearch) await this.buscarProductos();
-      else                     await this.pendingSearch;
+      else await this.pendingSearch;
 
       const exactByCode = this.productosEncontrados.find(p => String(p.code) === q);
       if (exactByCode) { this.manejarSeleccion(exactByCode); return; }
+
+
+      if (one && ((one.name || '').toLowerCase() === q.toLowerCase())) {
+        if (Number(one.stock) <= 0) {
+          this.$buefy?.toast?.open?.({ type: 'is-danger', message: 'Sin stock disponible.' });
+          return;
+        }
+      }
 
       const one = (this.productosFiltrados.length === 1) ? this.productosFiltrados[0] : null;
       if (one && ((one.name || '').toLowerCase() === q.toLowerCase())) {
