@@ -38,6 +38,7 @@
     <b-loading :is-full-page="true" v-model="cargando" :can-cancel="false" />
   </section>
 </template>
+
 <script>
 import TabsHeader from './sud-products-comp/TabsHeader.vue'
 import InventarioTab from './sud-products-comp/InventarioTab.vue'
@@ -86,17 +87,6 @@ export default {
     this.obtenerProductos()
   },
   methods: {
-    // ---- Helpers de estado ----
-    esEliminado(p) {
-      return p?.isDeleted === true || p?.deleted === true || !!p?.deletedAt
-    },
-    esInactivo(p) {
-      return p?.is_active === false || p?.active === false || p?.status === 'inactive'
-    },
-    esActivo(p) {
-      return !this.esEliminado(p) && !this.esInactivo(p)
-    },
-
     cambiarTab(tab) {
       this.activeTab = tab
       this.pagination.currentPage = 1
@@ -119,7 +109,6 @@ export default {
       this.pagination.currentPage = 1
       this.obtenerProductos()
     },
-
     async obtenerProductos() {
       this.cargando = true
       const page = this.pagination.currentPage
@@ -129,46 +118,22 @@ export default {
       try {
         let res
         if (term) {
-          // --- Búsqueda ---
           res = await apiRequest({ method: 'GET', path: `products/search/${encodeURIComponent(term)}` })
           const resultados = Array.isArray(res?.data) ? res.data : []
-          const q = term.toLowerCase()
+          const filtro = term.toLowerCase()
+          this.productos = resultados.filter(p =>
+            p.name?.toLowerCase().includes(filtro) || p.code?.toLowerCase().includes(filtro)
+          ).slice(0, 20)
 
-          // 1) Filtrar por estado según pestaña
-          const porEstado = (this.activeTab === 'eliminados')
-            ? resultados.filter(p => this.esEliminado(p))      // mostrar solo eliminados
-            : resultados.filter(p => this.esActivo(p))          // ocultar eliminados/inactivos
-
-          // 2) Filtrar por texto (name/code) y limitar
-          this.productos = porEstado
-            .filter(p => p.name?.toLowerCase().includes(q) || p.code?.toLowerCase().includes(q))
-            .slice(0, 20)
-
-          // totales locales (la búsqueda es client-side)
           this.totalProductos = this.productos.length
           this.pagination.totalPages = 1
           this.cartasTotales = []
         } else {
-          // --- Listado paginado ---
           res = await apiRequest({ method: 'GET', path: `products?page=${page}&limit=${limit}` })
-          const lista = Array.isArray(res?.data?.data) ? res.data.data : []
-
-          // Filtrar por estado según pestaña
-          const filtrados = (this.activeTab === 'eliminados')
-            ? lista.filter(p => this.esEliminado(p))
-            : lista.filter(p => this.esActivo(p))
-
-          this.productos = filtrados
-
-          // Nota: los totales del backend incluyen todo; como filtramos client-side,
-          // ajustamos contadores para lo que se muestra actualmente.
-          // Si quieres totales “reales” por estado, pide endpoints separados.
-          this.totalProductos = filtrados.length
-          // Mantén la paginación del backend si no buscas; si el filtro te deja menos filas,
-          // puedes dejar la página tal cual o recalcular. Aquí lo dejamos como viene:
+          this.productos = res?.data?.data || []
+          this.totalProductos = res?.data?.total || 0
           this.pagination.totalPages = res?.data?.totalPages || 1
 
-          // Cartas de totales (sólo cuando no se está buscando)
           const valorRes = await apiRequest({ method: 'GET', path: 'products/inventory/total-value' })
           const gananciaRes = await apiRequest({ method: 'GET', path: 'products/inventory/total-profit' })
 
